@@ -35,6 +35,9 @@ public sealed partial class SolutionContainerMixerComponent : Component
 
     [DataField]
     public Entity<AudioComponent>? MixingSoundEntity;
+
+    [DataField("clickSound"), ViewVariables(VVAccess.ReadWrite)]
+    public SoundSpecifier ClickSound = new SoundPathSpecifier("/Audio/Machines/machine_switch.ogg");
 }
 
 [Serializable, NetSerializable]

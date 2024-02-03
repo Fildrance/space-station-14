@@ -117,9 +117,19 @@
           False: { visible: False }
   - type: ItemSlots
     slots:
-      mixer:
+      input:
         whitelist:
           tags:
             - CentrifugeCompatible
   - type: Machine
     board: CentrifugeMachineCircuitboard
+  - type: ActivatableUIRequiresPower
+  - type: UserInterface
+    interfaces:
+    - key: enum.CentrifugeUiKey.Key
+      type: CentrifugeBoundUserInterface
+  - type: ActivatableUI
+    key: enum.CentrifugeUiKey.Key
+  - type: SolutionContainerManager
+    solutions:
+      buffer: {}
