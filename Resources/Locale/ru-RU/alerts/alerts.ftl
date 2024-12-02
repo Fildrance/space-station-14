@@ -18,6 +18,8 @@ alerts-weightless-name = Невесомость
 alerts-weightless-desc =
     Гравитация перестала воздействовать на вас, и вы свободно парите. Найдите за что можно ухватиться, или метните или выстрелите чем-нибудь в противоположном направлении.
     Магнитные ботинки и джетпак помогут вам передвигаться с большей эффективностью.
+alerts-walking-name = Шаг
+alerts-walking-desc = Вы идёте шагом, двигаясь в медленном темпе.
 alerts-stunned-name = [color=yellow]Оглушены[/color]
 alerts-stunned-desc = Вы [color=yellow]оглушены[/color]! Что-то мешает вам двигаться или взаимодействовать с объектами.
 alerts-handcuffed-name = [color=yellow]В наручниках[/color]
@@ -79,3 +81,5 @@ alerts-changeling-chemicals-desc = Тратьте химикаты для исп
 alerts-changeling-biomass-name = Биомасса
 alerts-changeling-biomass-desc =
     Это ваше здоровье. Если оно достигнет 0 - это [color=red]конец игры[/color]. Поглощайте гуманоидов, чтобы восстановить часть.
+alerts-offer-name = Получить
+alerts-offer-desc = Кто-то передаёт вам предмет.
