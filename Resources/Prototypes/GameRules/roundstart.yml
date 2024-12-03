@@ -379,6 +379,11 @@
     delay:
       min: 30
       max: 60
+  - type: AntagObjectives
+    objectives:
+    - ChangelingSurviveObjective
+    - ChangelingStealDNAObjective
+    - EscapeIdentityObjective
   - type: AntagSelection
     agentName: changeling-roundend-name
     definitions:
@@ -386,6 +391,5 @@
       max: 8
       playerRatio: 10
       lateJoinAdditional: true
-      mindComponents:
-      - type: ChangelingRole
-        prototype: Changeling
+      mindRoles:
+      - MindRoleChangeling
