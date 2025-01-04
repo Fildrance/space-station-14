@@ -825,7 +825,7 @@ public sealed class ChatUIController : UIController
     {
         if (_prototypeManager.TryIndex(msg.CommunicationChannel, out var proto))
         {
-            foreach (var markupSupplier in proto.ClientChatModifiers)
+            foreach (var markupSupplier in proto.Modifiers)
             {
                 msg.Message = markupSupplier.ProcessChatModifier(msg.Message, proto.ChannelParameters);
             }
@@ -852,7 +852,7 @@ public sealed class ChatUIController : UIController
                 }
             }
 
-            if (proto.ClientChatModifiers.Where(x => x is BubbleProviderChatModifier).Count() > 0)
+            if (proto.Modifiers.Where(x => x is BubbleProviderChatModifier).Count() > 0)
             {
                 var bubbleHeaderNode = msg.Message.Nodes.First(x => x.Name == "BubbleHeader");
                 if (bubbleHeaderNode.Value.TryGetLong(out var speechEnum))
