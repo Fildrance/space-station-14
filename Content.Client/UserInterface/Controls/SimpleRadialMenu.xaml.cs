@@ -7,6 +7,7 @@ using Robust.Client.GameObjects;
 using Robust.Shared.Timing;
 using Robust.Client.UserInterface.XAML;
 using Robust.Client.Input;
+using Robust.Client.UserInterface.Controls;
 
 namespace Content.Client.UserInterface.Controls;
 
@@ -138,6 +139,14 @@ public partial class SimpleRadialMenu : RadialMenu
             button.Scale = scale;
         }
 
+        var richTextLabel = new RichTextLabel
+        {
+            Margin = new Thickness(0,64,0,0),
+            Text = model.ToolTip,
+            MaxWidth = 200,
+            HorizontalAlignment = HAlignment.Center
+        };
+        button.Children.Add(richTextLabel);
         if (model is RadialMenuActionOption actionOption)
         {
             button.OnPressed += _ =>
