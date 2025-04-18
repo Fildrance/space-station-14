@@ -98,7 +98,7 @@
     - id: XenoArtifactMaterialSpawnPlastic
       weight: 3.3
     - id: XenoArtifactPortal
-      weight: 2.0
+      weight: 20000.0
     - id: XenoArtifactArtifactSpawn
       weight: 0.5
     - id: XenoArtifactShuffle

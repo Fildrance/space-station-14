@@ -17,6 +17,7 @@ public sealed class XAERandomTeleportInvokerSystem : BaseXAESystem<XAERandomTele
     {
         if (!_timing.IsFirstTimePredicted)
             return;
+
         // todo: teleport person who activated artifact with artifact itself
         var component = ent.Comp;
 
