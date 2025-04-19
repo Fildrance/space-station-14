@@ -1,13 +1,15 @@
+using Content.Server.Xenoarchaeology.Artifact.XAE.Components;
 using Content.Shared.Mind.Components;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Teleportation.Systems;
-using Content.Shared.Xenoarchaeology.Artifact.XAE.Components;
+using Content.Shared.Xenoarchaeology.Artifact;
+using Content.Shared.Xenoarchaeology.Artifact.XAE;
 using Robust.Shared.Collections;
 using Robust.Shared.Containers;
 using Robust.Shared.Random;
 using Robust.Shared.Timing;
 
-namespace Content.Shared.Xenoarchaeology.Artifact.XAE;
+namespace Content.Server.Xenoarchaeology.Artifact.XAE;
 
 /// <summary>
 /// System for xeno artifact effect that creates temporary portal between places on station.
@@ -21,12 +23,13 @@ public sealed class XAEPortalSystem : BaseXAESystem<XAEPortalComponent>
     [Dependency] private readonly IGameTiming _timing = default!;
 
     /// <inheritdoc />
-    protected override void OnActivated(Entity<XAEPortalComponent> ent, ref XenoArtifactNodeActivatedEvent args)
+    protected override void OnActivated(Entity<Server.Xenoarchaeology.Artifact.XAE.Components.XAEPortalComponent> ent, ref XenoArtifactNodeActivatedEvent args)
     {
         if (!_timing.IsFirstTimePredicted)
             return;
 
-        var map = Transform(ent).MapID;
+        var artifact = args.Artifact;
+        var map = Transform(artifact).MapID;
         var validMinds = new ValueList<EntityUid>();
         var mindQuery = EntityQueryEnumerator<MindContainerComponent, MobStateComponent, TransformComponent, MetaDataComponent>();
         while (mindQuery.MoveNext(out var uid, out var mc, out _, out var xform, out var meta))
@@ -42,12 +45,13 @@ public sealed class XAEPortalSystem : BaseXAESystem<XAEPortalComponent>
             return;
 
         var offset = _random.NextVector2(2, 3);
-        var originWithOffset = args.Coordinates.Offset(offset);
+        var originWithOffset = _transform.GetMapCoordinates(artifact).Offset(offset);
         var firstPortal = Spawn(ent.Comp.PortalProto, originWithOffset);
 
         var target = _random.Pick(validMinds);
 
-        var secondPortal = Spawn(ent.Comp.PortalProto, _transform.GetMapCoordinates(target));
+        var mapCoordinates = _transform.GetMapCoordinates(target);
+        var secondPortal = Spawn(ent.Comp.PortalProto, mapCoordinates);
 
         // Manual position swapping, because the portal that opens doesn't trigger a collision, and doesn't teleport targets the first time.
         _transform.SwapPositions(target, ent.Owner);
