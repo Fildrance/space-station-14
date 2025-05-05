@@ -1,8 +1,10 @@
 using System.Linq;
 using Content.Shared.EntityTable;
 using Content.Shared.NameIdentifier;
+using Content.Shared.Random.Helpers;
 using Content.Shared.Xenoarchaeology.Artifact.Components;
 using Content.Shared.Xenoarchaeology.Artifact.Prototypes;
+using Robust.Shared.Collections;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
 
@@ -100,16 +102,65 @@ public abstract partial class SharedXenoArtifactSystem
     /// <summary>
     /// Creates artifact node entity, attaching trigger and marking depth level for future use.
     /// </summary>
-    public Entity<XenoArtifactNodeComponent> CreateNode(Entity<XenoArtifactComponent> ent, XenoArchTriggerPrototype trigger, int depth = 0)
+    public Entity<XenoArtifactNodeComponent>? CreateNode(
+        Entity<XenoArtifactComponent> ent,
+        List<Entity<XenoArtifactNodeComponent>> directPredecessors,
+        Dictionary<XenoArchTriggerPrototype, float> triggers,
+        Dictionary<EntityPrototype, float> effects,
+        int depth = 0
+    )
     {
-        var entProtoId = _entityTable.GetSpawns(ent.Comp.EffectsTable)
-                                     .First();
+        // step 1 - pick trigger by budget
+        var predecessorBudgetSum = 0;
+        if (directPredecessors.Count > 0)
+            predecessorBudgetSum = directPredecessors.Sum(x => x.Comp.Budget);
 
-        AddNode((ent, ent), entProtoId, out var nodeEnt, dirty: false);
+        const int perDepthAdditionalBudget = 2000;
+        var virtualNodeAdditionalBudget = perDepthAdditionalBudget * depth;
+        var virtualNodeBudget = predecessorBudgetSum + virtualNodeAdditionalBudget;
+
+        var fittingTriggersByWeight = new Dictionary<XenoArchTriggerPrototype, float>();
+        foreach (var (t, weight) in triggers)
+        {
+            var budgetRange = t.BudgetRange;
+            if(budgetRange.Min <= virtualNodeBudget && budgetRange.Max >= virtualNodeBudget)
+                fittingTriggersByWeight.Add(t,weight);
+        }
+
+        if (fittingTriggersByWeight.Count == 0)
+            return null;
+
+        var trigger = RobustRandom.PickAndTake(fittingTriggersByWeight);
+
+        var actualBudget = predecessorBudgetSum + trigger.TriggerBudget;
+
+        // pick effect based on effect ranges and actual node budget.
+
+        var fittingEffectsByWeight = new Dictionary<EntityPrototype, float>();
+        foreach (var (e, weight) in effects)
+        {
+            if (!e.Components.TryGetComponent("XenoArtifactNodeBudget", out var comp) || comp is not XenoArtifactNodeBudgetComponent nodeBudgetComp)
+                continue;
+
+            var budgetRange = nodeBudgetComp.BudgetRange;
+            if (budgetRange.Min <= actualBudget && budgetRange.Max >= actualBudget)
+                fittingEffectsByWeight.Add(e, weight);
+        }
+
+        if (fittingEffectsByWeight.Count == 0)
+            return null;
+        
+        var picked = RobustRandom.PickAndTake(fittingEffectsByWeight);
+
+        triggers.Remove(trigger);
+
+        AddNode((ent, ent), picked, out var nodeEnt, dirty: false);
         DebugTools.Assert(nodeEnt.HasValue, "Failed to create node on artifact.");
 
         var nodeComponent = nodeEnt.Value.Comp;
         nodeComponent.Depth = depth;
+        nodeComponent.Budget = actualBudget;
+
         nodeComponent.TriggerTip = trigger.Tip;
         EntityManager.AddComponents(nodeEnt.Value, trigger.Components);
 

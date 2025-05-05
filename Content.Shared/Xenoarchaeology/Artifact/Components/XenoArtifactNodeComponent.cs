@@ -3,6 +3,13 @@ using Robust.Shared.GameStates;
 
 namespace Content.Shared.Xenoarchaeology.Artifact.Components;
 
+[RegisterComponent, Access(typeof(SharedXenoArtifactSystem))]
+public sealed partial class XenoArtifactNodeBudgetComponent : Component
+{
+    [DataField(required: true)]
+    public MinMax BudgetRange;
+}
+
 /// <summary>
 /// Stores metadata about a particular artifact node
 /// </summary>
@@ -33,6 +40,12 @@ public sealed partial class XenoArtifactNodeComponent : Component
     /// </summary>
     [DataField, AutoNetworkedField]
     public NetEntity? Attached;
+
+    [DataField, AutoNetworkedField]
+    public int Budget;
+
+    [DataField, AutoNetworkedField]
+    public int? EffectMultiplier;
 
     #region Durability
     /// <summary>
