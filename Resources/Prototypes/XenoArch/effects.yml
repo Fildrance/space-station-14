@@ -1643,6 +1643,8 @@
     budgetRange:
       min: 7000
       max: 12000
+    amplifyPerBudgetPoint:
+      effectiveness: 150
   - type: XAECreateGas
     gases:
       Ammonia: 300
@@ -1656,6 +1658,8 @@
     budgetRange:
       min: 11000
       max: 32000
+    amplifyPerBudgetPoint:
+      effectiveness: 150
   - type: XAECreateGas
     gases:
       Frezon: 300
@@ -1669,6 +1673,8 @@
     budgetRange:
       min: 0
       max: 8000
+    amplifyPerBudgetPoint:
+      effectiveness: 150
   - type: XAECreateGas
     gases:
       NitrousOxide: 300
@@ -1682,6 +1688,8 @@
     budgetRange:
       min: 9000
       max: 15000
+    amplifyPerBudgetPoint:
+      effectiveness: 150
   - type: XAECreateGas
     gases:
       CarbonDioxide: 300

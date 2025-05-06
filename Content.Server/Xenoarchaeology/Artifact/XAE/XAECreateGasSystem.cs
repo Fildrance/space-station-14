@@ -18,6 +18,27 @@ public sealed class XAECreateGasSystem : BaseXAESystem<XAECreateGasComponent>
     [Dependency] private readonly TransformSystem _transform = default!;
     [Dependency] private readonly MapSystem _map = default!;
 
+    /// <inheritdoc />
+    public override void Initialize()
+    {
+        base.Initialize();
+
+        SubscribeLocalEvent<XAECreateGasComponent, XenoArtifactAmplifyApplyEvent>(OnAffixApply);
+    }
+
+    private void OnAffixApply(Entity<XAECreateGasComponent> ent, ref XenoArtifactAmplifyApplyEvent args)
+    {
+        var amplifyBy = args.CurrentAmplification.Effectiveness;
+        if (amplifyBy.HasValue)
+        {
+            foreach (var gas in ent.Comp.Gases.Keys)
+            {
+                ent.Comp.Gases[gas] += amplifyBy.Value;
+            }
+            Dirty(ent);
+        }
+    }
+
     protected override void OnActivated(Entity<XAECreateGasComponent> ent, ref XenoArtifactNodeActivatedEvent args)
     {
         var grid = _transform.GetGrid(args.Coordinates);

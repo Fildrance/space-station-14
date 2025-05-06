@@ -1,10 +1,8 @@
 using System.Linq;
-using Content.Shared.EntityTable;
 using Content.Shared.NameIdentifier;
 using Content.Shared.Random.Helpers;
 using Content.Shared.Xenoarchaeology.Artifact.Components;
 using Content.Shared.Xenoarchaeology.Artifact.Prototypes;
-using Robust.Shared.Collections;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
 
@@ -12,17 +10,26 @@ namespace Content.Shared.Xenoarchaeology.Artifact;
 
 public abstract partial class SharedXenoArtifactSystem
 {
-    [Dependency] private readonly EntityTableSystem _entityTable =  default!;
-
     private EntityQuery<XenoArtifactComponent> _xenoArtifactQuery;
     private EntityQuery<XenoArtifactNodeComponent> _nodeQuery;
 
     private void InitializeNode()
     {
         SubscribeLocalEvent<XenoArtifactNodeComponent, MapInitEvent>(OnNodeMapInit);
+        SubscribeLocalEvent<XenoArtifactNodeComponent, XenoArtifactAmplifyApplyEvent>(OnAmplify);
 
         _xenoArtifactQuery = GetEntityQuery<XenoArtifactComponent>();
         _nodeQuery = GetEntityQuery<XenoArtifactNodeComponent>();
+    }
+
+    private void OnAmplify(Entity<XenoArtifactNodeComponent> ent, ref XenoArtifactAmplifyApplyEvent args)
+    {
+        var durabilityChange = args.CurrentAmplification.Durability;
+        if (durabilityChange.HasValue)
+        {
+            ent.Comp.Durability += (int)durabilityChange;
+            Dirty(ent);
+        }
     }
 
     /// <summary>
@@ -136,7 +143,7 @@ public abstract partial class SharedXenoArtifactSystem
 
         // pick effect based on effect ranges and actual node budget.
 
-        var fittingEffectsByWeight = new Dictionary<EntityPrototype, float>();
+        Dictionary<(EntityPrototype Prototype, XenoArtifactNodeBudgetComponent Budget), float> fittingEffectsByWeight = new();
         foreach (var (e, weight) in effects)
         {
             if (!e.Components.TryGetComponent("XenoArtifactNodeBudget", out var comp) || comp is not XenoArtifactNodeBudgetComponent nodeBudgetComp)
@@ -144,18 +151,29 @@ public abstract partial class SharedXenoArtifactSystem
 
             var budgetRange = nodeBudgetComp.BudgetRange;
             if (budgetRange.Min <= actualBudget && budgetRange.Max >= actualBudget)
-                fittingEffectsByWeight.Add(e, weight);
+                fittingEffectsByWeight.Add((e, nodeBudgetComp), weight);
         }
 
         if (fittingEffectsByWeight.Count == 0)
             return null;
         
-        var picked = RobustRandom.PickAndTake(fittingEffectsByWeight);
+        var effect = RobustRandom.PickAndTake(fittingEffectsByWeight);
 
         triggers.Remove(trigger);
 
-        AddNode((ent, ent), picked, out var nodeEnt, dirty: false);
+        AddNode((ent, ent), effect.Prototype, out var nodeEnt, dirty: false);
         DebugTools.Assert(nodeEnt.HasValue, "Failed to create node on artifact.");
+
+        XenoArtifactAmplificationEffects? currentAmplification = null;
+        if (effect.Budget.AmplifyBy.HasAny())
+        {
+            var halfRange = (effect.Budget.BudgetRange.Max - effect.Budget.BudgetRange.Min) / 2;
+            var changePerPoint = effect.Budget.AmplifyBy / halfRange;
+            var midPoint = effect.Budget.BudgetRange.Min + halfRange;
+            var distance = actualBudget - midPoint;
+
+            currentAmplification = changePerPoint * distance;
+        }
 
         var nodeComponent = nodeEnt.Value.Comp;
         nodeComponent.Depth = depth;
@@ -163,6 +181,12 @@ public abstract partial class SharedXenoArtifactSystem
 
         nodeComponent.TriggerTip = trigger.Tip;
         EntityManager.AddComponents(nodeEnt.Value, trigger.Components);
+
+        if (currentAmplification != null)
+        {
+            var ev = new XenoArtifactAmplifyApplyEvent(currentAmplification);
+            RaiseLocalEvent(nodeEnt.Value, ref ev);
+        }
 
         Dirty(nodeEnt.Value);
         return nodeEnt.Value;
@@ -447,4 +471,5 @@ public abstract partial class SharedXenoArtifactSystem
         var predecessorNodes = GetPredecessorNodes((artifact, artifact), node);
         nodeComponent.ResearchValue = (int)(Math.Pow(1.25, Math.Pow(predecessorNodes.Count, 1.5f)) * nodeComponent.BasePointValue * durabilityMultiplier);
     }
+
 }

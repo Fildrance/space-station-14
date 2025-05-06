@@ -8,6 +8,49 @@ public sealed partial class XenoArtifactNodeBudgetComponent : Component
 {
     [DataField(required: true)]
     public MinMax BudgetRange;
+
+    [DataField]
+    public XenoArtifactAmplificationEffects AmplifyBy = new ();
+}
+
+public sealed class XenoArtifactAmplificationEffects
+{
+    public float? Range;
+    public float? Effectiveness;
+    public Vector2d? Offset;
+    public float? Durability;
+
+    public static XenoArtifactAmplificationEffects operator /(XenoArtifactAmplificationEffects original, float c)
+    {
+        var newOne = new XenoArtifactAmplificationEffects();
+        newOne.Durability = original.Durability / c;
+        newOne.Effectiveness = original.Effectiveness / c;
+        newOne.Range = original.Range / c;
+        if (original.Offset.HasValue)
+            newOne.Offset = new Vector2d(original.Offset.Value.X / c, original.Offset.Value.Y / c);
+
+        return newOne;
+    }
+
+    public static XenoArtifactAmplificationEffects operator *(XenoArtifactAmplificationEffects original, float c)
+    {
+        var newOne = new XenoArtifactAmplificationEffects();
+        newOne.Durability = original.Durability * c;
+        newOne.Effectiveness = original.Effectiveness * c;
+        newOne.Range = original.Range * c;
+        if (original.Offset.HasValue)
+            newOne.Offset = new Vector2d(original.Offset.Value.X * c, original.Offset.Value.Y * c);
+
+        return newOne;
+    }
+
+    public bool HasAny()
+    {
+        return Range.HasValue
+               || Effectiveness.HasValue
+               || Offset.HasValue
+               || Durability.HasValue;
+    }
 }
 
 /// <summary>
