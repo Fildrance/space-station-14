@@ -3,10 +3,13 @@ using Content.Shared.Mind.Components;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Teleportation.Systems;
 using Content.Shared.Xenoarchaeology.Artifact;
+using Content.Shared.Xenoarchaeology.Artifact.Components;
 using Content.Shared.Xenoarchaeology.Artifact.XAE;
 using Robust.Shared.Collections;
 using Robust.Shared.Containers;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
+using Robust.Shared.Spawners;
 using Robust.Shared.Timing;
 
 namespace Content.Server.Xenoarchaeology.Artifact.XAE;
@@ -21,6 +24,27 @@ public sealed class XAEPortalSystem : BaseXAESystem<XAEPortalComponent>
     [Dependency] private readonly SharedTransformSystem _transform = default!;
     [Dependency] private readonly SharedContainerSystem _container = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private readonly IPrototypeManager _proto= default!;
+
+    /// <inheritdoc />
+    public override void Initialize()
+    {
+        base.Initialize();
+
+        SubscribeLocalEvent<XAEPortalComponent, XenoArtifactAmplifyApplyEvent>(OnAmplify);
+    }
+
+    private void OnAmplify(Entity<XAEPortalComponent> ent, ref XenoArtifactAmplifyApplyEvent args)
+    {
+        if (args.CurrentAmplification.TryGetValue<float>(XenoArtifactAmplifyEffect.Duration, out var duration))
+        {
+            ent.Comp.Lifetime += duration;
+            if (ent.Comp.Lifetime < 1)
+                ent.Comp.Lifetime = 1;
+
+            Dirty(ent);
+        }
+    }
 
     /// <inheritdoc />
     protected override void OnActivated(Entity<XAEPortalComponent> ent, ref XenoArtifactNodeActivatedEvent args)
@@ -45,6 +69,16 @@ public sealed class XAEPortalSystem : BaseXAESystem<XAEPortalComponent>
 
         if(!TrySpawnNextTo(ent.Comp.PortalProto, args.Artifact, out var firstPortal))
             return;
+
+        if (ent.Comp.Lifetime.HasValue)
+        {
+            if (TryComp<TimedDespawnComponent>(firstPortal.Value, out var timedDespawn))
+            {
+                timedDespawn.Lifetime = ent.Comp.Lifetime.Value;
+            }
+
+        }
+
 
         var target = _random.Pick(validMinds);
         if(!TrySpawnNextTo(ent.Comp.PortalProto, target, out var secondPortal))

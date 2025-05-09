@@ -13,6 +13,30 @@ public sealed class XAERandomTeleportInvokerSystem : BaseXAESystem<XAERandomTele
     [Dependency] private readonly IGameTiming _timing = default!;
 
     /// <inheritdoc />
+    public override void Initialize()
+    {
+        base.Initialize();
+
+        SubscribeLocalEvent<XAERandomTeleportInvokerComponent, XenoArtifactAmplifyApplyEvent>(OnAmplify);
+    }
+
+    private void OnAmplify(Entity<XAERandomTeleportInvokerComponent> ent, ref XenoArtifactAmplifyApplyEvent args)
+    {
+        if (args.CurrentAmplification.TryGetValue<int>(XenoArtifactAmplifyEffect.Range, out var rangeChange))
+        {
+            ent.Comp.MaxRange += rangeChange;
+            if (ent.Comp.MaxRange <= 4f)
+                ent.Comp.MaxRange = 4f;
+
+            ent.Comp.MinRange+= rangeChange;
+            if (ent.Comp.MinRange <= 4f)
+                ent.Comp.MinRange = 4f;
+
+            Dirty(ent);
+        }
+    }
+
+    /// <inheritdoc />
     protected override void OnActivated(Entity<XAERandomTeleportInvokerComponent> ent, ref XenoArtifactNodeActivatedEvent args)
     {
         if (!_timing.IsFirstTimePredicted)

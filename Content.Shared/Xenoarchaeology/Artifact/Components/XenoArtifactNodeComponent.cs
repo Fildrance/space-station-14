@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Content.Shared.Destructible.Thresholds;
 using Robust.Shared.GameStates;
 
@@ -13,21 +14,27 @@ public sealed partial class XenoArtifactNodeBudgetComponent : Component
     public XenoArtifactAmplificationEffects AmplifyBy = new ();
 }
 
-public sealed class XenoArtifactAmplificationEffects
+public sealed class XenoArtifactAmplificationEffects : Dictionary<Enum, object>
 {
-    public float? Range;
-    public float? Effectiveness;
-    public Vector2d? Offset;
-    public float? Durability;
-
     public static XenoArtifactAmplificationEffects operator /(XenoArtifactAmplificationEffects original, float c)
     {
         var newOne = new XenoArtifactAmplificationEffects();
-        newOne.Durability = original.Durability / c;
-        newOne.Effectiveness = original.Effectiveness / c;
-        newOne.Range = original.Range / c;
-        if (original.Offset.HasValue)
-            newOne.Offset = new Vector2d(original.Offset.Value.X / c, original.Offset.Value.Y / c);
+
+        foreach (var (key, value) in original)
+        {
+            if(value == null)
+                continue;
+
+            newOne[key] = value switch
+            {
+                int intVal => (int)intVal / c,
+                float floatVal => floatVal / c,
+                double doubleVal => (double)doubleVal / c,
+                Vector2d vec2dVal => new Vector2d(vec2dVal.X / c, vec2dVal.Y / c),
+                Vector2i vec2iVal => new Vector2i((int)(vec2iVal.X / c), (int)(vec2iVal.Y / c)),
+                _ => newOne[key]
+            };
+        }
 
         return newOne;
     }
@@ -35,21 +42,36 @@ public sealed class XenoArtifactAmplificationEffects
     public static XenoArtifactAmplificationEffects operator *(XenoArtifactAmplificationEffects original, float c)
     {
         var newOne = new XenoArtifactAmplificationEffects();
-        newOne.Durability = original.Durability * c;
-        newOne.Effectiveness = original.Effectiveness * c;
-        newOne.Range = original.Range * c;
-        if (original.Offset.HasValue)
-            newOne.Offset = new Vector2d(original.Offset.Value.X * c, original.Offset.Value.Y * c);
+
+        foreach (var (key, value) in original)
+        {
+            if (value == null)
+                continue;
+
+            newOne[key] = value switch
+            {
+                int intVal => (int)intVal * c,
+                float floatVal => floatVal * c,
+                double doubleVal => (double)doubleVal * c,
+                Vector2d vec2dVal => new Vector2d(vec2dVal.X * c, vec2dVal.Y * c),
+                Vector2i vec2iVal => new Vector2i((int)(vec2iVal.X * c), (int)(vec2iVal.Y * c)),
+                _ => newOne[key]
+            };
+        }
 
         return newOne;
     }
 
-    public bool HasAny()
+    public bool TryGetValue<T>(Enum key,  [NotNullWhen(true)] out T? value)
     {
-        return Range.HasValue
-               || Effectiveness.HasValue
-               || Offset.HasValue
-               || Durability.HasValue;
+        if (TryGetValue(key, out var val) && val is T returnValue)
+        {
+            value = returnValue;
+            return true;
+        }
+
+        value = default;
+        return false;
     }
 }
 

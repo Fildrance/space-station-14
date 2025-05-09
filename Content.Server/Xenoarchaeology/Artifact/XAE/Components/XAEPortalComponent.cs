@@ -13,4 +13,7 @@ public sealed partial class XAEPortalComponent : Component
     /// </summary>
     [DataField, AutoNetworkedField]
     public EntProtoId PortalProto = "PortalArtifact";
+
+    [DataField, AutoNetworkedField]
+    public float? Lifetime { get; set; }
 }

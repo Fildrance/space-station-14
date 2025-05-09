@@ -28,12 +28,11 @@ public sealed class XAECreateGasSystem : BaseXAESystem<XAECreateGasComponent>
 
     private void OnAffixApply(Entity<XAECreateGasComponent> ent, ref XenoArtifactAmplifyApplyEvent args)
     {
-        var amplifyBy = args.CurrentAmplification.Effectiveness;
-        if (amplifyBy.HasValue)
+        if (args.CurrentAmplification.TryGetValue<float>(XenoArtifactAmplifyGasEffect.Amount, out var amount))
         {
             foreach (var gas in ent.Comp.Gases.Keys)
             {
-                ent.Comp.Gases[gas] += amplifyBy.Value;
+                ent.Comp.Gases[gas] += amount;
             }
             Dirty(ent);
         }
@@ -70,4 +69,9 @@ public sealed class XAECreateGasSystem : BaseXAESystem<XAECreateGasComponent>
             }
         }
     }
+}
+
+public enum XenoArtifactAmplifyGasEffect
+{
+    Amount
 }

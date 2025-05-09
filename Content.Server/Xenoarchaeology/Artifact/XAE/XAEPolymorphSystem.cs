@@ -1,3 +1,4 @@
+using Content.Server.Polymorph.Components;
 using Content.Server.Polymorph.Systems;
 using Content.Server.Xenoarchaeology.Artifact.XAE.Components;
 using Content.Shared.Humanoid;
@@ -22,6 +23,26 @@ public sealed class XAEPolymorphSystem : BaseXAESystem<XAEPolymorphComponent>
     private readonly HashSet<Entity<HumanoidAppearanceComponent>> _humanoids = new();
 
     /// <inheritdoc />
+    public override void Initialize()
+    {
+        base.Initialize();
+
+        SubscribeLocalEvent<XAEPolymorphComponent, XenoArtifactAmplifyApplyEvent>(OnAmplify);
+    }
+
+    private void OnAmplify(Entity<XAEPolymorphComponent> ent, ref XenoArtifactAmplifyApplyEvent args)
+    {
+        if (args.CurrentAmplification.TryGetValue<float>(XenoArtifactAmplifyEffect.Duration, out var duration))
+        {
+            ent.Comp.Duration += duration;
+            if (ent.Comp.Duration < 1)
+                ent.Comp.Duration = 1;
+
+            Dirty(ent);
+        }
+    }
+
+    /// <inheritdoc />
     protected override void OnActivated(Entity<XAEPolymorphComponent> ent, ref XenoArtifactNodeActivatedEvent args)
     {
         _humanoids.Clear();
@@ -32,7 +53,10 @@ public sealed class XAEPolymorphSystem : BaseXAESystem<XAEPolymorphComponent>
             if (!_mob.IsAlive(target))
                 continue;
 
-            _poly.PolymorphEntity(target, ent.Comp.PolymorphPrototypeName);
+            var uidAfter = _poly.PolymorphEntity(target, ent.Comp.PolymorphPrototypeName);
+            if (uidAfter.HasValue && TryComp<PolymorphedEntityComponent>(uidAfter, out var polyComp))
+                polyComp.Configuration.Duration += ent.Comp.Duration;
+
             _audio.PlayPvs(ent.Comp.PolySound, ent);
         }
     }

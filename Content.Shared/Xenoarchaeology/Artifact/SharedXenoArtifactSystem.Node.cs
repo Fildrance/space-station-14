@@ -24,10 +24,13 @@ public abstract partial class SharedXenoArtifactSystem
 
     private void OnAmplify(Entity<XenoArtifactNodeComponent> ent, ref XenoArtifactAmplifyApplyEvent args)
     {
-        var durabilityChange = args.CurrentAmplification.Durability;
-        if (durabilityChange.HasValue)
+        
+        if (args.CurrentAmplification.TryGetValue<int>(XenoArtifactAmplifyEffect.Durability, out var durabilityChange))
         {
-            ent.Comp.Durability += (int)durabilityChange;
+            ent.Comp.Durability += durabilityChange;
+            if (ent.Comp.Durability <= 0)
+                ent.Comp.Durability = 1;
+
             Dirty(ent);
         }
     }
@@ -165,7 +168,7 @@ public abstract partial class SharedXenoArtifactSystem
         DebugTools.Assert(nodeEnt.HasValue, "Failed to create node on artifact.");
 
         XenoArtifactAmplificationEffects? currentAmplification = null;
-        if (effect.Budget.AmplifyBy.HasAny())
+        if (effect.Budget.AmplifyBy.Count > 0)
         {
             var halfRange = (effect.Budget.BudgetRange.Max - effect.Budget.BudgetRange.Min) / 2;
             var changePerPoint = effect.Budget.AmplifyBy / halfRange;
@@ -471,5 +474,12 @@ public abstract partial class SharedXenoArtifactSystem
         var predecessorNodes = GetPredecessorNodes((artifact, artifact), node);
         nodeComponent.ResearchValue = (int)(Math.Pow(1.25, Math.Pow(predecessorNodes.Count, 1.5f)) * nodeComponent.BasePointValue * durabilityMultiplier);
     }
+}
 
+public enum XenoArtifactAmplifyEffect
+{
+    Durability,
+    Range,
+    Duration,
+    Amount,
 }
