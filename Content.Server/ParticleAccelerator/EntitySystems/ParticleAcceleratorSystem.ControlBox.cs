@@ -5,6 +5,7 @@ using Content.Shared.Machines.Components;
 using Content.Shared.Singularity.Components;
 using Robust.Shared.Utility;
 using System.Diagnostics;
+using System.Linq;
 using Content.Server.Administration.Managers;
 using Content.Shared.CCVar;
 using Content.Shared.Power;
@@ -18,6 +19,17 @@ namespace Content.Server.ParticleAccelerator.EntitySystems;
 
 public sealed partial class ParticleAcceleratorSystem
 {
+    // UpdatePartVisualState(ControlBox); (We are the control box)
+    // no endcap because it has no powerlevel-sprites
+    private static readonly IReadOnlyCollection<AcceleratorParts> DefaultPartsToUpdate =
+    [
+        AcceleratorParts.FuelChamber,
+        AcceleratorParts.PowerBox,
+        AcceleratorParts.PortEmitter,
+        AcceleratorParts.ForeEmitter,
+        AcceleratorParts.StarboardEmitter,
+    ];
+
     [Dependency] private readonly IAdminManager _adminManager = default!;
     [Dependency] private readonly SharedAudioSystem _audio = default!;
 
@@ -306,25 +318,30 @@ public sealed partial class ParticleAcceleratorSystem
         if (!Resolve(uid, ref controller))
             return;
 
-        var state = controller.Powered ? (ParticleAcceleratorVisualState) controller.SelectedStrength : ParticleAcceleratorVisualState.Unpowered;
+        var state = controller.Powered
+            ? (ParticleAcceleratorVisualState) controller.SelectedStrength
+            : ParticleAcceleratorVisualState.Unpowered;
 
+        UpdatePartVisualStates(uid, DefaultPartsToUpdate, state);
+    }
+
+    private void UpdatePartVisualStates(EntityUid uid, IEnumerable<AcceleratorParts> parts, ParticleAcceleratorVisualState state)
+    {
         if (!TryComp<MultipartMachineComponent>(uid, out var machineComp))
             return;
 
-        var machine = (uid, machineComp);
+        Entity<MultipartMachineComponent?> machine = (uid, machineComp);
 
-        // UpdatePartVisualState(ControlBox); (We are the control box)
-        if (_multipartMachine.TryGetPartEntity(machine, AcceleratorParts.FuelChamber, out var fuelChamber))
+        foreach (var part in parts)
+        {
+            SetAppearanceIfPartExists(machine, part, state);
+        }
+    }
+
+    private void SetAppearanceIfPartExists(Entity<MultipartMachineComponent?> machine, AcceleratorParts part, ParticleAcceleratorVisualState state)
+    {
+        if (_multipartMachine.TryGetPartEntity(machine, part, out var fuelChamber))
             _appearanceSystem.SetData(fuelChamber.Value, ParticleAcceleratorVisuals.VisualState, state);
-        if (_multipartMachine.TryGetPartEntity(machine, AcceleratorParts.PowerBox, out var powerBox))
-            _appearanceSystem.SetData(powerBox.Value, ParticleAcceleratorVisuals.VisualState, state);
-        if (_multipartMachine.TryGetPartEntity(machine, AcceleratorParts.PortEmitter, out var portEmitter))
-            _appearanceSystem.SetData(portEmitter.Value, ParticleAcceleratorVisuals.VisualState, state);
-        if (_multipartMachine.TryGetPartEntity(machine, AcceleratorParts.ForeEmitter, out var foreEmitter))
-            _appearanceSystem.SetData(foreEmitter.Value, ParticleAcceleratorVisuals.VisualState, state);
-        if (_multipartMachine.TryGetPartEntity(machine, AcceleratorParts.StarboardEmitter, out var starboardEmitter))
-            _appearanceSystem.SetData(starboardEmitter.Value, ParticleAcceleratorVisuals.VisualState, state);
-        //no endcap because it has no powerlevel-sprites
     }
 
     /// <summary>
@@ -349,16 +366,11 @@ public sealed partial class ParticleAcceleratorSystem
             {
                 UpdateAppearance(ent, ent.Comp);
                 UpdateUI(ent, ent.Comp);
-            }
 
-            // Because the parts are already removed from the multipart machine, updating the visual appearance won't find any valid entities.
-            // We know which parts have been removed so we can update the visual state to unpowered in a more manual way here.
-            foreach (var (key, part) in args.PartsRemoved)
-            {
-                if (key is AcceleratorParts.EndCap)
-                    continue; // No endcap powerlevel-sprites
-
-                _appearanceSystem.SetData(part, ParticleAcceleratorVisuals.VisualState, ParticleAcceleratorVisualState.Unpowered);
+                // Because the parts are already removed from the multipart machine, updating the visual appearance won't find any valid entities.
+                // We know which parts have been removed so we can update the visual state to unpowered in a more manual way here.
+                var partsRemoved = args.PartsRemoved.Keys.OfType<AcceleratorParts>();
+                UpdatePartVisualStates(ent.Owner, partsRemoved, ParticleAcceleratorVisualState.Unpowered);
             }
         }
     }
