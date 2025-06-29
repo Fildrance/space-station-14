@@ -21,6 +21,26 @@ public sealed class XAEDamageInAreaSystem : BaseXAESystem<XAEDamageInAreaCompone
     private readonly HashSet<EntityUid> _entitiesInRange = new();
 
     /// <inheritdoc />
+    public override void Initialize()
+    {
+        base.Initialize();
+
+        SubscribeLocalEvent<XAEDamageInAreaComponent, XenoArtifactAmplifyApplyEvent>(OnAffixApply);
+    }
+
+    private void OnAffixApply(Entity<XAEDamageInAreaComponent> ent, ref XenoArtifactAmplifyApplyEvent args)
+    {
+        if (args.CurrentAmplification.TryGetValue<float>(XenoArtifactAmplifyDamageEffect.DamageAmount, out var amount))
+        {
+            foreach (var dmg in ent.Comp.Damage.DamageDict)
+            {
+                ent.Comp.Damage.DamageDict[dmg.Key] += amount;
+            }
+            Dirty(ent);
+        }
+    }
+
+    /// <inheritdoc />
     protected override void OnActivated(Entity<XAEDamageInAreaComponent> ent, ref XenoArtifactNodeActivatedEvent args)
     {
         if (!_timing.IsFirstTimePredicted)
@@ -40,4 +60,9 @@ public sealed class XAEDamageInAreaSystem : BaseXAESystem<XAEDamageInAreaCompone
             _damageable.TryChangeDamage(entityInRange, damageInAreaComponent.Damage, damageInAreaComponent.IgnoreResistances);
         }
     }
+}
+
+public enum XenoArtifactAmplifyDamageEffect
+{
+    DamageAmount
 }

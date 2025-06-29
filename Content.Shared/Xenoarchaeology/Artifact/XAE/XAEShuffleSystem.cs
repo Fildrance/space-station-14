@@ -26,6 +26,17 @@ public sealed class XAEShuffleSystem : BaseXAESystem<XAEShuffleComponent>
         base.Initialize();
 
         _mobState = GetEntityQuery<MobStateComponent>();
+
+        SubscribeLocalEvent<XAEShuffleComponent, XenoArtifactAmplifyApplyEvent>(ApplyAmplify);
+    }
+
+    private void ApplyAmplify(Entity<XAEShuffleComponent> ent, ref XenoArtifactAmplifyApplyEvent args)
+    {
+        if (args.CurrentAmplification.TryGetValue<int>(XenoArtifactAmplifyEffect.Range, out var range))
+        {
+            ent.Comp.Range += range;
+            Dirty(ent);
+        }
     }
 
     /// <inheritdoc />
@@ -36,7 +47,7 @@ public sealed class XAEShuffleSystem : BaseXAESystem<XAEShuffleComponent>
 
         List<Entity<TransformComponent>> toShuffle = new();
         _entities.Clear();
-        _lookup.GetEntitiesInRange(ent.Owner, ent.Comp.Radius, _entities, LookupFlags.Dynamic | LookupFlags.Sundries);
+        _lookup.GetEntitiesInRange(ent.Owner, ent.Comp.Range, _entities, LookupFlags.Dynamic | LookupFlags.Sundries);
         foreach (var entity in _entities)
         {
             if (!_mobState.HasComponent(entity))

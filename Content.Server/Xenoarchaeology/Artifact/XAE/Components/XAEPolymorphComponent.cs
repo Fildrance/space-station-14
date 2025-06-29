@@ -27,4 +27,6 @@ public sealed partial class XAEPolymorphComponent : Component
     /// </summary>
     [DataField]
     public SoundSpecifier PolySound = new SoundPathSpecifier("/Audio/Weapons/Guns/Gunshots/Magic/staff_animation.ogg");
+
+    public float Duration { get; set; }
 }

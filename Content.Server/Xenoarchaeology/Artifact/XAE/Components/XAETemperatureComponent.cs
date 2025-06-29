@@ -14,10 +14,6 @@ public sealed partial class XAETemperatureComponent : Component
     [DataField("spawnTemp")]
     public float SpawnTemperature = 100;
 
-    /// <summary>
-    ///     If true, artifact will heat/cool not only its current tile, but surrounding tiles too.
-    ///     This will change room temperature much faster.
-    /// </summary>
-    [DataField("affectAdjacent")]
-    public bool AffectAdjacentTiles = true;
+    [DataField]
+    public float AdjacentTileEffectProbability = 0.5f;
 }
