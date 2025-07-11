@@ -11,20 +11,6 @@ public sealed class XAEApplyComponentsSystem : BaseXAESystem<XAEApplyComponentsC
     [Dependency] private readonly IGameTiming _timing = default!;
 
     /// <inheritdoc />
-    public override void Initialize()
-    {
-        base.Initialize();
-
-        SubscribeLocalEvent<XAEApplyComponentsComponent, XenoArtifactAmplifyApplyEvent>(OnAmplify);
-    }
-
-    private void OnAmplify(Entity<XAEApplyComponentsComponent> ent, ref XenoArtifactAmplifyApplyEvent args)
-    {
-        var components = ent.Comp.Components;
-        components.TryGetComponent()
-    }
-
-    /// <inheritdoc />
     protected override void OnActivated(Entity<XAEApplyComponentsComponent> ent, ref XenoArtifactNodeActivatedEvent args)
     {
         if (!_timing.IsFirstTimePredicted)

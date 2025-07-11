@@ -21,30 +21,20 @@ public sealed class XAEDamageInAreaSystem : BaseXAESystem<XAEDamageInAreaCompone
     private readonly HashSet<EntityUid> _entitiesInRange = new();
 
     /// <inheritdoc />
-    public override void Initialize()
-    {
-        base.Initialize();
-
-        SubscribeLocalEvent<XAEDamageInAreaComponent, XenoArtifactAmplifyApplyEvent>(OnAffixApply);
-    }
-
-    private void OnAffixApply(Entity<XAEDamageInAreaComponent> ent, ref XenoArtifactAmplifyApplyEvent args)
-    {
-        if (args.CurrentAmplification.TryGetValue<float>(XenoArtifactAmplifyDamageEffect.DamageAmount, out var amount))
-        {
-            foreach (var dmg in ent.Comp.Damage.DamageDict)
-            {
-                ent.Comp.Damage.DamageDict[dmg.Key] += amount;
-            }
-            Dirty(ent);
-        }
-    }
-
-    /// <inheritdoc />
     protected override void OnActivated(Entity<XAEDamageInAreaComponent> ent, ref XenoArtifactNodeActivatedEvent args)
     {
         if (!_timing.IsFirstTimePredicted)
             return;
+
+        var damage = ent.Comp.Damage;
+        if (args.Modifications.TryGetValue<float>(XenoArtifactDamageEffectModifier.DamageAmount, out var amount) && amount != 0)
+        {
+            damage = new DamageSpecifier(damage);
+            foreach (var dmg in damage.DamageDict)
+            {
+                damage.DamageDict[dmg.Key] += amount;
+            }
+        }
 
         var damageInAreaComponent = ent.Comp;
         _entitiesInRange.Clear();
@@ -57,12 +47,12 @@ public sealed class XAEDamageInAreaSystem : BaseXAESystem<XAEDamageInAreaCompone
             if (_whitelistSystem.IsWhitelistFail(damageInAreaComponent.Whitelist, entityInRange))
                 continue;
 
-            _damageable.TryChangeDamage(entityInRange, damageInAreaComponent.Damage, damageInAreaComponent.IgnoreResistances);
+            _damageable.TryChangeDamage(entityInRange, damage, damageInAreaComponent.IgnoreResistances);
         }
     }
 }
 
-public enum XenoArtifactAmplifyDamageEffect
+public enum XenoArtifactDamageEffectModifier
 {
     DamageAmount
 }

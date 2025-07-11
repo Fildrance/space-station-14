@@ -14,47 +14,30 @@ public sealed class XAETriggerExplosivesSystem : BaseXAESystem<XAETriggerExplosi
     [Dependency] private readonly ExplosionSystem _explosion = default!;
 
     /// <inheritdoc />
-    public override void Initialize()
-    {
-        base.Initialize();
-
-        SubscribeLocalEvent<XAETriggerExplosivesComponent, XenoArtifactAmplifyApplyEvent>(OnAmplify);
-    }
-
-    private void OnAmplify(Entity<XAETriggerExplosivesComponent> ent, ref XenoArtifactAmplifyApplyEvent args)
-    {
-        if (!TryComp<ExplosiveComponent>(ent, out var explosive))
-            return;
-
-        var dirty = false;
-        if (args.CurrentAmplification.TryGetValue<float>(XenoArtifactAmplifyExplosionEffect.TotalIntensity,
-                out var totalIntensityChange))
-        {
-            explosive.MaxIntensity = Math.Max(explosive.MaxIntensity / 4, explosive.MaxIntensity + totalIntensityChange);
-            dirty = true;
-        }
-
-        if (args.CurrentAmplification.TryGetValue<float>(XenoArtifactAmplifyExplosionEffect.MaxIntensity, out var maxIntensityChange))
-        {
-            explosive.TotalIntensity += Math.Max(explosive.TotalIntensity / 4, explosive.TotalIntensity + maxIntensityChange);
-            dirty = true;
-        }
-
-        if(dirty)
-            Dirty(ent);
-    }
-
-    /// <inheritdoc />
     protected override void OnActivated(Entity<XAETriggerExplosivesComponent> ent, ref XenoArtifactNodeActivatedEvent args)
     {
-        if(!TryComp<ExplosiveComponent>(ent, out var explosiveComp))
+        if (!TryComp<ExplosiveComponent>(ent, out var explosiveComp))
             return;
 
-        _explosion.TriggerExplosive(ent, explosiveComp);
+        var maxIntensity = explosiveComp.MaxIntensity;
+
+        if (args.Modifications.TryGetValue<float>(XenoArtifactExplosionEffectModifier.TotalIntensity,
+                out var totalIntensityChange))
+        {
+            maxIntensity = Math.Max(maxIntensity / 4, maxIntensity + totalIntensityChange);
+        }
+
+        var totalIntensity = explosiveComp.TotalIntensity;
+        if (args.Modifications.TryGetValue<float>(XenoArtifactExplosionEffectModifier.MaxIntensity, out var maxIntensityChange))
+        {
+            totalIntensity += Math.Max(totalIntensity / 4, totalIntensity + maxIntensityChange);
+        }
+
+        _explosion.TriggerExplosive(ent, explosiveComp, totalIntensity: totalIntensity, maxIntensity: maxIntensity);
     }
 }
 
-public enum XenoArtifactAmplifyExplosionEffect
+public enum XenoArtifactExplosionEffectModifier
 {
     TotalIntensity,
     MaxIntensity

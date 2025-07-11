@@ -18,67 +18,56 @@ public sealed class XAETemperatureSystem : BaseXAESystem<XAETemperatureComponent
     [Dependency] private readonly IRobustRandom _random = default!;
 
     /// <inheritdoc />
-    public override void Initialize()
-    {
-        base.Initialize();
-
-        SubscribeLocalEvent<XAETemperatureComponent, XenoArtifactAmplifyApplyEvent>(OnAmplify);
-    }
-
-    private void OnAmplify(Entity<XAETemperatureComponent> ent, ref XenoArtifactAmplifyApplyEvent args)
-    {
-        var dirty = false;
-        if (args.CurrentAmplification.TryGetValue<int>(XenoArtifactAmplifyTemperatureEffect.AdjacentTileChance, out var chanceChange))
-        {
-            ent.Comp.AdjacentTileEffectProbability = Math.Max(0.1f, ent.Comp.AdjacentTileEffectProbability + chanceChange);
-            dirty = true;
-        }
-
-        if (args.CurrentAmplification.TryGetValue<int>(XenoArtifactAmplifyEffect.Amount, out var amountChange))
-        {
-            ent.Comp.TargetTemperature = Math.Max(ent.Comp.TargetTemperature / 8, ent.Comp.TargetTemperature + amountChange);
-            dirty = true;
-        }
-
-        if (dirty)
-            Dirty(ent);
-    }
-
-    /// <inheritdoc />
     protected override void OnActivated(Entity<XAETemperatureComponent> ent, ref XenoArtifactNodeActivatedEvent args)
     {
-        var component = ent.Comp;
-        var transform = Transform(ent);
+        XAETemperatureComponent component = ent;
+        var adjacentTileEffectProbability = component.AdjacentTileEffectProbability;
+        if (args.Modifications.TryGetValue<int>(XenoArtifactTemperatureEffectModifier.AdjacentTileChance, out var chanceChange))
+        {
+            adjacentTileEffectProbability = Math.Max(0.1f, adjacentTileEffectProbability + chanceChange);
+        }
+
+        var targetTemperature = ent.Comp.TargetTemperature;
+        if (args.Modifications.TryGetValue<int>(XenoArtifactEffectModifier.Amount, out var amountChange))
+        {
+            targetTemperature = Math.Max(targetTemperature / 8, targetTemperature + amountChange);
+        }
 
         var center = _atmosphereSystem.GetContainingMixture(ent.Owner, false, true);
         if (center == null)
             return;
 
-        UpdateTileTemperature(component, center);
+        UpdateTileTemperature(component, targetTemperature, center);
 
-        if (component.AdjacentTileEffectProbability > 0 && transform.GridUid != null)
+        var transform = Transform(ent);
+
+        if (adjacentTileEffectProbability > 0 && transform.GridUid != null)
         {
             var position = _transformSystem.GetGridOrMapTilePosition(ent, transform);
             var enumerator = _atmosphereSystem.GetAdjacentTileMixtures(transform.GridUid.Value, position, excite: true);
 
             while (enumerator.MoveNext(out var mixture))
             {
-                if(_random.Prob(component.AdjacentTileEffectProbability))
-                    UpdateTileTemperature(component, mixture);
+                if(_random.Prob(adjacentTileEffectProbability))
+                    UpdateTileTemperature(component, targetTemperature, mixture);
             }
         }
     }
 
-    private void UpdateTileTemperature(XAETemperatureComponent component, GasMixture environment)
+    private void UpdateTileTemperature(
+        XAETemperatureComponent component,
+        float targetTemperature,
+        GasMixture environment
+    )
     {
-        var dif = component.TargetTemperature - environment.Temperature;
+        var dif = targetTemperature - environment.Temperature;
         var absDif = Math.Abs(dif);
         var step = Math.Min(absDif, component.SpawnTemperature);
         environment.Temperature += dif > 0 ? step : -step;
     }
 }
 
-public enum XenoArtifactAmplifyTemperatureEffect
+public enum XenoArtifactTemperatureEffectModifier
 {
     AdjacentTileChance
 }

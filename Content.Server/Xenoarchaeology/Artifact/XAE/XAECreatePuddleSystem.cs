@@ -1,12 +1,10 @@
 using Content.Server.Fluids.EntitySystems;
 using Content.Server.Xenoarchaeology.Artifact.XAE.Components;
 using Content.Shared.Chemistry.Reagent;
-using Content.Shared.Destructible.Thresholds;
 using Content.Shared.Xenoarchaeology.Artifact;
 using Content.Shared.Xenoarchaeology.Artifact.XAE;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
-using static Content.Server.Xenoarchaeology.Artifact.XAE.XAEIgniteSystem;
 
 namespace Content.Server.Xenoarchaeology.Artifact.XAE;
 
@@ -26,17 +24,6 @@ public sealed class XAECreatePuddleSystem: BaseXAESystem<XAECreatePuddleComponen
         base.Initialize();
 
         SubscribeLocalEvent<XAECreatePuddleComponent, MapInitEvent>(OnInit);
-        SubscribeLocalEvent<XAECreatePuddleComponent, XenoArtifactAmplifyApplyEvent>(OnAmplify);
-    }
-
-    private void OnAmplify(Entity<XAECreatePuddleComponent> ent, ref XenoArtifactAmplifyApplyEvent args)
-    {
-        if (args.CurrentAmplification.TryGetValue<int>(XenoArtifactAmplifyEffect.Amount, out var amountChange))
-        {
-            var currentMaxVolume = ent.Comp.ChemicalSolution.MaxVolume.Value;
-            ent.Comp.ChemicalSolution.MaxVolume = Math.Max(currentMaxVolume / 4, currentMaxVolume + amountChange);
-            Dirty(ent);
-        }
     }
 
     private void OnInit(EntityUid uid, XAECreatePuddleComponent component, MapInitEvent _)
@@ -75,11 +62,17 @@ public sealed class XAECreatePuddleSystem: BaseXAESystem<XAECreatePuddleComponen
     /// <inheritdoc />
     protected override void OnActivated(Entity<XAECreatePuddleComponent> ent, ref XenoArtifactNodeActivatedEvent args)
     {
+        var currentMaxVolume = ent.Comp.ChemicalSolution.MaxVolume.Value;
+        if (args.Modifications.TryGetValue<int>(XenoArtifactEffectModifier.Amount, out var amountChange))
+        {
+            currentMaxVolume = Math.Max(currentMaxVolume / 4, currentMaxVolume + amountChange);
+        }
+
         var component = ent.Comp;
         if (component.SelectedChemicals == null)
             return;
 
-        var amountPerChem = component.ChemicalSolution.MaxVolume / component.SelectedChemicals.Count;
+        var amountPerChem = currentMaxVolume / component.SelectedChemicals.Count;
         foreach (var reagent in component.SelectedChemicals)
         {
             component.ChemicalSolution.AddReagent(reagent, amountPerChem);

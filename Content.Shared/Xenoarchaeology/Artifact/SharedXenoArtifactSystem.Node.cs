@@ -10,22 +10,24 @@ namespace Content.Shared.Xenoarchaeology.Artifact;
 
 public abstract partial class SharedXenoArtifactSystem
 {
+    private static readonly Enum[] OnInitEffectModifiers = [XenoArtifactEffectModifier.Durability];
+
     private EntityQuery<XenoArtifactComponent> _xenoArtifactQuery;
     private EntityQuery<XenoArtifactNodeComponent> _nodeQuery;
 
     private void InitializeNode()
     {
         SubscribeLocalEvent<XenoArtifactNodeComponent, MapInitEvent>(OnNodeMapInit);
-        SubscribeLocalEvent<XenoArtifactNodeComponent, XenoArtifactAmplifyApplyEvent>(OnAmplify);
+        SubscribeLocalEvent<XenoArtifactNodeComponent, XenoArtifactCollectEffectModificationsOnInitEvent>(OnAmplify);
 
         _xenoArtifactQuery = GetEntityQuery<XenoArtifactComponent>();
         _nodeQuery = GetEntityQuery<XenoArtifactNodeComponent>();
     }
 
-    private void OnAmplify(Entity<XenoArtifactNodeComponent> ent, ref XenoArtifactAmplifyApplyEvent args)
+    private void OnAmplify(Entity<XenoArtifactNodeComponent> ent, ref XenoArtifactCollectEffectModificationsOnInitEvent args)
     {
         
-        if (args.CurrentAmplification.TryGetValue<int>(XenoArtifactAmplifyEffect.Durability, out var durabilityChange))
+        if (args.Modifications.TryGetValue<int>(XenoArtifactEffectModifier.Durability, out var durabilityChange))
         {
             ent.Comp.Durability += durabilityChange;
             if (ent.Comp.Durability <= 0)
@@ -167,15 +169,13 @@ public abstract partial class SharedXenoArtifactSystem
         AddNode((ent, ent), effect.Prototype, out var nodeEnt, dirty: false);
         DebugTools.Assert(nodeEnt.HasValue, "Failed to create node on artifact.");
 
-        XenoArtifactAmplificationEffects? currentAmplification = null;
-        if (effect.Budget.AmplifyBy.Count > 0)
+        XenoArtifactEffectsModifications onInitAmplifications = new();
+        foreach (var onInitEffectModifier in OnInitEffectModifiers)
         {
-            var halfRange = (effect.Budget.BudgetRange.Max - effect.Budget.BudgetRange.Min) / 2;
-            var changePerPoint = effect.Budget.AmplifyBy / halfRange;
-            var midPoint = effect.Budget.BudgetRange.Min + halfRange;
-            var distance = actualBudget - midPoint;
-
-            currentAmplification = changePerPoint * distance;
+            if(effect.Budget.ModifyBy.Dictionary.TryGetValue(onInitEffectModifier, out var value))
+            {
+                onInitAmplifications.Dictionary.Add(onInitEffectModifier, value);
+            }
         }
 
         var nodeComponent = nodeEnt.Value.Comp;
@@ -185,9 +185,9 @@ public abstract partial class SharedXenoArtifactSystem
         nodeComponent.TriggerTip = trigger.Tip;
         EntityManager.AddComponents(nodeEnt.Value, trigger.Components);
 
-        if (currentAmplification != null)
+        if (!onInitAmplifications.IsEmpty)
         {
-            var ev = new XenoArtifactAmplifyApplyEvent(currentAmplification);
+            var ev = new XenoArtifactCollectEffectModificationsOnInitEvent(onInitAmplifications);
             RaiseLocalEvent(nodeEnt.Value, ref ev);
         }
 
@@ -474,12 +474,56 @@ public abstract partial class SharedXenoArtifactSystem
         var predecessorNodes = GetPredecessorNodes((artifact, artifact), node);
         nodeComponent.ResearchValue = (int)(Math.Pow(1.25, Math.Pow(predecessorNodes.Count, 1.5f)) * nodeComponent.BasePointValue * durabilityMultiplier);
     }
+
+    private XenoArtifactEffectsModifications GetBudgetNodeEffectModifications(Entity<XenoArtifactNodeComponent> node)
+    {
+        var currentAmplification = new XenoArtifactEffectsModifications();
+        if (!TryComp<XenoArtifactNodeBudgetComponent>(node, out var budget))
+        {
+            return currentAmplification;
+        }
+
+        var actualBudget = node.Comp.Budget;
+        if (!budget.ModifyBy.IsEmpty)
+        {
+            var halfRange = (budget.BudgetRange.Max - budget.BudgetRange.Min) / 2;
+            var changePerPoint = budget.ModifyBy / halfRange;
+            var midPoint = budget.BudgetRange.Min + halfRange;
+            var distance = actualBudget - midPoint;
+
+            currentAmplification = changePerPoint * distance;
+        }
+
+        return currentAmplification;
+    }
 }
 
-public enum XenoArtifactAmplifyEffect
+public enum XenoArtifactEffectModifier
 {
     Durability,
     Range,
     Duration,
     Amount,
 }
+
+/// <summary>
+/// Event for collecting artifact node effects modifications on node init.
+/// Can be used to modify static data, such as durability, which should not be re-evaluated on each activation.
+/// </summary>
+/// <param name="Modifications">
+/// Collection of effect modification keys (aspects of artifact effect behaviour), with respective modification value.
+/// </param>
+[ByRefEvent]
+public record struct XenoArtifactCollectEffectModificationsOnInitEvent(XenoArtifactEffectsModifications Modifications);
+
+/// <summary>
+/// Event of collecting artifact node effects modifications on node activation.
+/// Can be used to modify node effect from node budget (deeper and more inter-connected nodes should be more powerful)
+/// or from other nodes (meta-nodes that are affecting other nodes effects, changing range, amount of produced items, etc).
+/// Is called on both all active nodes and on artifact itself.
+/// </summary>
+/// <param name="Modifications">
+/// Collection of effect modification keys (aspects of artifact effect behaviour), with respective modification value.
+/// </param>
+[ByRefEvent]
+public record struct XenoArtifactCollectEffectModificationsOnActivationEvent(XenoArtifactEffectsModifications Modifications);

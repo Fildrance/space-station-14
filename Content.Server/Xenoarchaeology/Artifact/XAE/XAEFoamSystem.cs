@@ -27,20 +27,6 @@ public sealed class XAEFoamSystem : BaseXAESystem<XAEFoamComponent>
         base.Initialize();
 
         SubscribeLocalEvent<XAEFoamComponent, MapInitEvent>(OnMapInit);
-        SubscribeLocalEvent<XAEFoamComponent, XenoArtifactAmplifyApplyEvent>(OnAmplify);
-    }
-
-    private void OnAmplify(Entity<XAEFoamComponent> ent, ref XenoArtifactAmplifyApplyEvent args)
-    {
-        if (args.CurrentAmplification.TryGetValue<int>(XenoArtifactAmplifyEffect.Amount, out var amountChange))
-        {
-            var currentAmount = ent.Comp.FoamAmount;
-            var amountMin = Math.Min(currentAmount.Min / 4, currentAmount.Min + amountChange);
-            var amountMax = Math.Min(currentAmount.Min, currentAmount.Max + amountChange);
-
-            ent.Comp.FoamAmount = new MinMax(amountMin, amountMax);
-            Dirty(ent);
-        }
     }
 
     private void OnMapInit(EntityUid uid, XAEFoamComponent component, MapInitEvent args)
@@ -64,12 +50,21 @@ public sealed class XAEFoamSystem : BaseXAESystem<XAEFoamComponent>
     /// <inheritdoc />
     protected override void OnActivated(Entity<XAEFoamComponent> ent, ref XenoArtifactNodeActivatedEvent args)
     {
+        var foamAmount = ent.Comp.FoamAmount;
+        if (args.Modifications.TryGetValue<int>(XenoArtifactEffectModifier.Amount, out var amountChange))
+        {
+            var amountMin = Math.Min(foamAmount.Min / 4, foamAmount.Min + amountChange);
+            var amountMax = Math.Min(foamAmount.Min, foamAmount.Max + amountChange);
+
+            ent.Comp.FoamAmount = new MinMax(amountMin, amountMax);
+        }
+
         var component = ent.Comp;
         if (component.SelectedReagent == null)
             return;
 
         var sol = new Solution();
-        var range = (int)MathF.Round(MathHelper.Lerp(component.FoamAmount.Min, component.FoamAmount.Max, _random.NextFloat(0, 1f)));
+        var range = (int)MathF.Round(MathHelper.Lerp(foamAmount.Min, foamAmount.Max, _random.NextFloat(0, 1f)));
         sol.AddReagent(component.SelectedReagent, component.ReagentAmount);
         var foamEnt = Spawn(ChemicalReactionSystem.FoamReaction, args.Coordinates);
         var spreadAmount = range * 4;

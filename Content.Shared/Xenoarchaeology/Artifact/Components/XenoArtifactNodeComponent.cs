@@ -1,9 +1,15 @@
 using System.Diagnostics.CodeAnalysis;
 using Content.Shared.Destructible.Thresholds;
+using Robust.Shared.Collections;
 using Robust.Shared.GameStates;
 
 namespace Content.Shared.Xenoarchaeology.Artifact.Components;
 
+/// <summary>
+/// Component for holding artifact info that is related to amplification:
+/// <para/> - budget range (min and max budget for which this node can fit
+/// <para/> - list of amplification effects which are applicable to node
+/// </summary>
 [RegisterComponent, Access(typeof(SharedXenoArtifactSystem))]
 public sealed partial class XenoArtifactNodeBudgetComponent : Component
 {
@@ -11,60 +17,122 @@ public sealed partial class XenoArtifactNodeBudgetComponent : Component
     public MinMax BudgetRange;
 
     [DataField]
-    public XenoArtifactAmplificationEffects AmplifyBy = new ();
+    public XenoArtifactEffectsModifications ModifyBy = new ();
 }
 
-public sealed class XenoArtifactAmplificationEffects : Dictionary<Enum, object>
+[DataDefinition]
+public sealed partial class XenoArtifactEffectsModifications
 {
-    public static XenoArtifactAmplificationEffects operator /(XenoArtifactAmplificationEffects original, float c)
-    {
-        var newOne = new XenoArtifactAmplificationEffects();
+    [DataField]
+    public Dictionary<Enum, object> Dictionary = new();
+     
+    public bool IsEmpty => Dictionary.Count <= 0;
 
-        foreach (var (key, value) in original)
+    /// <summary>
+    /// Produces new dictionary with values from both original and other, using sum of both
+    /// when keys exists in both dictionaries and values are compatible.
+    /// </summary>
+    public static XenoArtifactEffectsModifications operator +(
+        XenoArtifactEffectsModifications original,
+        XenoArtifactEffectsModifications other
+    )
+    {
+        var result = new XenoArtifactEffectsModifications();
+        ValueList<Enum> alreadyMatched = new();
+        foreach (var (modKey, modValue) in original.Dictionary)
+        {
+            if (other.Dictionary.TryGetValue(modKey, out var otherValue))
+            {
+                var summedValue = (modValue, otherValue) switch
+                {
+                    (int tValue, int oValue) => tValue + oValue,
+                    (float tValue, float oValue) => tValue + oValue,
+                    (double tValue, double oValue) => tValue + oValue,
+                    (Vector2d tValue, Vector2d oValue) => new Vector2d(tValue.X + oValue.X, tValue.Y + oValue.Y),
+                    (Vector2i tValue, Vector2i oValue) => tValue + oValue,
+                    _ => modValue
+                };
+
+                result.Dictionary[modKey] = summedValue;
+                alreadyMatched.Add(modKey);
+            }
+            else
+            {
+                result.Dictionary[modKey] = modValue;
+            }
+        }
+
+        foreach (var (modKey, modValue) in other.Dictionary)
+        {
+            if (alreadyMatched.Contains(modKey))
+                continue;
+
+            result.Dictionary[modKey] = modValue;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Creates new dictionary, keys and values are copied from original,
+    /// but they are divided provided float when possible.
+    /// </summary>
+    public static XenoArtifactEffectsModifications operator /(XenoArtifactEffectsModifications original, float c)
+    {
+        var newEffects = new XenoArtifactEffectsModifications();
+        var newDict = newEffects.Dictionary;
+
+        foreach (var (key, value) in original.Dictionary)
         {
             if(value == null)
                 continue;
 
-            newOne[key] = value switch
+            newDict[key] = value switch
             {
                 int intVal => (int)intVal / c,
                 float floatVal => floatVal / c,
                 double doubleVal => (double)doubleVal / c,
                 Vector2d vec2dVal => new Vector2d(vec2dVal.X / c, vec2dVal.Y / c),
                 Vector2i vec2iVal => new Vector2i((int)(vec2iVal.X / c), (int)(vec2iVal.Y / c)),
-                _ => newOne[key]
+                _ => value
             };
         }
 
-        return newOne;
+        return newEffects;
     }
 
-    public static XenoArtifactAmplificationEffects operator *(XenoArtifactAmplificationEffects original, float c)
+    /// <summary>
+    /// Creates new dictionary, keys and values are copied from original,
+    /// but they are divided provided float when possible.
+    /// </summary>
+    public static XenoArtifactEffectsModifications operator *(XenoArtifactEffectsModifications original, float c)
     {
-        var newOne = new XenoArtifactAmplificationEffects();
+        var newEffects = new XenoArtifactEffectsModifications();
+        var newDict = newEffects.Dictionary;
 
-        foreach (var (key, value) in original)
+        foreach (var (key, value) in original.Dictionary)
         {
             if (value == null)
                 continue;
 
-            newOne[key] = value switch
+            newDict[key] = value switch
             {
                 int intVal => (int)intVal * c,
                 float floatVal => floatVal * c,
                 double doubleVal => (double)doubleVal * c,
                 Vector2d vec2dVal => new Vector2d(vec2dVal.X * c, vec2dVal.Y * c),
                 Vector2i vec2iVal => new Vector2i((int)(vec2iVal.X * c), (int)(vec2iVal.Y * c)),
-                _ => newOne[key]
+                _ => value
             };
         }
 
-        return newOne;
+        return newEffects;
     }
 
+    /// <inheritdoc cref="Dictionary{TKey,TValue}.TryGetValue"/>>
     public bool TryGetValue<T>(Enum key,  [NotNullWhen(true)] out T? value)
     {
-        if (TryGetValue(key, out var val) && val is T returnValue)
+        if (Dictionary.TryGetValue(key, out var val) && val is T returnValue)
         {
             value = returnValue;
             return true;

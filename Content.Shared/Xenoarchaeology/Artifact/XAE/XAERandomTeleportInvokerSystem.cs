@@ -13,41 +13,26 @@ public sealed class XAERandomTeleportInvokerSystem : BaseXAESystem<XAERandomTele
     [Dependency] private readonly IGameTiming _timing = default!;
 
     /// <inheritdoc />
-    public override void Initialize()
-    {
-        base.Initialize();
-
-        SubscribeLocalEvent<XAERandomTeleportInvokerComponent, XenoArtifactAmplifyApplyEvent>(OnAmplify);
-    }
-
-    private void OnAmplify(Entity<XAERandomTeleportInvokerComponent> ent, ref XenoArtifactAmplifyApplyEvent args)
-    {
-        if (args.CurrentAmplification.TryGetValue<int>(XenoArtifactAmplifyEffect.Range, out var rangeChange))
-        {
-            ent.Comp.MaxRange += rangeChange;
-            if (ent.Comp.MaxRange <= 4f)
-                ent.Comp.MaxRange = 4f;
-
-            ent.Comp.MinRange+= rangeChange;
-            if (ent.Comp.MinRange <= 4f)
-                ent.Comp.MinRange = 4f;
-
-            Dirty(ent);
-        }
-    }
-
-    /// <inheritdoc />
     protected override void OnActivated(Entity<XAERandomTeleportInvokerComponent> ent, ref XenoArtifactNodeActivatedEvent args)
     {
         if (!_timing.IsFirstTimePredicted)
             return;
-        // todo: teleport person who activated artifact with artifact itself
+
         var component = ent.Comp;
+        var minRange = component.MinRange;
+        var maxRange = component.MaxRange;
+        if (args.Modifications.TryGetValue<int>(XenoArtifactEffectModifier.Range, out var rangeChange))
+        {
+            maxRange = MathF.Max(4f, maxRange + rangeChange);
+            minRange = MathF.Max(4f, minRange + rangeChange);
+        }
+
+        // todo: teleport person who activated artifact with artifact itself
 
         var xform = Transform(ent.Owner);
         _popup.PopupCoordinates(Loc.GetString("blink-artifact-popup"), xform.Coordinates, PopupType.Medium);
 
-        var offsetTo = _random.NextVector2(component.MinRange, component.MaxRange);
+        var offsetTo = _random.NextVector2(minRange, maxRange);
         _xform.SetCoordinates(ent.Owner, xform, xform.Coordinates.Offset(offsetTo));
     }
 }

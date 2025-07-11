@@ -23,28 +23,12 @@ public sealed class XAEPolymorphSystem : BaseXAESystem<XAEPolymorphComponent>
     private readonly HashSet<Entity<HumanoidAppearanceComponent>> _humanoids = new();
 
     /// <inheritdoc />
-    public override void Initialize()
-    {
-        base.Initialize();
-
-        SubscribeLocalEvent<XAEPolymorphComponent, XenoArtifactAmplifyApplyEvent>(OnAmplify);
-    }
-
-    private void OnAmplify(Entity<XAEPolymorphComponent> ent, ref XenoArtifactAmplifyApplyEvent args)
-    {
-        if (args.CurrentAmplification.TryGetValue<float>(XenoArtifactAmplifyEffect.Duration, out var duration))
-        {
-            ent.Comp.Duration += duration;
-            if (ent.Comp.Duration < 1)
-                ent.Comp.Duration = 1;
-
-            Dirty(ent);
-        }
-    }
-
-    /// <inheritdoc />
     protected override void OnActivated(Entity<XAEPolymorphComponent> ent, ref XenoArtifactNodeActivatedEvent args)
     {
+        var duration = ent.Comp.AdditionalDuration;
+        if (args.Modifications.TryGetValue<float>(XenoArtifactEffectModifier.Duration, out var durationChange))
+            duration = Math.Max(1, duration + durationChange);
+
         _humanoids.Clear();
         _lookup.GetEntitiesInRange(args.Coordinates, ent.Comp.Range, _humanoids);
         foreach (var comp in _humanoids)
@@ -54,8 +38,8 @@ public sealed class XAEPolymorphSystem : BaseXAESystem<XAEPolymorphComponent>
                 continue;
 
             var uidAfter = _poly.PolymorphEntity(target, ent.Comp.PolymorphPrototypeName);
-            if (uidAfter.HasValue && TryComp<PolymorphedEntityComponent>(uidAfter, out var polyComp))
-                polyComp.Configuration.Duration += ent.Comp.Duration;
+            if (uidAfter.HasValue)
+                _poly.TryAddDuration(uidAfter.Value, (int) duration);
 
             _audio.PlayPvs(ent.Comp.PolySound, ent);
         }

@@ -626,8 +626,8 @@
     budgetRange:
       min: 0
       max: 9000
-    amplifyBy:
-      enum.XenoArtifactAmplifyEffect.Range: 20
+    modifyBy:
+      enum.XenoArtifactEffectModifier.Range: 20
   - type: XAELightFlicker
 
 - type: entity
@@ -639,8 +639,8 @@
     budgetRange:
       min: 15000
       max: 40000
-    amplifyBy:
-      enum.XenoArtifactAmplifyEffect.Amount: 90
+    modifyBy:
+      enum.XenoArtifactEffectModifier.Amount: 90
   - type: XAEApplyComponents
     applyIfAlreadyHave: true
     refreshOnReactivate: true
@@ -691,8 +691,8 @@
     budgetRange:
       min: 6000
       max: 18000
-    amplifyBy:
-      enum.XenoArtifactAmplifyEffect.Amount: 450
+    modifyBy:
+      enum.XenoArtifactEffectModifier.Amount: 450
   - type: XAECreatePuddle
     chemAmount:
       min: 1
@@ -744,9 +744,9 @@
     budgetRange:
       min: 9500
       max: 22000
-    amplifyBy:
-      enum.XenoArtifactAmplifyEffect.Amount: -50
-      enum.XenoArtifactAmplifyTemperatureEffect.AdjacentTileChance: 0.5
+    modifyBy:
+      enum.XenoArtifactEffectModifier.Amount: -50
+      enum.XenoArtifactTemperatureEffectModifier.AdjacentTileChance: 0.5
   - type: XAETemperature
     targetTemp: 50
 
@@ -759,9 +759,9 @@
     budgetRange:
       min: 9500
       max: 22000
-    amplifyBy:
-      enum.XenoArtifactAmplifyEffect.Amount: 400
-      enum.XenoArtifactAmplifyTemperatureEffect.AdjacentTileChance: 0.5
+    modifyBy:
+      enum.XenoArtifactEffectModifier.Amount: 400
+      enum.XenoArtifactTemperatureEffectModifier.AdjacentTileChance: 0.5
   - type: XAETemperature
     targetTemp: 500
 
@@ -774,8 +774,8 @@
     budgetRange:
       min: 0
       max: 12000
-    amplifyBy:
-      enum.XenoArtifactAmplifyEffect.Amount: 30
+    modifyBy:
+      enum.XenoArtifactEffectModifier.Amount: 30
   - type: XAEFoam
     replaceDescription: true
     reagents:
@@ -868,9 +868,9 @@
     budgetRange:
       min: 0
       max: 12000
-    amplifyBy:
-      enum.XenoArtifactAmplifyEffect.Range: 12
-      enum.XenoArtifactAmplifyEffect.Amount: 4000
+    modifyBy:
+      enum.XenoArtifactEffectModifier.Range: 12
+      enum.XenoArtifactEffectModifier.Amount: 4000
   - type: XAEChargeBattery
   - type: XAETelepathic
     messages:
@@ -885,8 +885,8 @@
     budgetRange:
       min: 12000
       max: 24000
-    amplifyBy:
-      enum.XenoArtifactAmplifyEffect.Range: 4
+    modifyBy:
+      enum.XenoArtifactEffectModifier.Range: 4
   - type: XAEKnock
     knockRange: 3
   - type: XAELightFlicker
@@ -1100,8 +1100,8 @@
     budgetRange:
       min: 8000
       max: 24000
-    amplifyBy:
-      enum.XenoArtifactAmplifyEffect.Durability: 2
+    modifyBy:
+      enum.XenoArtifactEffectModifier.Durability: 2
   - type: XAEApplyComponents
     applyIfAlreadyHave: true
     refreshOnReactivate: true
@@ -1216,8 +1216,8 @@
     budgetRange:
       min: 0
       max: 12000
-    amplifyBy:
-      enum.XenoArtifactAmplifyEffect.Amount: 10
+    modifyBy:
+      enum.XenoArtifactEffectModifier.Amount: 10
   - type: XenoArtifactNode
     maxDurability: 3
     maxDurabilityCanDecreaseBy:
@@ -1241,8 +1241,8 @@
     budgetRange:
       min: 0
       max: 50000
-    amplifyBy:
-      enum.XenoArtifactAmplifyEffect.Amount: 10
+    modifyBy:
+      enum.XenoArtifactEffectModifier.Amount: 10
   - type: XenoArtifactNode
     maxDurability: 7
     maxDurabilityCanDecreaseBy:
@@ -1268,8 +1268,8 @@
     budgetRange:
       min: 0
       max: 50000
-    amplifyBy:
-      enum.XenoArtifactAmplifyEffect.Amount: 30
+    modifyBy:
+      enum.XenoArtifactEffectModifier.Amount: 30
   - type: XAEFoam
     foamAmount:
       min: 20
@@ -1297,8 +1297,8 @@
     budgetRange:
       min: 0
       max: 50000
-    amplifyBy:
-      enum.XenoArtifactAmplifyEffect.Amount: 450
+    modifyBy:
+      enum.XenoArtifactEffectModifier.Amount: 450
   - type: XAECreatePuddle
     chemAmount:
       min: 1
@@ -1333,8 +1333,8 @@
     budgetRange:
       min: 25000
       max: 70000
-    amplifyBy:
-      enum.XenoArtifactAmplifyEffect.Durability: 3
+    modifyBy:
+      enum.XenoArtifactEffectModifier.Durability: 3
   - type: XAEApplyComponents
     applyIfAlreadyHave: true
     refreshOnReactivate: true
@@ -1354,9 +1354,9 @@
     budgetRange:
       min: 5000
       max: 50000
-    amplifyBy:
-      enum.XenoArtifactAmplifyEffect.Range: 15
-      enum.XenoArtifactAmplifyIgniteEffect.Effectiveness: 8
+    modifyBy:
+      enum.XenoArtifactEffectModifier.Range: 15
+      enum.XenoArtifactIgniteEffectModifier.Effectiveness: 8
   - type: XAEIgnite
     range: 7
     fireStack:
@@ -1372,8 +1372,8 @@
     budgetRange:
       min: 9500
       max: 50000
-    amplifyBy:
-      enum.XenoArtifactAmplifyEffect.Range: 15
+    modifyBy:
+      enum.XenoArtifactEffectModifier.Range: 15
   - type: XAERandomTeleportInvoker
 
 - type: entity
@@ -1385,10 +1385,10 @@
     budgetRange:
       min: 9500
       max: 28000
-    amplifyBy:
-      enum.XenoArtifactAmplifyEffect.Range: 15
-      enum.XenoArtifactAmplifyEffect.Duration: 3
-      enum.XenoArtifactAmplifyEffect.Durability: 3
+    modifyBy:
+      enum.XenoArtifactEffectModifier.Range: 15
+      enum.XenoArtifactEffectModifier.Duration: 3
+      enum.XenoArtifactEffectModifier.Durability: 3
   - type: XenoArtifactNode
     maxDurability: 5
     maxDurabilityCanDecreaseBy:
@@ -1405,9 +1405,9 @@
     budgetRange:
       min: 25000
       max: 45000
-    amplifyBy:
-      enum.XenoArtifactAmplifyEffect.Duration: 15
-      enum.XenoArtifactAmplifyEffect.Durability: 3
+    modifyBy:
+      enum.XenoArtifactEffectModifier.Duration: 15
+      enum.XenoArtifactEffectModifier.Durability: 3
   - type: XAEPolymorph
 
 - type: entity
@@ -1419,9 +1419,9 @@
     budgetRange:
       min: 25000
       max: 45000
-    amplifyBy:
-      enum.XenoArtifactAmplifyEffect.Duration: 15
-      enum.XenoArtifactAmplifyEffect.Durability: 3
+    modifyBy:
+      enum.XenoArtifactEffectModifier.Duration: 15
+      enum.XenoArtifactEffectModifier.Durability: 3
   - type: XAEPolymorph
     polymorphPrototypeName: ArtifactLizard
 
@@ -1434,9 +1434,9 @@
     budgetRange:
       min: 25000
       max: 45000
-    amplifyBy:
-      enum.XenoArtifactAmplifyEffect.Duration: 15
-      enum.XenoArtifactAmplifyEffect.Durability: 3
+    modifyBy:
+      enum.XenoArtifactEffectModifier.Duration: 15
+      enum.XenoArtifactEffectModifier.Durability: 3
   - type: XAEPolymorph
     polymorphPrototypeName: ArtifactLuminous
 
@@ -1449,8 +1449,8 @@
     budgetRange:
       min: 15000
       max: 25000
-    amplifyBy:
-      :0
+    # modifyBy:
+    #   :0
   - type: XAEApplyComponents
     applyIfAlreadyHave: true
     refreshOnReactivate: true
@@ -1468,8 +1468,8 @@
     budgetRange:
       min: 9000
       max: 50000
-    amplifyBy:
-      :0
+    # modifyBy:
+    #   :0
   - type: XAEApplyComponents
     applyIfAlreadyHave: true
     refreshOnReactivate: true
@@ -1489,8 +1489,8 @@
     budgetRange:
       min: 11000
       max: 50000
-    amplifyBy:
-      :0
+    # modifyBy:
+    #   :0
   - type: XAEApplyComponents
     applyIfAlreadyHave: true
     refreshOnReactivate: true
@@ -1510,8 +1510,8 @@
     budgetRange:
       min: 9000
       max: 50000
-    amplifyBy:
-      :0
+    # modifyBy:
+    #   :0
   - type: XAEApplyComponents
     applyIfAlreadyHave: true
     refreshOnReactivate: true
@@ -1531,9 +1531,9 @@
     budgetRange:
       min: 9000
       max: 18000
-    amplifyBy:
-      enum.XenoArtifactAmplifyEffect.Durability: 2
-      enum.XenoArtifactAmplifyEffect.Duration: 15
+    modifyBy:
+      enum.XenoArtifactEffectModifier.Durability: 2
+      enum.XenoArtifactEffectModifier.Duration: 15
   - type: XAEPortal
 
 - type: entity
@@ -1545,8 +1545,8 @@
     budgetRange:
       min: 30000
       max: 70000
-    amplifyBy:
-      enum.XenoArtifactAmplifyEffect.Durability: 1
+    modifyBy:
+      enum.XenoArtifactEffectModifier.Durability: 1
   - type: XenoArtifactNode
     maxDurability: 2
     maxDurabilityCanDecreaseBy:
@@ -1571,9 +1571,9 @@
     budgetRange:
       min: 8000
       max: 25000
-    amplifyBy:
-      enum.XenoArtifactAmplifyEffect.Range: 10
-      enum.XenoArtifactAmplifyEffect.Durability: 1
+    modifyBy:
+      enum.XenoArtifactEffectModifier.Range: 10
+      enum.XenoArtifactEffectModifier.Durability: 1
   - type: XAEShuffle
     range: 5
   - type: XAETelepathic
@@ -1590,9 +1590,9 @@
     budgetRange:
       min: 8000
       max: 30000
-    amplifyBy:
-      enum.XenoArtifactAmplifyDamageEffect.DamageAmount: -250
-      enum.XenoArtifactAmplifyEffect.Durability: 3
+    modifyBy:
+      enum.XenoArtifactDamageEffectModifier.DamageAmount: -250
+      enum.XenoArtifactEffectModifier.Durability: 3
   - type: XAEDamageInArea
     damageChance: 1
     radius: 8
@@ -1652,9 +1652,9 @@
     budgetRange:
       min: 10000
       max: 30000
-    amplifyBy:
-      enum.XenoArtifactAmplifyExplosionEffect.TotalIntensity: 100
-      enum.XenoArtifactAmplifyExplosionEffect.MaxIntensity: 5
+    modifyBy:
+      enum.XenoArtifactExplosionEffectModifier.TotalIntensity: 100
+      enum.XenoArtifactExplosionEffectModifier.MaxIntensity: 5
   - type: Explosive
     deleteAfterExplosion: false
     explosionType: Radioactive
@@ -1673,9 +1673,9 @@
     budgetRange:
       min: 13000
       max: 50000
-    amplifyBy:
-      enum.XenoArtifactAmplifyExplosionEffect.TotalIntensity: 200
-      enum.XenoArtifactAmplifyExplosionEffect.MaxIntensity: 15
+    modifyBy:
+      enum.XenoArtifactExplosionEffectModifier.TotalIntensity: 200
+      enum.XenoArtifactExplosionEffectModifier.MaxIntensity: 15
   - type: XAETriggerExplosives
   - type: Explosive
     deleteAfterExplosion: false
@@ -1694,8 +1694,8 @@
     budgetRange:
       min: 8000
       max: 30000
-    amplifyBy:
-      enum.XenoArtifactAmplifyGasEffect.Amount: 150
+    modifyBy:
+      enum.XenoArtifactGasEffectModifier.Amount: 150
   - type: XAECreateGas
     gases:
       Plasma: 300
@@ -1709,8 +1709,8 @@
     budgetRange:
       min: 11000
       max: 32000
-    amplifyBy:
-      enum.XenoArtifactAmplifyGasEffect.Amount: 150
+    modifyBy:
+      enum.XenoArtifactGasEffectModifier.Amount: 150
   - type: XAECreateGas
     gases:
       Tritium: 300
@@ -1724,8 +1724,8 @@
     budgetRange:
       min: 7000
       max: 12000
-    amplifyBy:
-      enum.XenoArtifactAmplifyGasEffect.Amount: 150
+    modifyBy:
+      enum.XenoArtifactGasEffectModifier.Amount: 150
   - type: XAECreateGas
     gases:
       Ammonia: 300
@@ -1739,8 +1739,8 @@
     budgetRange:
       min: 11000
       max: 32000
-    amplifyBy:
-      enum.XenoArtifactAmplifyGasEffect.Amount: 150
+    modifyBy:
+      enum.XenoArtifactGasEffectModifier.Amount: 150
   - type: XAECreateGas
     gases:
       Frezon: 300
@@ -1754,8 +1754,8 @@
     budgetRange:
       min: 0
       max: 8000
-    amplifyBy:
-      enum.XenoArtifactAmplifyGasEffect.Amount: 150
+    modifyBy:
+      enum.XenoArtifactGasEffectModifier.Amount: 150
   - type: XAECreateGas
     gases:
       NitrousOxide: 300
@@ -1769,8 +1769,8 @@
     budgetRange:
       min: 9000
       max: 15000
-    amplifyBy:
-      enum.XenoArtifactAmplifyGasEffect.Amount: 150
+    modifyBy:
+      enum.XenoArtifactGasEffectModifier.Amount: 150
   - type: XAECreateGas
     gases:
       CarbonDioxide: 300

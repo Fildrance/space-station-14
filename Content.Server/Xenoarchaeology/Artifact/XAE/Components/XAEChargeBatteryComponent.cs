@@ -12,6 +12,9 @@ public sealed partial class XAEChargeBatteryComponent : Component
     [DataField]
     public float Radius = 15f;
 
+    /// <summary>
+    /// Amount of charge to be added by effect activation.
+    /// </summary>
     [DataField]
     public float AddChargeAmount = 400f;
 }

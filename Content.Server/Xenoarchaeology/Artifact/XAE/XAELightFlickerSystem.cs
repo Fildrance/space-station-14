@@ -27,23 +27,17 @@ public sealed class XAELightFlickerSystem : BaseXAESystem<XAELightFlickerCompone
         base.Initialize();
 
         _lights = GetEntityQuery<PoweredLightComponent>();
-        SubscribeLocalEvent<XAELightFlickerComponent, XenoArtifactAmplifyApplyEvent>(OnAmplify);
-    }
-
-    private void OnAmplify(Entity<XAELightFlickerComponent> ent, ref XenoArtifactAmplifyApplyEvent args)
-    {
-        if (args.CurrentAmplification.TryGetValue<int>(XenoArtifactAmplifyEffect.Range, out var rangeChange))
-        {
-            ent.Comp.Radius = Math.Max(ent.Comp.Radius, ent.Comp.Radius + rangeChange);
-            Dirty(ent);
-        }
     }
 
     /// <inheritdoc />
     protected override void OnActivated(Entity<XAELightFlickerComponent> ent, ref XenoArtifactNodeActivatedEvent args)
     {
+        var radius = ent.Comp.Radius;
+        if (args.Modifications.TryGetValue<int>(XenoArtifactEffectModifier.Range, out var rangeChange))
+            radius = Math.Max(radius, radius + rangeChange);
+
         _entities.Clear();
-        _lookup.GetEntitiesInRange(ent.Owner, ent.Comp.Radius, _entities, LookupFlags.StaticSundries);
+        _lookup.GetEntitiesInRange(ent.Owner, radius, _entities, LookupFlags.StaticSundries);
         foreach (var light in _entities)
         {
             if (!_lights.HasComponent(light))

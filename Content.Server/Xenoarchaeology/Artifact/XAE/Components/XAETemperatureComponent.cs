@@ -14,6 +14,9 @@ public sealed partial class XAETemperatureComponent : Component
     [DataField("spawnTemp")]
     public float SpawnTemperature = 100;
 
+    /// <summary>
+    /// Probability by which adjacent tile will be affected by temp change too. Rolled once per each tile adjacent to artifact.
+    /// </summary>
     [DataField]
     public float AdjacentTileEffectProbability = 0.5f;
 }
