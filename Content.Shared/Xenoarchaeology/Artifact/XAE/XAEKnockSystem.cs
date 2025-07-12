@@ -17,10 +17,14 @@ public sealed class XAEKnockSystem : BaseXAESystem<XAEKnockComponent>
         if (!_timing.IsFirstTimePredicted)
             return;
 
+        var range = ent.Comp.KnockRange;
+        if (args.Modifications.TryGetValue<int>(XenoArtifactEffectModifier.Range, out var rangeChange))
+            range = Math.Max(1f, range + rangeChange);
+
         var ev = new KnockSpellEvent
         {
             Performer = ent.Owner,
-            Range = ent.Comp.KnockRange
+            Range = range
         };
         RaiseLocalEvent(ev);
     }

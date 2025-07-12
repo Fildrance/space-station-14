@@ -3,6 +3,7 @@ using Content.Server.Xenoarchaeology.Artifact.XAE.Components;
 using Content.Shared.Chemistry.Components;
 using Content.Shared.Chemistry.Reaction;
 using Content.Shared.Chemistry.Reagent;
+using Content.Shared.Destructible.Thresholds;
 using Content.Shared.Xenoarchaeology.Artifact;
 using Content.Shared.Xenoarchaeology.Artifact.XAE;
 using Robust.Shared.Prototypes;
@@ -49,12 +50,21 @@ public sealed class XAEFoamSystem : BaseXAESystem<XAEFoamComponent>
     /// <inheritdoc />
     protected override void OnActivated(Entity<XAEFoamComponent> ent, ref XenoArtifactNodeActivatedEvent args)
     {
+        var foamAmount = ent.Comp.FoamAmount;
+        if (args.Modifications.TryGetValue<int>(XenoArtifactEffectModifier.Amount, out var amountChange))
+        {
+            var amountMin = Math.Min(foamAmount.Min / 4, foamAmount.Min + amountChange);
+            var amountMax = Math.Min(foamAmount.Min, foamAmount.Max + amountChange);
+
+            ent.Comp.FoamAmount = new MinMax(amountMin, amountMax);
+        }
+
         var component = ent.Comp;
         if (component.SelectedReagent == null)
             return;
 
         var sol = new Solution();
-        var range = (int)MathF.Round(MathHelper.Lerp(component.MinFoamAmount, component.MaxFoamAmount, _random.NextFloat(0, 1f)));
+        var range = (int)MathF.Round(MathHelper.Lerp(foamAmount.Min, foamAmount.Max, _random.NextFloat(0, 1f)));
         sol.AddReagent(component.SelectedReagent, component.ReagentAmount);
         var foamEnt = Spawn(ChemicalReactionSystem.FoamReaction, args.Coordinates);
         var spreadAmount = range * 4;

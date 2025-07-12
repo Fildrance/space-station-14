@@ -7,6 +7,7 @@ using Content.Shared.Xenoarchaeology.Artifact.XAE;
 using Robust.Shared.Collections;
 using Robust.Shared.Containers;
 using Robust.Shared.Random;
+using Robust.Shared.Spawners;
 using Robust.Shared.Timing;
 
 namespace Content.Server.Xenoarchaeology.Artifact.XAE;
@@ -28,6 +29,10 @@ public sealed class XAEPortalSystem : BaseXAESystem<XAEPortalComponent>
         if (!_timing.IsFirstTimePredicted)
             return;
 
+        var portalLifetime = ent.Comp.Lifetime;
+        if (args.Modifications.TryGetValue<float>(XenoArtifactEffectModifier.Duration, out var durationChange))
+            portalLifetime = Math.Max(1, portalLifetime ?? 0 + durationChange);
+
         var map = Transform(ent).MapID;
         var validMinds = new ValueList<EntityUid>();
         var mindQuery = EntityQueryEnumerator<MindContainerComponent, MobStateComponent, TransformComponent, MetaDataComponent>();
@@ -39,12 +44,18 @@ public sealed class XAEPortalSystem : BaseXAESystem<XAEPortalComponent>
                 validMinds.Add(uid);
             }
         }
+
         // this would only be 0 if there were a station full of AIs and no one else, in that case just stop this function
         if (validMinds.Count == 0)
             return;
 
         if(!TrySpawnNextTo(ent.Comp.PortalProto, args.Artifact, out var firstPortal))
             return;
+
+        if (portalLifetime is > 0 && TryComp<TimedDespawnComponent>(firstPortal.Value, out var timedDespawn))
+        {
+            timedDespawn.Lifetime = portalLifetime.Value;
+        }
 
         var target = _random.Pick(validMinds);
         if(!TrySpawnNextTo(ent.Comp.PortalProto, target, out var secondPortal))

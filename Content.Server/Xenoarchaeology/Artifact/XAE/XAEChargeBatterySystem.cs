@@ -20,12 +20,24 @@ public sealed class XAEChargeBatterySystem : BaseXAESystem<XAEChargeBatteryCompo
     /// <inheritdoc />
     protected override void OnActivated(Entity<XAEChargeBatteryComponent> ent, ref XenoArtifactNodeActivatedEvent args)
     {
-        var chargeBatteryComponent = ent.Comp;
+        var radius = ent.Comp.Radius;
+        if (args.Modifications.TryGetValue<int>(XenoArtifactEffectModifier.Range, out var rangeChange))
+        {
+            radius = Math.Max(1f, radius + rangeChange);
+        }
+
+        var charge = ent.Comp.AddChargeAmount;
+        if (args.Modifications.TryGetValue<int>(XenoArtifactEffectModifier.Amount, out var amountChange))
+        {
+            charge = Math.Max(charge / 8, charge + amountChange);
+        }
+
         _batteryEntities.Clear();
-        _lookup.GetEntitiesInRange(args.Coordinates, chargeBatteryComponent.Radius, _batteryEntities);
+        _lookup.GetEntitiesInRange(args.Coordinates, radius, _batteryEntities);
         foreach (var battery in _batteryEntities)
         {
-            _battery.SetCharge(battery, battery.Comp.MaxCharge, battery);
+            var chargeToSet = Math.Max(battery.Comp.CurrentCharge + charge, battery.Comp.MaxCharge);
+            _battery.SetCharge(battery, chargeToSet, battery);
         }
     }
 }

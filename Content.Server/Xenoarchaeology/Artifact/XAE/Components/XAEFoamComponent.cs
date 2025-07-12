@@ -1,4 +1,5 @@
 using Content.Shared.Chemistry.Reagent;
+using Content.Shared.Destructible.Thresholds;
 using Robust.Shared.Prototypes;
 
 namespace Content.Server.Xenoarchaeology.Artifact.XAE.Components;
@@ -35,16 +36,10 @@ public sealed partial class XAEFoamComponent : Component
     public float ReagentAmount = 100f;
 
     /// <summary>
-    /// Minimum radius of foam spawned.
+    /// Radius of foam spawned.
     /// </summary>
     [DataField]
-    public int MinFoamAmount = 15;
-
-    /// <summary>
-    /// Maximum radius of foam spawned.
-    /// </summary>
-    [DataField]
-    public int MaxFoamAmount = 20;
+    public MinMax FoamAmount = new MinMax(15, 20);
 
     /// <summary>
     /// Marker, if entity where this component is placed should have description replaced with selected chemicals

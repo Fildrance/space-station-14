@@ -26,6 +26,16 @@ public sealed class XAEDamageInAreaSystem : BaseXAESystem<XAEDamageInAreaCompone
         if (!_timing.IsFirstTimePredicted)
             return;
 
+        var damage = ent.Comp.Damage;
+        if (args.Modifications.TryGetValue<float>(XenoArtifactDamageEffectModifier.DamageAmount, out var amount) && amount != 0)
+        {
+            damage = new DamageSpecifier(damage);
+            foreach (var dmg in damage.DamageDict)
+            {
+                damage.DamageDict[dmg.Key] += amount;
+            }
+        }
+
         var damageInAreaComponent = ent.Comp;
         _entitiesInRange.Clear();
         _lookup.GetEntitiesInRange(ent.Owner, damageInAreaComponent.Radius, _entitiesInRange);
@@ -37,7 +47,12 @@ public sealed class XAEDamageInAreaSystem : BaseXAESystem<XAEDamageInAreaCompone
             if (_whitelistSystem.IsWhitelistFail(damageInAreaComponent.Whitelist, entityInRange))
                 continue;
 
-            _damageable.TryChangeDamage(entityInRange, damageInAreaComponent.Damage, damageInAreaComponent.IgnoreResistances);
+            _damageable.TryChangeDamage(entityInRange, damage, damageInAreaComponent.IgnoreResistances);
         }
     }
+}
+
+public enum XenoArtifactDamageEffectModifier
+{
+    DamageAmount
 }

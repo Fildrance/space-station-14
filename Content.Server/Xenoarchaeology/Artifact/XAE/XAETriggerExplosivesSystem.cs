@@ -16,9 +16,29 @@ public sealed class XAETriggerExplosivesSystem : BaseXAESystem<XAETriggerExplosi
     /// <inheritdoc />
     protected override void OnActivated(Entity<XAETriggerExplosivesComponent> ent, ref XenoArtifactNodeActivatedEvent args)
     {
-        if(!TryComp<ExplosiveComponent>(ent, out var explosiveComp))
+        if (!TryComp<ExplosiveComponent>(ent, out var explosiveComp))
             return;
 
-        _explosion.TriggerExplosive(ent, explosiveComp);
+        var maxIntensity = explosiveComp.MaxIntensity;
+
+        if (args.Modifications.TryGetValue<float>(XenoArtifactExplosionEffectModifier.TotalIntensity,
+                out var totalIntensityChange))
+        {
+            maxIntensity = Math.Max(maxIntensity / 4, maxIntensity + totalIntensityChange);
+        }
+
+        var totalIntensity = explosiveComp.TotalIntensity;
+        if (args.Modifications.TryGetValue<float>(XenoArtifactExplosionEffectModifier.MaxIntensity, out var maxIntensityChange))
+        {
+            totalIntensity += Math.Max(totalIntensity / 4, totalIntensity + maxIntensityChange);
+        }
+
+        _explosion.TriggerExplosive(ent, explosiveComp, totalIntensity: totalIntensity, maxIntensity: maxIntensity);
     }
+}
+
+public enum XenoArtifactExplosionEffectModifier
+{
+    TotalIntensity,
+    MaxIntensity
 }

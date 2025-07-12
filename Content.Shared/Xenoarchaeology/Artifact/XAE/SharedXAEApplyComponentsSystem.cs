@@ -6,7 +6,7 @@ namespace Content.Shared.Xenoarchaeology.Artifact.XAE;
 /// <summary>
 /// System for applying component-registry when artifact effect is activated.
 /// </summary>
-public sealed class XAEApplyComponentsSystem : BaseXAESystem<XAEApplyComponentsComponent>
+public abstract partial class SharedXAEApplyComponentsSystem : BaseXAESystem<XAEApplyComponentsComponent>
 {
     [Dependency] private readonly IGameTiming _timing = default!;
 
@@ -32,6 +32,7 @@ public sealed class XAEApplyComponentsSystem : BaseXAESystem<XAEApplyComponentsC
             }
 
             var clone = EntityManager.ComponentFactory.GetComponent(registry.Value);
+            TryApplyModifiers(clone, args.Modifications);
             AddComp(artifact, clone);
         }
     }

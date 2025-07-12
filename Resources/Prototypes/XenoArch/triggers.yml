@@ -31,6 +31,10 @@
 - type: xenoArchTrigger
   id: TriggerMusic
   tip: xenoarch-trigger-tip-music
+  triggerBudget: 3000
+  budgetRange:
+    min: 0
+    max: 5000
   components:
   - type: XATCompNearby
     requireComponentWithName: ActiveInstrument
@@ -39,6 +43,10 @@
 - type: xenoArchTrigger
   id: TriggerHeat
   tip: xenoarch-trigger-tip-heat
+  triggerBudget: 8000
+  budgetRange:
+    min: 7000
+    max: 30000
   components:
   - type: XATTemperature
     targetTemperature: 373
@@ -55,6 +63,10 @@
 - type: xenoArchTrigger
   id: TriggerCold
   tip: xenoarch-trigger-tip-cold
+  triggerBudget: 8000
+  budgetRange:
+    min: 7000
+    max: 30000
   components:
   - type: XATTemperature
     targetTemperature: 255
@@ -66,6 +78,10 @@
 - type: xenoArchTrigger
   id: TriggerNoOxygen
   tip: xenoarch-trigger-tip-no-oxygen
+  triggerBudget: 8000
+  budgetRange:
+    min: 7000
+    max: 30000
   components:
   - type: XATGas
     targetGas: Oxygen
@@ -75,6 +91,10 @@
 - type: xenoArchTrigger
   id: TriggerWater
   tip: xenoarch-trigger-tip-water
+  triggerBudget: 5000
+  budgetRange:
+    min: 5000
+    max: 20000
   components:
   - type: XATGas
     targetGas: WaterVapor
@@ -85,6 +105,10 @@
 - type: xenoArchTrigger
   id: TriggerCO2
   tip: xenoarch-trigger-tip-co2
+  triggerBudget: 5000
+  budgetRange:
+    min: 10000
+    max: 30000
   components:
   - type: XATGas
     targetGas: CarbonDioxide
@@ -95,6 +119,10 @@
 - type: xenoArchTrigger
   id: TriggerPlasma
   tip: xenoarch-trigger-tip-plasma
+  triggerBudget: 8000
+  budgetRange:
+    min: 10000
+    max: 30000
   components:
   - type: XATGas
     targetGas: Plasma
@@ -105,6 +133,10 @@
 - type: xenoArchTrigger
   id: TriggerTritium
   tip: xenoarch-trigger-tip-tritium
+  triggerBudget: 25000
+  budgetRange:
+    min: 25000
+    max: 100000
   components:
   - type: XATGas
     targetGas: Tritium
@@ -115,6 +147,10 @@
 - type: xenoArchTrigger
   id: TriggerAmmonia
   tip: xenoarch-trigger-tip-ammonia
+  triggerBudget: 10000
+  budgetRange:
+    min: 25000
+    max: 100000
   components:
   - type: XATGas
     targetGas: Ammonia
@@ -125,6 +161,10 @@
 - type: xenoArchTrigger
   id: TriggerN2O
   tip: xenoarch-trigger-tip-n2o
+  triggerBudget: 10000
+  budgetRange:
+    min: 15000
+    max: 100000
   components:
   - type: XATGas
     targetGas: NitrousOxide
@@ -135,6 +175,10 @@
 - type: xenoArchTrigger
   id: TriggerFrezon
   tip: xenoarch-trigger-tip-frezon
+  triggerBudget: 25000
+  budgetRange:
+    min: 25000
+    max: 100000
   components:
   - type: XATGas
     targetGas: Frezon
@@ -145,6 +189,10 @@
 - type: xenoArchTrigger
   id: TriggerRadiation
   tip: xenoarch-trigger-tip-radiation
+  triggerBudget: 15000
+  budgetRange:
+    min: 15000
+    max: 50000
   components:
   - type: XATDamageThresholdReached
     typesNeeded:
@@ -154,6 +202,10 @@
 - type: xenoArchTrigger
   id: TriggerPressureHigh
   tip: xenoarch-trigger-tip-pressure-high
+  triggerBudget: 10000
+  budgetRange:
+    min: 20000
+    max: 50000
   components:
   - type: XATPressure
     maxPressureThreshold: 385
@@ -161,6 +213,10 @@
 - type: xenoArchTrigger
   id: TriggerPressureLow
   tip: xenoarch-trigger-tip-pressure-low
+  triggerBudget: 5000
+  budgetRange:
+    min: 10000
+    max: 35000
   components:
   - type: XATPressure
     minPressureThreshold: 50
@@ -168,26 +224,32 @@
 - type: xenoArchTrigger
   id: TriggerExamine
   tip: xenoarch-trigger-tip-examine
+  triggerBudget: 2000
+  budgetRange:
+    min: 0
+    max: 15000
   components:
   - type: XATExamine
 
 - type: xenoArchTrigger
   id: TriggerBruteDamage
   tip: xenoarch-trigger-tip-brute-damage
+  triggerBudget: 5000
+  budgetRange:
+    min: 5000
+    max: 15000
   components:
   - type: XATDamageThresholdReached
     groupsNeeded:
       Brute: 20
 
 - type: xenoArchTrigger
-  id: TriggerInteraction
-  tip: xenoarch-trigger-tip-interaction
-  components:
-  - type: XATInteraction
-
-- type: xenoArchTrigger
   id: TriggerWrenching
   tip: xenoarch-trigger-tip-wrenching
+  triggerBudget: 1500
+  budgetRange:
+    min: 0
+    max: 5000
   components:
   - type: XATToolUse
     requiredTool: Anchoring
@@ -197,6 +259,10 @@
 - type: xenoArchTrigger
   id: TriggerPrying
   tip: xenoarch-trigger-tip-prying
+  triggerBudget: 1500
+  budgetRange:
+    min: 0
+    max: 5000
   components:
   - type: XATToolUse
     requiredTool: Prying
@@ -206,6 +272,10 @@
 - type: xenoArchTrigger
   id: TriggerScrewing
   tip: xenoarch-trigger-tip-screwing
+  triggerBudget: 1500
+  budgetRange:
+    min: 0
+    max: 5000
   components:
   - type: XATToolUse
     requiredTool: Screwing
@@ -215,6 +285,10 @@
 - type: xenoArchTrigger
   id: TriggerPulsing
   tip: xenoarch-trigger-tip-pulsing
+  triggerBudget: 2000
+  budgetRange:
+    min: 0
+    max: 6000
   components:
   - type: XATToolUse
     requiredTool: Pulsing
@@ -224,6 +298,10 @@
 - type: xenoArchTrigger
   id: TriggerTimer
   tip: xenoarch-trigger-tip-timer
+  triggerBudget: 3000
+  budgetRange:
+    min: 0
+    max: 3000
   components:
   - type: XATTimer
     possibleDelayInSeconds:
@@ -233,6 +311,10 @@
 - type: xenoArchTrigger
   id: TriggerBlood
   tip: xenoarch-trigger-tip-blood
+  triggerBudget: 5000
+  budgetRange:
+    min: 5000
+    max: 15000
   components:
   - type: XATReactive
     reagents:
@@ -248,18 +330,30 @@
   tip: xenoarch-trigger-tip-throw
   whitelist:
     components:
-    - Item
+      - Item
+  triggerBudget: 3000
+  budgetRange:
+    min: 3000
+    max: 15000
   components:
   - type: XATItemLand
 
 - type: xenoArchTrigger
   id: TriggerDeath
   tip: xenoarch-trigger-tip-death
+  triggerBudget: 15000
+  budgetRange:
+    min: 15000
+    max: 50000
   components:
   - type: XATDeath
 
 - type: xenoArchTrigger
   id: TriggerMagnet
   tip: xenoarch-trigger-tip-magnet
+  triggerBudget: 4000
+  budgetRange:
+    min: 5000
+    max: 15000
   components:
   - type: XATMagnet

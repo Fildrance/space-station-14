@@ -17,13 +17,22 @@ public sealed class XAERandomTeleportInvokerSystem : BaseXAESystem<XAERandomTele
     {
         if (!_timing.IsFirstTimePredicted)
             return;
-        // todo: teleport person who activated artifact with artifact itself
+
         var component = ent.Comp;
+        var minRange = component.MinRange;
+        var maxRange = component.MaxRange;
+        if (args.Modifications.TryGetValue<int>(XenoArtifactEffectModifier.Range, out var rangeChange))
+        {
+            maxRange = MathF.Max(4f, maxRange + rangeChange);
+            minRange = MathF.Max(4f, minRange + rangeChange);
+        }
+
+        // todo: teleport person who activated artifact with artifact itself
 
         var xform = Transform(ent.Owner);
         _popup.PopupCoordinates(Loc.GetString("blink-artifact-popup"), xform.Coordinates, PopupType.Medium);
 
-        var offsetTo = _random.NextVector2(component.MinRange, component.MaxRange);
+        var offsetTo = _random.NextVector2(minRange, maxRange);
         _xform.SetCoordinates(ent.Owner, xform, xform.Coordinates.Offset(offsetTo));
     }
 }

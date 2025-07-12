@@ -233,6 +233,11 @@ public abstract partial class SharedToolSystem : EntitySystem
         return Resolve(uid, ref tool, false) && tool.Qualities.ContainsAll(qualities);
     }
 
+    public void ChangeSpeedModifier(ToolComponent tool, float toolSpeedModifier)
+    {
+        tool.SpeedModifier = toolSpeedModifier;
+    }
+
     private bool CanStartToolUse(EntityUid tool, EntityUid user, EntityUid? target, float fuel, IEnumerable<string> toolQualitiesNeeded, ToolComponent? toolComponent = null)
     {
         if (!Resolve(tool, ref toolComponent))
