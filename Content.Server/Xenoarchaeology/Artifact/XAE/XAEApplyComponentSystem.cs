@@ -1,7 +1,6 @@
-using Content.Server.Physics.Components;
 using Content.Server.Power.Components;
-using Content.Server.Singularity.Components;
 using Content.Server.Spawners.Components;
+using Content.Shared.EntityTable.EntitySelectors;
 using Content.Shared.Xenoarchaeology.Artifact.Components;
 using Content.Shared.Xenoarchaeology.Artifact.XAE;
 
@@ -21,7 +20,25 @@ public sealed class XAEApplyComponentSystem : SharedXAEApplyComponentsSystem
     {
         if (modifications.TryGetValue<int>(XenoArtifactEntityTableSpawnerEffectModifier.SpawnCountChange, out var spawnCountChange))
         {
-            tableSpawner.Table.;// of fuck :(
+            switch (tableSpawner.Table)
+            {
+                case AllSelector allSelector:
+
+                    return true;
+                case EntSelector entSelector:
+
+                    return true;
+                case GroupSelector groupSelector:
+                    groupSelector.;
+                    return true;
+                case NestedSelector nestedSelector:
+                    nestedSelector.
+                    return true;
+                case NoneSelector noneSelector:
+                    return true;
+                default:
+                    return false;
+            }
 
             return true;
         }
