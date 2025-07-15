@@ -21,7 +21,7 @@ public sealed class XAECreateGasSystem : BaseXAESystem<XAECreateGasComponent>
     protected override void OnActivated(Entity<XAECreateGasComponent> ent, ref XenoArtifactNodeActivatedEvent args)
     {
         var gases = ent.Comp.Gases;
-        if (args.Modifications.TryGetValue<float>(XenoArtifactGasEffectModifier.Amount, out var amount))
+        if (args.Modifications.TryGetValue(XenoArtifactGasEffectModifier.Amount, out var amount))
         {
             gases = new Dictionary<Gas, float>(gases);
             foreach (var gas in gases.Keys)

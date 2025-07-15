@@ -9,6 +9,7 @@ using Content.Shared.Tools.Systems;
 using Content.Shared.Weapons.Melee;
 using Content.Shared.Weapons.Ranged.Components;
 using Content.Shared.Xenoarchaeology.Artifact.Components;
+using Content.Shared.Xenoarchaeology.Artifact.XAE.Components;
 
 namespace Content.Shared.Xenoarchaeology.Artifact.XAE;
 
@@ -36,7 +37,7 @@ public partial class SharedXAEApplyComponentsSystem
 
     private bool TryApplyModifiersFor(StealthOnMoveComponent stealthOnMove, XenoArtifactEffectsModifications modifications)
     {
-        if (modifications.TryGetValue<float>(XenoArtifactStealthEffectModifier.Effectiveness, out var effectiveness))
+        if (modifications.TryGetValue(XAEApplyComponentsComponent.XenoArtifactStealthEffectModifier.Effectiveness, out var effectiveness))
         {
             stealthOnMove.PassiveVisibilityRate *= effectiveness;
             stealthOnMove.MovementVisibilityRate *= effectiveness;
@@ -48,7 +49,7 @@ public partial class SharedXAEApplyComponentsSystem
 
     private bool TryApplyModifiersFor(RadiationSourceComponent radiationSource, XenoArtifactEffectsModifications modifications)
     {
-        if (modifications.TryGetValue<float>(XenoArtifactRadiationSourceEffectModifier.Effectiveness,
+        if (modifications.TryGetValue(XAEApplyComponentsComponent.XenoArtifactRadiationSourceEffectModifier.Effectiveness,
                 out var effectiveness))
         {
             radiationSource.Intensity *= effectiveness;
@@ -60,7 +61,7 @@ public partial class SharedXAEApplyComponentsSystem
 
     private bool TryApplyModifiersFor(ToolComponent tool, XenoArtifactEffectsModifications modifications)
     {
-        if (modifications.TryGetValue<float>(XenoArtifactToolEffectModifier.Effectiveness, out var effectiveness))
+        if (modifications.TryGetValue(XAEApplyComponentsComponent.XenoArtifactToolEffectModifier.Effectiveness, out var effectiveness))
         {
             _tool.ChangeSpeedModifier(tool, tool.SpeedModifier * effectiveness);
             return true;
@@ -71,9 +72,9 @@ public partial class SharedXAEApplyComponentsSystem
 
     private bool TryApplyModifiersFor(RevolverAmmoProviderComponent revolverAmmoProvider, XenoArtifactEffectsModifications modifications)
     {
-        if (modifications.TryGetValue<int>(XenoArtifactAmmoSourceEffectModifier.CapacityChange, out var capacityChange))
+        if (modifications.TryGetValue(XAEApplyComponentsComponent.XenoArtifactAmmoSourceEffectModifier.CapacityChange, out var capacityChange))
         {
-            revolverAmmoProvider.Capacity += capacityChange;
+            revolverAmmoProvider.Capacity += (int) capacityChange;
             return true;
         }
 
@@ -83,7 +84,7 @@ public partial class SharedXAEApplyComponentsSystem
     private bool TryApplyModifiersFor(MeleeWeaponComponent meleeWeapon, XenoArtifactEffectsModifications modifications)
     {
         var changed = false;
-        if (modifications.TryGetValue<float>(XenoArtifactMeleeWeaponEffectModifier.Damage, out var damageChange))
+        if (modifications.TryGetValue(XAEApplyComponentsComponent.XenoArtifactMeleeWeaponEffectModifier.Damage, out var damageChange))
         {
             foreach (var (key, value) in meleeWeapon.Damage.DamageDict)
             {
@@ -93,7 +94,7 @@ public partial class SharedXAEApplyComponentsSystem
             changed = true;
         }
 
-        if (modifications.TryGetValue<float>(XenoArtifactMeleeWeaponEffectModifier.AttackRate, out var attackRateChange))
+        if (modifications.TryGetValue(XAEApplyComponentsComponent.XenoArtifactMeleeWeaponEffectModifier.AttackRate, out var attackRateChange))
         {
             meleeWeapon.AttackRate *= attackRateChange;
             changed = true;
@@ -104,7 +105,7 @@ public partial class SharedXAEApplyComponentsSystem
 
     private bool TryApplyModifiersFor(HeldSpeedModifierComponent speedModifier, XenoArtifactEffectsModifications modifications)
     {
-        if (modifications.TryGetValue<float>(XenoArtifactHeldSpeedModifierEffectModifier.Multiplier, out var multiplier))
+        if (modifications.TryGetValue(XAEApplyComponentsComponent.XenoArtifactHeldSpeedModifierEffectModifier.Multiplier, out var multiplier))
         {
             _heldSpeedModifier.ChangeModifiers(
                 speedModifier,
@@ -122,7 +123,7 @@ public partial class SharedXAEApplyComponentsSystem
         XenoArtifactEffectsModifications modifications
     )
     {
-        if (modifications.TryGetValue<int>(XenoArtifactSolutionStorageEffectModifier.VolumeChange, out var volumeChange)
+        if (modifications.TryGetValue(XAEApplyComponentsComponent.XenoArtifactSolutionStorageEffectModifier.VolumeChange, out var volumeChange)
             && _solutionsContainer.TryGetSolution(solutionStorage, "beaker", out var sol))
         {
             sol.MaxVolume = MathF.Max(5, sol.MaxVolume.Value + volumeChange);
@@ -141,15 +142,15 @@ public partial class SharedXAEApplyComponentsSystem
         var height = storageToModify.Height;
         var width = storageToModify.Width;
         var changed = false;
-        if (modifications.TryGetValue<int>(XenoArtifactStorageEffectModifier.HeightChange, out var heightChange))
+        if (modifications.TryGetValue(XAEApplyComponentsComponent.XenoArtifactStorageEffectModifier.HeightChange, out var heightChange))
         {
-            height = Math.Max(1, height + heightChange);
+            height = Math.Max(1, height + (int)heightChange);
             changed = true;
         }
 
-        if (modifications.TryGetValue<int>(XenoArtifactStorageEffectModifier.WidthChange, out var widthChange))
+        if (modifications.TryGetValue(XAEApplyComponentsComponent.XenoArtifactStorageEffectModifier.WidthChange, out var widthChange))
         {
-            width = Math.Max(1, width + widthChange);
+            width = Math.Max(1, width + (int)widthChange);
             changed = true;
         }
 
@@ -158,46 +159,4 @@ public partial class SharedXAEApplyComponentsSystem
 
         return changed;
     }
-}
-
-public enum XenoArtifactMeleeWeaponEffectModifier
-{
-    Damage,
-    AttackRate
-}
-
-public enum XenoArtifactAmmoSourceEffectModifier
-{
-    CapacityChange
-}
-
-public enum XenoArtifactRadiationSourceEffectModifier
-{
-    Effectiveness
-}
-
-public enum XenoArtifactToolEffectModifier
-{
-    Effectiveness
-}
-
-public enum XenoArtifactStealthEffectModifier
-{
-    Effectiveness
-}
-
-public enum XenoArtifactStorageEffectModifier
-{
-    WidthChange,
-    HeightChange,
-}
-
-public enum XenoArtifactHeldSpeedModifierEffectModifier
-{
-    Multiplier
-}
-
-public enum XenoArtifactSolutionStorageEffectModifier
-{
-    VolumeChange
 }

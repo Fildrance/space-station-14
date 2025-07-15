@@ -21,7 +21,7 @@ public sealed class XAERandomTeleportInvokerSystem : BaseXAESystem<XAERandomTele
         var component = ent.Comp;
         var minRange = component.MinRange;
         var maxRange = component.MaxRange;
-        if (args.Modifications.TryGetValue<int>(XenoArtifactEffectModifier.Range, out var rangeChange))
+        if (args.Modifications.TryGetValue(XenoArtifactEffectModifier.Range, out var rangeChange))
         {
             maxRange = MathF.Max(4f, maxRange + rangeChange);
             minRange = MathF.Max(4f, minRange + rangeChange);

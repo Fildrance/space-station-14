@@ -35,16 +35,16 @@ public sealed class XAEIgniteSystem : BaseXAESystem<XAEIgniteComponent>
     {
         var range = ent.Comp.Range;
 
-        if (args.Modifications.TryGetValue<int>(XenoArtifactEffectModifier.Range, out var rangeChange))
+        if (args.Modifications.TryGetValue(XenoArtifactEffectModifier.Range, out var rangeChange))
         {
             range = Math.Max(range + rangeChange, 2f);
         }
 
         var stacks = ent.Comp.FireStack;
-        if (args.Modifications.TryGetValue<int>(XenoArtifactIgniteEffectModifier.Effectiveness, out var effectiveness))
+        if (args.Modifications.TryGetValue(XenoArtifactIgniteEffectModifier.Effectiveness, out var effectiveness))
         {
-            var stacksMin = Math.Max(1, stacks.Min + effectiveness);
-            var stacksMax = Math.Max(stacksMin, stacks.Max + effectiveness);
+            var stacksMin = Math.Max(1, stacks.Min + (int)effectiveness);
+            var stacksMax = Math.Max(stacksMin, stacks.Max + (int)effectiveness);
             stacks = new MinMax(stacksMin, stacksMax);
         }
 

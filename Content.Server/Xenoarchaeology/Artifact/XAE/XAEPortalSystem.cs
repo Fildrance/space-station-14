@@ -30,7 +30,7 @@ public sealed class XAEPortalSystem : BaseXAESystem<XAEPortalComponent>
             return;
 
         var portalLifetime = ent.Comp.Lifetime;
-        if (args.Modifications.TryGetValue<float>(XenoArtifactEffectModifier.Duration, out var durationChange))
+        if (args.Modifications.TryGetValue(XenoArtifactEffectModifier.Duration, out var durationChange))
             portalLifetime = Math.Max(1, portalLifetime ?? 0 + durationChange);
 
         var map = Transform(ent).MapID;

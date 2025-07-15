@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using Content.Shared.Destructible.Thresholds;
 using Robust.Shared.Collections;
 using Robust.Shared.GameStates;
@@ -24,7 +23,7 @@ public sealed partial class XenoArtifactNodeBudgetComponent : Component
 public sealed partial class XenoArtifactEffectsModifications
 {
     [DataField]
-    public Dictionary<Enum, object> Dictionary = new();
+    public Dictionary<Enum, float> Dictionary = new();
      
     public bool IsEmpty => Dictionary.Count <= 0;
 
@@ -43,17 +42,7 @@ public sealed partial class XenoArtifactEffectsModifications
         {
             if (other.Dictionary.TryGetValue(modKey, out var otherValue))
             {
-                var summedValue = (modValue, otherValue) switch
-                {
-                    (int tValue, int oValue) => tValue + oValue,
-                    (float tValue, float oValue) => tValue + oValue,
-                    (double tValue, double oValue) => tValue + oValue,
-                    (Vector2d tValue, Vector2d oValue) => new Vector2d(tValue.X + oValue.X, tValue.Y + oValue.Y),
-                    (Vector2i tValue, Vector2i oValue) => tValue + oValue,
-                    _ => modValue
-                };
-
-                result.Dictionary[modKey] = summedValue;
+                result.Dictionary[modKey] = modValue + otherValue;
                 alreadyMatched.Add(modKey);
             }
             else
@@ -84,18 +73,7 @@ public sealed partial class XenoArtifactEffectsModifications
 
         foreach (var (key, value) in original.Dictionary)
         {
-            if(value == null)
-                continue;
-
-            newDict[key] = value switch
-            {
-                int intVal => (int)intVal / c,
-                float floatVal => floatVal / c,
-                double doubleVal => (double)doubleVal / c,
-                Vector2d vec2dVal => new Vector2d(vec2dVal.X / c, vec2dVal.Y / c),
-                Vector2i vec2iVal => new Vector2i((int)(vec2iVal.X / c), (int)(vec2iVal.Y / c)),
-                _ => value
-            };
+            newDict[key] = value / c;
         }
 
         return newEffects;
@@ -112,34 +90,16 @@ public sealed partial class XenoArtifactEffectsModifications
 
         foreach (var (key, value) in original.Dictionary)
         {
-            if (value == null)
-                continue;
-
-            newDict[key] = value switch
-            {
-                int intVal => (int)intVal * c,
-                float floatVal => floatVal * c,
-                double doubleVal => (double)doubleVal * c,
-                Vector2d vec2dVal => new Vector2d(vec2dVal.X * c, vec2dVal.Y * c),
-                Vector2i vec2iVal => new Vector2i((int)(vec2iVal.X * c), (int)(vec2iVal.Y * c)),
-                _ => value
-            };
+            newDict[key] = value * c;
         }
 
         return newEffects;
     }
 
     /// <inheritdoc cref="Dictionary{TKey,TValue}.TryGetValue"/>>
-    public bool TryGetValue<T>(Enum key,  [NotNullWhen(true)] out T? value)
+    public bool TryGetValue(Enum key, out float value)
     {
-        if (Dictionary.TryGetValue(key, out var val) && val is T returnValue)
-        {
-            value = returnValue;
-            return true;
-        }
-
-        value = default;
-        return false;
+        return Dictionary.TryGetValue(key, out value);
     }
 }
 

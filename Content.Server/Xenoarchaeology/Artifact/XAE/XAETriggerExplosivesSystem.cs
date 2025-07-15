@@ -21,14 +21,14 @@ public sealed class XAETriggerExplosivesSystem : BaseXAESystem<XAETriggerExplosi
 
         var maxIntensity = explosiveComp.MaxIntensity;
 
-        if (args.Modifications.TryGetValue<float>(XenoArtifactExplosionEffectModifier.TotalIntensity,
+        if (args.Modifications.TryGetValue(XenoArtifactExplosionEffectModifier.TotalIntensity,
                 out var totalIntensityChange))
         {
             maxIntensity = Math.Max(maxIntensity / 4, maxIntensity + totalIntensityChange);
         }
 
         var totalIntensity = explosiveComp.TotalIntensity;
-        if (args.Modifications.TryGetValue<float>(XenoArtifactExplosionEffectModifier.MaxIntensity, out var maxIntensityChange))
+        if (args.Modifications.TryGetValue(XenoArtifactExplosionEffectModifier.MaxIntensity, out var maxIntensityChange))
         {
             totalIntensity += Math.Max(totalIntensity / 4, totalIntensity + maxIntensityChange);
         }

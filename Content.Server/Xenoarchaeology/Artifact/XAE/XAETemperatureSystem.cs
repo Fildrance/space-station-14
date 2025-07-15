@@ -22,13 +22,13 @@ public sealed class XAETemperatureSystem : BaseXAESystem<XAETemperatureComponent
     {
         XAETemperatureComponent component = ent;
         var adjacentTileEffectProbability = component.AdjacentTileEffectProbability;
-        if (args.Modifications.TryGetValue<int>(XenoArtifactTemperatureEffectModifier.AdjacentTileChance, out var chanceChange))
+        if (args.Modifications.TryGetValue(XenoArtifactTemperatureEffectModifier.AdjacentTileChance, out var chanceChange))
         {
             adjacentTileEffectProbability = Math.Max(0.1f, adjacentTileEffectProbability + chanceChange);
         }
 
         var targetTemperature = ent.Comp.TargetTemperature;
-        if (args.Modifications.TryGetValue<int>(XenoArtifactEffectModifier.Amount, out var amountChange))
+        if (args.Modifications.TryGetValue(XenoArtifactEffectModifier.Amount, out var amountChange))
         {
             targetTemperature = Math.Max(targetTemperature / 8, targetTemperature + amountChange);
         }

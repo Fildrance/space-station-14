@@ -44,7 +44,7 @@
     XenoArtifactPolyLuminous: 2.0
     XenoArtifactPolyLizard: 2.0
     XenoArtifactRadioactiveStrong: 3.0
-    XenoArtifactMaterialSpawnGlass: 3.3
+    XenoArtifactMaterialSpawnGlass: 3000.3
     XenoArtifactMaterialSpawnSteel: 3.3
     XenoArtifactMaterialSpawnPlastic: 3.3
     XenoArtifactPortal: 2.0
@@ -531,7 +531,7 @@
   - type: XenoArtifactNodeBudget
     budgetRange:
       min: 0
-      max: 4000
+      max: 2000
   - type: XAETelepathic
     messages:
     - badfeeling-artifact-1
@@ -1466,19 +1466,22 @@
   components:
   - type: XenoArtifactNodeBudget
     budgetRange:
-      min: 9000
+      min: 0000
       max: 50000
-    # modifyBy:
-    #   :0
+    modifyBy:
+      dictionary:
+        enum.XenoArtifactEntityTableSpawnerEffectModifier.SpawnCountChange: 40
   - type: XAEApplyComponents
     applyIfAlreadyHave: true
     refreshOnReactivate: true
     components:
     - type: EntityTableSpawner
       deleteSpawnerAfterSpawn: false
-      table: !type:GroupSelector
-        children:
-        - id: SheetGlass
+      autoStack: true
+      table: !type:EntSelector
+        id: SheetGlass1
+        amount: 50
+
 
 - type: entity
   id: XenoArtifactMaterialSpawnSteel

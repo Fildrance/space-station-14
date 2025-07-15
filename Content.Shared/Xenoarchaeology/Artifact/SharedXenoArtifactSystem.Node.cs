@@ -27,9 +27,9 @@ public abstract partial class SharedXenoArtifactSystem
     private void OnAmplify(Entity<XenoArtifactNodeComponent> ent, ref XenoArtifactCollectEffectModificationsOnInitEvent args)
     {
         
-        if (args.Modifications.TryGetValue<int>(XenoArtifactEffectModifier.Durability, out var durabilityChange))
+        if (args.Modifications.TryGetValue(XenoArtifactEffectModifier.Durability, out var durabilityChange))
         {
-            ent.Comp.Durability += durabilityChange;
+            ent.Comp.Durability += (int) durabilityChange;
             if (ent.Comp.Durability <= 0)
                 ent.Comp.Durability = 1;
 

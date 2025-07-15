@@ -1,10 +1,14 @@
+using System.Linq;
 using System.Numerics;
 using Content.Server.GameTicking;
 using Content.Server.Spawners.Components;
 using Content.Shared.EntityTable;
 using Content.Shared.GameTicking.Components;
+using Content.Shared.Stacks;
 using JetBrains.Annotations;
+using Robust.Shared.Collections;
 using Robust.Shared.Map;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 
 namespace Content.Server.Spawners.EntitySystems
@@ -15,6 +19,7 @@ namespace Content.Server.Spawners.EntitySystems
         [Dependency] private readonly IRobustRandom _robustRandom = default!;
         [Dependency] private readonly GameTicker _ticker = default!;
         [Dependency] private readonly EntityTableSystem _entityTable = default!;
+        [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
 
         public override void Initialize()
         {
@@ -128,15 +133,98 @@ namespace Content.Server.Spawners.EntitySystems
 
             var coords = Transform(ent).Coordinates;
 
-            var spawns = _entityTable.GetSpawns(ent.Comp.Table);
-            foreach (var proto in spawns)
+            EntityTableSpawnerComponent comp = ent;
+            var spawns = _entityTable.GetSpawns(comp.Table);
+            if (comp.AutoStack)
             {
-                var xOffset = _robustRandom.NextFloat(-ent.Comp.Offset, ent.Comp.Offset);
-                var yOffset = _robustRandom.NextFloat(-ent.Comp.Offset, ent.Comp.Offset);
-                var trueCoords = coords.Offset(new Vector2(xOffset, yOffset));
-
-                SpawnAtPosition(proto, trueCoords);
+                SpawnStackedWhenPossible(spawns, coords, comp.Offset);
             }
+            else
+            {
+                foreach (var proto in spawns)
+                {
+                    SpawnAtRandomOffset(proto, coords, comp.Offset);
+                }
+            }
+        }
+
+        private void SpawnStackedWhenPossible(
+            IEnumerable<EntProtoId> spawns,
+            EntityCoordinates coords,
+            float offset
+        )
+        {
+            var protoIds = spawns.ToArray();
+
+            Dictionary<ProtoId<StackPrototype>, (EntProtoId Proto, int Count, int? StackMaxCount) > prototypeStacks = new();
+            ValueList<EntProtoId> nonStackable = new();
+            foreach (var protoId in protoIds)
+            {
+                var prototype = _prototypeManager.Index(protoId);
+                if (prototype.Components.TryGetComponent("Stack", out var comp) && comp is StackComponent stackComponent)
+                {
+                    if (prototypeStacks.TryGetValue(stackComponent.StackTypeId, out var found))
+                    {
+                        prototypeStacks[stackComponent.StackTypeId] = (protoId, found.Count+1, found.StackMaxCount);
+                    }
+                    else
+                    {
+                        var stackPrototype = _prototypeManager.Index(stackComponent.StackTypeId);
+                        prototypeStacks[stackComponent.StackTypeId] = (protoId, 1, stackPrototype.MaxCount);
+                    }
+                }
+                else
+                {
+                    nonStackable.Add(protoId);
+                }
+            }
+
+            foreach (var proto in nonStackable)
+            {
+                SpawnAtRandomOffset(proto, coords, offset);
+            }
+
+            foreach (var (protoId, count, maxSize) in prototypeStacks.Values)
+            {
+                if (!maxSize.HasValue)
+                {
+                    var spawnAllInOne = SpawnAtRandomOffset(protoId, coords, offset);
+                    if (!TryComp<StackComponent>(spawnAllInOne, out var allInOneStackComp))
+                        continue;
+
+                    allInOneStackComp.Count = count;
+                    Dirty(spawnAllInOne, allInOneStackComp);
+                    continue;
+                }
+
+                var repeatCount = count / maxSize.Value;
+                var leftOver = count % maxSize.Value;
+                for (int i = 0; i < repeatCount; i++)
+                {
+                    var spawned = SpawnAtRandomOffset(protoId, coords, offset);
+                    if (!TryComp<StackComponent>(spawned, out var stackComp))
+                        continue;
+
+                    stackComp.Count = maxSize.Value;
+                    Dirty(spawned, stackComp);
+                }
+
+                var spawnedForLeftOver = SpawnAtRandomOffset(protoId, coords, offset);
+                if (!TryComp<StackComponent>(spawnedForLeftOver, out var stackCompOfLeftOver))
+                    continue;
+
+                stackCompOfLeftOver.Count = leftOver;
+                Dirty(spawnedForLeftOver, stackCompOfLeftOver);
+            }
+        }
+
+        private EntityUid SpawnAtRandomOffset(EntProtoId proto, EntityCoordinates coords, float offset)
+        {
+            var xOffset = _robustRandom.NextFloat(-offset, offset);
+            var yOffset = _robustRandom.NextFloat(-offset, offset);
+            var trueCoords = coords.Offset(new Vector2(xOffset, yOffset));
+
+            return SpawnAtPosition(proto, trueCoords);
         }
     }
 }

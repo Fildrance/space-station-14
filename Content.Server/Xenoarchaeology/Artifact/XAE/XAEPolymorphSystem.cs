@@ -26,7 +26,7 @@ public sealed class XAEPolymorphSystem : BaseXAESystem<XAEPolymorphComponent>
     protected override void OnActivated(Entity<XAEPolymorphComponent> ent, ref XenoArtifactNodeActivatedEvent args)
     {
         var duration = ent.Comp.AdditionalDuration;
-        if (args.Modifications.TryGetValue<float>(XenoArtifactEffectModifier.Duration, out var durationChange))
+        if (args.Modifications.TryGetValue(XenoArtifactEffectModifier.Duration, out var durationChange))
             duration = Math.Max(1, duration + durationChange);
 
         _humanoids.Clear();

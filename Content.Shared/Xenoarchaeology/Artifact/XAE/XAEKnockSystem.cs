@@ -18,7 +18,7 @@ public sealed class XAEKnockSystem : BaseXAESystem<XAEKnockComponent>
             return;
 
         var range = ent.Comp.KnockRange;
-        if (args.Modifications.TryGetValue<int>(XenoArtifactEffectModifier.Range, out var rangeChange))
+        if (args.Modifications.TryGetValue(XenoArtifactEffectModifier.Range, out var rangeChange))
             range = Math.Max(1f, range + rangeChange);
 
         var ev = new KnockSpellEvent

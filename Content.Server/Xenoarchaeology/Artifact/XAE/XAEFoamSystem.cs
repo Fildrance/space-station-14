@@ -18,7 +18,7 @@ public sealed class XAEFoamSystem : BaseXAESystem<XAEFoamComponent>
 {
     [Dependency] private readonly IRobustRandom _random = default!;
     [Dependency] private readonly SmokeSystem _smoke = default!;
-    [Dependency] private readonly IPrototypeManager _prototypeManager= default!;
+    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
     [Dependency] private readonly MetaDataSystem _metaData = default!;
 
     /// <inheritdoc />
@@ -51,10 +51,10 @@ public sealed class XAEFoamSystem : BaseXAESystem<XAEFoamComponent>
     protected override void OnActivated(Entity<XAEFoamComponent> ent, ref XenoArtifactNodeActivatedEvent args)
     {
         var foamAmount = ent.Comp.FoamAmount;
-        if (args.Modifications.TryGetValue<int>(XenoArtifactEffectModifier.Amount, out var amountChange))
+        if (args.Modifications.TryGetValue(XenoArtifactEffectModifier.Amount, out var amountChange))
         {
-            var amountMin = Math.Min(foamAmount.Min / 4, foamAmount.Min + amountChange);
-            var amountMax = Math.Min(foamAmount.Min, foamAmount.Max + amountChange);
+            var amountMin = Math.Min(foamAmount.Min / 4, foamAmount.Min + (int)amountChange);
+            var amountMax = Math.Min(foamAmount.Min, foamAmount.Max + (int)amountChange);
 
             ent.Comp.FoamAmount = new MinMax(amountMin, amountMax);
         }
