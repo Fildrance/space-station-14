@@ -155,21 +155,20 @@ namespace Content.Server.Spawners.EntitySystems
             foreach (var protoId in spawns)
             {
                 var prototype = _prototypeManager.Index(protoId);
-                if (!prototype.Components.TryGetComponent("Stack", out var comp)
-                    || comp is not StackComponent stackComponent)
+                if (!Factory.TryGetComponent<StackComponent>(prototype.Components, out var stack))
                 {
                     nonStackable.Add(protoId);
                     continue;
                 }
 
-                if (prototypeStacks.TryGetValue(stackComponent.StackTypeId, out var found))
+                if (prototypeStacks.TryGetValue(stack.StackTypeId, out var found))
                 {
-                    prototypeStacks[stackComponent.StackTypeId] = (protoId, found.Count + 1, found.StackMaxCount);
+                    prototypeStacks[stack.StackTypeId] = (protoId, found.Count + 1, found.StackMaxCount);
                 }
                 else
                 {
-                    var stackPrototype = _prototypeManager.Index(stackComponent.StackTypeId);
-                    prototypeStacks[stackComponent.StackTypeId] = (protoId, 1, stackPrototype.MaxCount);
+                    var stackPrototype = _prototypeManager.Index(stack.StackTypeId);
+                    prototypeStacks[stack.StackTypeId] = (protoId, 1, stackPrototype.MaxCount);
                 }
             }
 
