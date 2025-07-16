@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Numerics;
 using Content.Server.GameTicking;
 using Content.Server.Spawners.Components;
@@ -154,28 +153,26 @@ namespace Content.Server.Spawners.EntitySystems
             float offset
         )
         {
-            var protoIds = spawns.ToArray();
-
             Dictionary<ProtoId<StackPrototype>, (EntProtoId Proto, int Count, int? StackMaxCount) > prototypeStacks = new();
-            ValueList<EntProtoId> nonStackable = new();
-            foreach (var protoId in protoIds)
+            ValueList<EntProtoId> nonStackable = [];
+            foreach (var protoId in spawns)
             {
                 var prototype = _prototypeManager.Index(protoId);
-                if (prototype.Components.TryGetComponent("Stack", out var comp) && comp is StackComponent stackComponent)
+                if (!prototype.Components.TryGetComponent("Stack", out var comp)
+                    || comp is not StackComponent stackComponent)
                 {
-                    if (prototypeStacks.TryGetValue(stackComponent.StackTypeId, out var found))
-                    {
-                        prototypeStacks[stackComponent.StackTypeId] = (protoId, found.Count+1, found.StackMaxCount);
-                    }
-                    else
-                    {
-                        var stackPrototype = _prototypeManager.Index(stackComponent.StackTypeId);
-                        prototypeStacks[stackComponent.StackTypeId] = (protoId, 1, stackPrototype.MaxCount);
-                    }
+                    nonStackable.Add(protoId);
+                    continue;
+                }
+
+                if (prototypeStacks.TryGetValue(stackComponent.StackTypeId, out var found))
+                {
+                    prototypeStacks[stackComponent.StackTypeId] = (protoId, found.Count + 1, found.StackMaxCount);
                 }
                 else
                 {
-                    nonStackable.Add(protoId);
+                    var stackPrototype = _prototypeManager.Index(stackComponent.StackTypeId);
+                    prototypeStacks[stackComponent.StackTypeId] = (protoId, 1, stackPrototype.MaxCount);
                 }
             }
 
