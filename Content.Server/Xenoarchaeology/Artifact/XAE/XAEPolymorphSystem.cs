@@ -4,6 +4,7 @@ using Content.Server.Xenoarchaeology.Artifact.XAE.Components;
 using Content.Shared.Humanoid;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Xenoarchaeology.Artifact;
+using Content.Shared.Xenoarchaeology.Artifact.Components;
 using Content.Shared.Xenoarchaeology.Artifact.XAE;
 using Robust.Shared.Audio.Systems;
 

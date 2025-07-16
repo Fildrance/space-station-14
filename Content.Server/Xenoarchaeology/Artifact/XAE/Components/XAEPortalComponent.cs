@@ -18,5 +18,5 @@ public sealed partial class XAEPortalComponent : Component
     /// Duration of portals staying open.
     /// </summary>
     [DataField, AutoNetworkedField]
-    public float? Lifetime { get; set; }
+    public float Lifetime = 8;
 }

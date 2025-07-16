@@ -2,6 +2,7 @@ using Content.Server.Fluids.EntitySystems;
 using Content.Server.Xenoarchaeology.Artifact.XAE.Components;
 using Content.Shared.Chemistry.Reagent;
 using Content.Shared.Xenoarchaeology.Artifact;
+using Content.Shared.Xenoarchaeology.Artifact.Components;
 using Content.Shared.Xenoarchaeology.Artifact.XAE;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;

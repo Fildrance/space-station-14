@@ -498,14 +498,29 @@ public abstract partial class SharedXenoArtifactSystem
     }
 }
 
+
+/// <summary>
+/// XenoArtifact effect modifiers, can be used to affect aspects of effects, increasing or decreasing its power.
+/// </summary>
 public enum XenoArtifactEffectModifier
 {
+    /// <summary>
+    /// Increase or decrease node durability.
+    /// </summary>
     Durability,
+    /// <summary>
+    /// Increase or decrease range in which effect will work. Specific result depends on effect.
+    /// </summary>
     Range,
+    /// <summary>
+    /// Increase or decrease duration of effect.
+    /// </summary>
     Duration,
+    /// <summary>
+    /// Increase or decrease amount of essense effect produces.
+    /// </summary>
     Amount,
 }
-
 /// <summary>
 /// Event for collecting artifact node effects modifications on node init.
 /// Can be used to modify static data, such as durability, which should not be re-evaluated on each activation.

@@ -61,7 +61,13 @@ public sealed class XAECreateGasSystem : BaseXAESystem<XAECreateGasComponent>
     }
 }
 
+/// <summary>
+/// Artifact effect modifier flag for <see cref="XAECreateGasComponent"/> effect.
+/// </summary>
 public enum XenoArtifactGasEffectModifier
 {
+    /// <summary>
+    /// Increase or reduce amount of gas to produce as an effect.
+    /// </summary>
     Amount
 }

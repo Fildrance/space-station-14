@@ -3,6 +3,7 @@ using Content.Shared.Mind.Components;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Teleportation.Systems;
 using Content.Shared.Xenoarchaeology.Artifact;
+using Content.Shared.Xenoarchaeology.Artifact.Components;
 using Content.Shared.Xenoarchaeology.Artifact.XAE;
 using Robust.Shared.Collections;
 using Robust.Shared.Containers;
@@ -31,7 +32,7 @@ public sealed class XAEPortalSystem : BaseXAESystem<XAEPortalComponent>
 
         var portalLifetime = ent.Comp.Lifetime;
         if (args.Modifications.TryGetValue(XenoArtifactEffectModifier.Duration, out var durationChange))
-            portalLifetime = Math.Max(1, portalLifetime ?? 0 + durationChange);
+            portalLifetime = Math.Max(1, portalLifetime + durationChange);
 
         var map = Transform(ent).MapID;
         var validMinds = new ValueList<EntityUid>();
@@ -52,9 +53,10 @@ public sealed class XAEPortalSystem : BaseXAESystem<XAEPortalComponent>
         if(!TrySpawnNextTo(ent.Comp.PortalProto, args.Artifact, out var firstPortal))
             return;
 
-        if (portalLifetime is > 0 && TryComp<TimedDespawnComponent>(firstPortal.Value, out var timedDespawn))
+        if (portalLifetime > 0)
         {
-            timedDespawn.Lifetime = portalLifetime.Value;
+            var timedDespawn = EnsureComp<TimedDespawnComponent>(firstPortal.Value);
+            timedDespawn.Lifetime = portalLifetime;
         }
 
         var target = _random.Pick(validMinds);

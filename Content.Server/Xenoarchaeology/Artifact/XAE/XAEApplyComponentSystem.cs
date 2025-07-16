@@ -23,7 +23,7 @@ public sealed class XAEApplyComponentSystem : SharedXAEApplyComponentsSystem
 
     private bool TryApplyModifiersFor(EntityTableSpawnerComponent tableSpawner, XenoArtifactEffectsModifications modifications)
     {
-        if (modifications.TryGetValue(XAEApplyComponentsComponent.XenoArtifactEntityTableSpawnerEffectModifier.SpawnCountChange,
+        if (modifications.TryGetValue(XenoArtifactEntityTableSpawnerEffectModifier.SpawnCountChange,
                 out var spawnCountChange))
         {
             if (tableSpawner.Table is EntSelector entSelector)
@@ -39,7 +39,7 @@ public sealed class XAEApplyComponentSystem : SharedXAEApplyComponentsSystem
 
     private bool TryApplyModifiersFor(PowerSupplierComponent powerSupplier, XenoArtifactEffectsModifications modifications)
     {
-        if (modifications.TryGetValue(XAEApplyComponentsComponent.XenoArtifactPowerSupplierEffectModifier.Effectiveness, out var effectiveness))
+        if (modifications.TryGetValue(XenoArtifactPowerSupplierEffectModifier.Effectiveness, out var effectiveness))
         {
             powerSupplier.MaxSupply *= effectiveness;
             return true;

@@ -26,60 +26,58 @@ public sealed partial class XAEApplyComponentsComponent : Component
     /// </summary>
     [DataField]
     public bool RefreshOnReactivate { get; set; }
+}
+
+public enum XenoArtifactMeleeWeaponEffectModifier
+{
+    Damage,
+    AttackRate
+}
+
+public enum XenoArtifactAmmoSourceEffectModifier
+{
+    CapacityChange
+}
+
+public enum XenoArtifactRadiationSourceEffectModifier
+{
+    Effectiveness
+}
+
+public enum XenoArtifactToolEffectModifier
+{
+    Effectiveness
+}
+
+public enum XenoArtifactStealthEffectModifier
+{
+    Effectiveness
+}
+
+public enum XenoArtifactStorageEffectModifier
+{
+    WidthChange,
+    HeightChange,
+}
+
+public enum XenoArtifactHeldSpeedModifierEffectModifier
+{
+    Multiplier
+}
+
+public enum XenoArtifactSolutionStorageEffectModifier
+{
+    VolumeChange
+}
 
 
-    public enum XenoArtifactMeleeWeaponEffectModifier
-    {
-        Damage,
-        AttackRate
-    }
+[Serializable, NetSerializable]
+public enum XenoArtifactEntityTableSpawnerEffectModifier
+{
+    SpawnCountChange
+}
 
-    public enum XenoArtifactAmmoSourceEffectModifier
-    {
-        CapacityChange
-    }
-
-    public enum XenoArtifactRadiationSourceEffectModifier
-    {
-        Effectiveness
-    }
-
-    public enum XenoArtifactToolEffectModifier
-    {
-        Effectiveness
-    }
-
-    public enum XenoArtifactStealthEffectModifier
-    {
-        Effectiveness
-    }
-
-    public enum XenoArtifactStorageEffectModifier
-    {
-        WidthChange,
-        HeightChange,
-    }
-
-    public enum XenoArtifactHeldSpeedModifierEffectModifier
-    {
-        Multiplier
-    }
-
-    public enum XenoArtifactSolutionStorageEffectModifier
-    {
-        VolumeChange
-    }
-
-
-    [Serializable, NetSerializable]
-    public enum XenoArtifactEntityTableSpawnerEffectModifier
-    {
-        SpawnCountChange
-    }
-
-    public enum XenoArtifactPowerSupplierEffectModifier
-    {
-        Effectiveness
-    }
-
+public enum XenoArtifactPowerSupplierEffectModifier
+{
+    Effectiveness
 }
