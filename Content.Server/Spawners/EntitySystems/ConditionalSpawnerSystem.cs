@@ -140,10 +140,7 @@ namespace Content.Server.Spawners.EntitySystems
             }
             else
             {
-                foreach (var proto in spawns)
-                {
-                    SpawnAtRandomOffset(proto, coords, comp.Offset);
-                }
+                SpawnAtRandomOffset(spawns, coords, comp.Offset);
             }
         }
 
@@ -176,10 +173,7 @@ namespace Content.Server.Spawners.EntitySystems
                 }
             }
 
-            foreach (var proto in nonStackable)
-            {
-                SpawnAtRandomOffset(proto, coords, offset);
-            }
+            SpawnAtRandomOffset(nonStackable, coords, offset);
 
             foreach (var (protoId, count, maxSize) in prototypeStacks.Values)
             {
@@ -212,6 +206,14 @@ namespace Content.Server.Spawners.EntitySystems
 
                 stackCompOfLeftOver.Count = leftOver;
                 Dirty(spawnedForLeftOver, stackCompOfLeftOver);
+            }
+        }
+
+        private void SpawnAtRandomOffset(IEnumerable<EntProtoId> spawns, EntityCoordinates coords, float offset)
+        {
+            foreach (var proto in spawns)
+            {
+                SpawnAtRandomOffset(proto, coords, offset);
             }
         }
 
