@@ -2,7 +2,6 @@ using Content.Server.Fluids.EntitySystems;
 using Content.Server.Xenoarchaeology.Artifact.XAE.Components;
 using Content.Shared.Chemistry.Reagent;
 using Content.Shared.Xenoarchaeology.Artifact;
-using Content.Shared.Xenoarchaeology.Artifact.Components;
 using Content.Shared.Xenoarchaeology.Artifact.XAE;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
@@ -64,9 +63,9 @@ public sealed class XAECreatePuddleSystem: BaseXAESystem<XAECreatePuddleComponen
     protected override void OnActivated(Entity<XAECreatePuddleComponent> ent, ref XenoArtifactNodeActivatedEvent args)
     {
         var currentMaxVolume = ent.Comp.ChemicalSolution.MaxVolume.Value;
-        if (args.Modifications.TryGetValue(XenoArtifactEffectModifier.Amount, out var amountChange))
+        if (args.Modifications.TryGetValue(XenoArtifactEffectModifier.Amount, out var amountModifier))
         {
-            currentMaxVolume = Math.Max(currentMaxVolume / 4, currentMaxVolume + (int)amountChange);
+            currentMaxVolume = Math.Max(currentMaxVolume / 4, (int)amountModifier.Modify(currentMaxVolume));
         }
 
         var component = ent.Comp;

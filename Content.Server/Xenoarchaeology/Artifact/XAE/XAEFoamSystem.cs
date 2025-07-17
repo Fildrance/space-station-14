@@ -5,7 +5,6 @@ using Content.Shared.Chemistry.Reaction;
 using Content.Shared.Chemistry.Reagent;
 using Content.Shared.Destructible.Thresholds;
 using Content.Shared.Xenoarchaeology.Artifact;
-using Content.Shared.Xenoarchaeology.Artifact.Components;
 using Content.Shared.Xenoarchaeology.Artifact.XAE;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
@@ -52,10 +51,10 @@ public sealed class XAEFoamSystem : BaseXAESystem<XAEFoamComponent>
     protected override void OnActivated(Entity<XAEFoamComponent> ent, ref XenoArtifactNodeActivatedEvent args)
     {
         var foamAmount = ent.Comp.FoamAmount;
-        if (args.Modifications.TryGetValue(XenoArtifactEffectModifier.Amount, out var amountChange))
+        if (args.Modifications.TryGetValue(XenoArtifactEffectModifier.Amount, out var amountModifier))
         {
-            var amountMin = Math.Min(foamAmount.Min / 4, foamAmount.Min + (int)amountChange);
-            var amountMax = Math.Min(foamAmount.Min, foamAmount.Max + (int)amountChange);
+            var amountMin = Math.Min(foamAmount.Min / 4, (int)amountModifier.Modify(foamAmount.Min));
+            var amountMax = Math.Min(foamAmount.Min, (int)amountModifier.Modify(foamAmount.Max));
 
             ent.Comp.FoamAmount = new MinMax(amountMin, amountMax);
         }

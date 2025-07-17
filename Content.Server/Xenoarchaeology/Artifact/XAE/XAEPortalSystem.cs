@@ -3,7 +3,6 @@ using Content.Shared.Mind.Components;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Teleportation.Systems;
 using Content.Shared.Xenoarchaeology.Artifact;
-using Content.Shared.Xenoarchaeology.Artifact.Components;
 using Content.Shared.Xenoarchaeology.Artifact.XAE;
 using Robust.Shared.Collections;
 using Robust.Shared.Containers;
@@ -31,8 +30,8 @@ public sealed class XAEPortalSystem : BaseXAESystem<XAEPortalComponent>
             return;
 
         var portalLifetime = ent.Comp.Lifetime;
-        if (args.Modifications.TryGetValue(XenoArtifactEffectModifier.Duration, out var durationChange))
-            portalLifetime = Math.Max(1, portalLifetime + durationChange);
+        if (args.Modifications.TryGetValue(XenoArtifactEffectModifier.Duration, out var durationModifier))
+            portalLifetime = Math.Max(1, durationModifier.Modify(portalLifetime));
 
         var map = Transform(ent).MapID;
         var validMinds = new ValueList<EntityUid>();

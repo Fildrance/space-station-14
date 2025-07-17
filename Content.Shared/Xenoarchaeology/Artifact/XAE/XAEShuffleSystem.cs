@@ -35,8 +35,8 @@ public sealed class XAEShuffleSystem : BaseXAESystem<XAEShuffleComponent>
             return;
 
         var range = ent.Comp.Range;
-        if (args.Modifications.TryGetValue(XenoArtifactEffectModifier.Range, out var rangeChange))
-            range = Math.Max(1, range + rangeChange);
+        if (args.Modifications.TryGetValue(XenoArtifactEffectModifier.Range, out var rangeModifier))
+            range = Math.Max(1, rangeModifier.Modify(range));
 
         List<Entity<TransformComponent>> toShuffle = new();
         _entities.Clear();

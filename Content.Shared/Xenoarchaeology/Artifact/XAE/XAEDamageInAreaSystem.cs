@@ -27,12 +27,12 @@ public sealed class XAEDamageInAreaSystem : BaseXAESystem<XAEDamageInAreaCompone
             return;
 
         var damage = ent.Comp.Damage;
-        if (args.Modifications.TryGetValue(XenoArtifactDamageEffectModifier.DamageAmount, out var amount) && amount != 0)
+        if (args.Modifications.TryGetValue(XenoArtifactDamageEffectModifier.DamageAmount, out var amountModifier))
         {
             damage = new DamageSpecifier(damage);
             foreach (var dmg in damage.DamageDict)
             {
-                damage.DamageDict[dmg.Key] += amount;
+                damage.DamageDict[dmg.Key] += (int)amountModifier.Modify(dmg.Value.Value);
             }
         }
 

@@ -34,8 +34,8 @@ public sealed class XAELightFlickerSystem : BaseXAESystem<XAELightFlickerCompone
     protected override void OnActivated(Entity<XAELightFlickerComponent> ent, ref XenoArtifactNodeActivatedEvent args)
     {
         var radius = ent.Comp.Radius;
-        if (args.Modifications.TryGetValue(XenoArtifactEffectModifier.Range, out var rangeChange))
-            radius = Math.Max(radius, radius + rangeChange);
+        if (args.Modifications.TryGetValue(XenoArtifactEffectModifier.Range, out var rangeModifier))
+            radius = Math.Max(radius, rangeModifier.Modify(radius));
 
         _entities.Clear();
         _lookup.GetEntitiesInRange(ent.Owner, radius, _entities, LookupFlags.StaticSundries);

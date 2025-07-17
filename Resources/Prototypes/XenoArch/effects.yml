@@ -169,10 +169,10 @@
       weight: 3.0
     - id: XenoArtifactHealAll
       weight: 1.0
-    #- id: XenoArtifactTesla
-    #  weight: 10.0
-    #- id: XenoArtifactSingularity
-    #  weight: 10.0
+    - id: XenoArtifactTesla
+      weight: 0.4
+    - id: XenoArtifactSingularity
+      weight: 0.4
     - id: XenoArtifactExplosionScary
       weight: 1.0
     - id: XenoArtifactBoom
@@ -224,9 +224,6 @@
   components:
   - type: XenoArtifactNode
     maxDurability: 1
-    maxDurabilityCanDecreaseBy:
-      min: 0
-      max: 0
   - type: NameIdentifier
     group: XenoArtifactNode
 
@@ -289,6 +286,9 @@
     budgetRange:
       min: 9000
       max: 20000
+    modifyBy:
+      enum.XenoArtifactStorageEffectModifier.HeightChange: "budgetDependant add -2,3"
+      enum.XenoArtifactStorageEffectModifier.WidthChange: "budgetDependant add -5,5"
   - type: XAEApplyComponents
     components:
     - type: Item
@@ -335,6 +335,8 @@
     budgetRange:
       min: 0
       max: 8000
+    modifyBy:
+      enum.XenoArtifactSolutionStorageEffectModifier.VolumeChange: "budgetDependant add -100,100"
   - type: XAEApplyComponents
     components:
     - type: SolutionContainerManager
@@ -367,6 +369,8 @@
     budgetRange:
       min: 16000
       max: 30000
+    modifyBy:
+      enum.XenoArtifactHeldSpeedModifierEffectModifier.Multiplier: "budgetDependant multiply 0.9,1,1.3"
   - type: XAEApplyComponents
     components:
     - type: HeldSpeedModifier
@@ -381,13 +385,16 @@
   - type: XenoArtifactNodeBudget
     budgetRange:
       min: 0
-      max: 6000
+      max: 12000
+    modifyBy:
+      enum.XenoArtifactMeleeWeaponEffectModifier.Damage: "budgetDependant add -3,3"
+      enum.XenoArtifactMeleeWeaponEffectModifier.AttackRateMultiplier: "budgetDependant multiply 1.5,1,0.8"
   - type: XAEApplyComponents
     components:
     - type: MeleeWeapon
       damage:
         types:
-          Piercing: 18
+          Piercing: 14
           Blunt: 4
       soundHit:
         path: /Audio/Weapons/bladeslice.ogg
@@ -402,6 +409,8 @@
     budgetRange:
       min: 10000
       max: 70000
+    modifyBy:
+      enum.XenoArtifactPowerSupplierEffectModifier.Effectiveness: "budgetDependant multiply 0.5,2,4"
   - type: XAEApplyComponents
     components:
     - type: PowerSupplier
@@ -420,8 +429,10 @@
   components:
   - type: XenoArtifactNodeBudget
     budgetRange:
-      min: 10000
+      min: 8000
       max: 17000
+    modifyBy:
+      enum.XenoArtifactAmmoSourceEffectModifier.CapacityChange: "budgetDependant add -3,8"
   - type: XAEApplyComponents
     applyIfAlreadyHave: true
     refreshOnReactivate: true
@@ -481,6 +492,8 @@
     budgetRange:
       min: 5000
       max: 8000
+    modifyBy:
+      enum.XenoArtifactToolEffectModifier.Effectiveness: "budgetDependant multiply 4,1.5,0.8"
   - type: XAEApplyComponents
     components:
     - type: UserInterface
@@ -598,7 +611,7 @@
   - type: XenoArtifactNodeBudget
     budgetRange:
       min: 0
-      max: 10000
+      max: 10000 // todo
   - type: XAEApplyComponents
     applyIfAlreadyHave: true
     refreshOnReactivate: true
@@ -627,7 +640,7 @@
       min: 0
       max: 9000
     modifyBy:
-      enum.XenoArtifactEffectModifier.Range: 20
+      enum.XenoArtifactEffectModifier.Range: "budgetDependant add -2,10"
   - type: XAELightFlicker
 
 - type: entity
@@ -640,7 +653,7 @@
       min: 15000
       max: 40000
     modifyBy:
-      enum.XenoArtifactEffectModifier.Amount: 90
+      enum.XenoArtifactEffectModifier.Amount: "budgetDependant add -90,100"
   - type: XAEApplyComponents
     applyIfAlreadyHave: true
     refreshOnReactivate: true
@@ -690,9 +703,9 @@
   - type: XenoArtifactNodeBudget
     budgetRange:
       min: 6000
-      max: 18000
+      max: 28000
     modifyBy:
-      enum.XenoArtifactEffectModifier.Amount: 450
+      enum.XenoArtifactEffectModifier.Amount: "budgetDependant add -450,-200,450"
   - type: XAECreatePuddle
     chemAmount:
       min: 1
@@ -745,8 +758,8 @@
       min: 9500
       max: 22000
     modifyBy:
-      enum.XenoArtifactEffectModifier.Amount: -50
-      enum.XenoArtifactTemperatureEffectModifier.AdjacentTileChance: 0.5
+      enum.XenoArtifactEffectModifier.Amount: "budgetDependant add 150,70,-29"
+      enum.XenoArtifactTemperatureEffectModifier.AdjacentTileChance: "budgetDependant multiply 0,2"
   - type: XAETemperature
     targetTemp: 50
 
@@ -760,10 +773,10 @@
       min: 9500
       max: 22000
     modifyBy:
-      enum.XenoArtifactEffectModifier.Amount: 400
-      enum.XenoArtifactTemperatureEffectModifier.AdjacentTileChance: 0.5
+      enum.XenoArtifactEffectModifier.Amount: "budgetDependant add -200,100,300"
+      enum.XenoArtifactTemperatureEffectModifier.AdjacentTileChance: "budgetDependant multiply 0,2"
   - type: XAETemperature
-    targetTemp: 500
+    targetTemp: 300
 
 - type: entity
   id: XenoArtifactFoamMild
@@ -775,7 +788,7 @@
       min: 0
       max: 12000
     modifyBy:
-      enum.XenoArtifactEffectModifier.Amount: 30
+      enum.XenoArtifactEffectModifier.Amount: "budgetDependant add -90,0,30"
   - type: XAEFoam
     replaceDescription: true
     reagents:
@@ -798,13 +811,12 @@
   components:
   - type: XenoArtifactNode
     maxDurability: 2
-    maxDurabilityCanDecreaseBy:
-      min: 0
-      max: 1
   - type: XenoArtifactNodeBudget
     budgetRange:
       min: 0
       max: 6000
+    modifyBy:
+      enum.XenoArtifactEffectModifier.Durability: "budgetDependant add -1,0"
   - type: XAEApplyComponents
     applyIfAlreadyHave: true
     refreshOnReactivate: true
@@ -822,13 +834,12 @@
   components:
   - type: XenoArtifactNode
     maxDurability: 3
-    maxDurabilityCanDecreaseBy:
-      min: 0
-      max: 2
   - type: XenoArtifactNodeBudget
     budgetRange:
       min: 5000
       max: 12000
+    modifyBy:
+      enum.XenoArtifactEffectModifier.Durability: "budgetDependant add -2,0"
   - type: XAEApplyComponents
     applyIfAlreadyHave: true
     refreshOnReactivate: true
@@ -851,6 +862,8 @@
     budgetRange:
       min: 8000
       max: 16000
+    modifyBy:
+      enum.XenoArtifactRadiationSourceEffectModifier.IntensityChange: "budgetDependant multiply 0.8,1,1.5"
   - type: XAEApplyComponents
     applyIfAlreadyHave: true
     refreshOnReactivate: true
@@ -869,8 +882,8 @@
       min: 0
       max: 12000
     modifyBy:
-      enum.XenoArtifactEffectModifier.Range: 12
-      enum.XenoArtifactEffectModifier.Amount: 4000
+      enum.XenoArtifactEffectModifier.Range: "budgetDependant add 5,-10"
+      enum.XenoArtifactEffectModifier.Amount: "budgetDependant add -300,1100"
   - type: XAEChargeBattery
   - type: XAETelepathic
     messages:
@@ -886,7 +899,7 @@
       min: 12000
       max: 24000
     modifyBy:
-      enum.XenoArtifactEffectModifier.Range: 4
+      enum.XenoArtifactEffectModifier.Range: "budgetDependant add -2,4"
   - type: XAEKnock
     knockRange: 3
   - type: XAELightFlicker
@@ -936,6 +949,8 @@
     budgetRange:
       min: 6000
       max: 15000
+    modifyBy:
+      enum.XenoArtifactStealthEffectModifier.Effectiveness: "budgetDependant multiply 0.8,1,1.5"
   - type: XAEApplyComponents
     components:
     - type: Stealth
@@ -985,13 +1000,12 @@
   components:
   - type: XenoArtifactNode
     maxDurability: 4
-    maxDurabilityCanDecreaseBy:
-      min: 0
-      max: 2
   - type: XenoArtifactNodeBudget
     budgetRange:
       min: 12000
       max: 34000
+    modifyBy:
+      enum.XenoArtifactEffectModifier.Durability: "budgetDependant add -2,0"
   - type: XAEApplyComponents
     applyIfAlreadyHave: true
     refreshOnReactivate: true
@@ -1012,13 +1026,12 @@
   components:
   - type: XenoArtifactNode
     maxDurability: 4
-    maxDurabilityCanDecreaseBy:
-      min: 0
-      max: 2
   - type: XenoArtifactNodeBudget
     budgetRange:
       min: 8000
       max: 30000
+    modifyBy:
+      enum.XenoArtifactEffectModifier.Durability: "budgetDependant add -2,0"
   - type: XAEApplyComponents
     applyIfAlreadyHave: true
     refreshOnReactivate: true
@@ -1039,13 +1052,12 @@
   components:
   - type: XenoArtifactNode
     maxDurability: 3
-    maxDurabilityCanDecreaseBy:
-      min: 0
-      max: 1
   - type: XenoArtifactNodeBudget
     budgetRange:
       min: 10000
       max: 30000
+    modifyBy:
+      enum.XenoArtifactEffectModifier.Durability: "budgetDependant add -1,0"
   - type: XAEApplyComponents
     applyIfAlreadyHave: true
     refreshOnReactivate: true
@@ -1066,13 +1078,12 @@
   components:
   - type: XenoArtifactNode
     maxDurability: 4
-    maxDurabilityCanDecreaseBy:
-      min: 0
-      max: 2
   - type: XenoArtifactNodeBudget
     budgetRange:
       min: 12000
       max: 60000
+    modifyBy:
+      enum.XenoArtifactEffectModifier.Durability: "budgetDependant add -2,0"
   - type: XAEApplyComponents
     applyIfAlreadyHave: true
     refreshOnReactivate: true
@@ -1093,15 +1104,12 @@
   components:
   - type: XenoArtifactNode
     maxDurability: 3
-    maxDurabilityCanDecreaseBy:
-      min: 0
-      max: 2
   - type: XenoArtifactNodeBudget
     budgetRange:
       min: 8000
       max: 24000
     modifyBy:
-      enum.XenoArtifactEffectModifier.Durability: 2
+      enum.XenoArtifactEffectModifier.Durability: "budgetDependant add -2,2"
   - type: XAEApplyComponents
     applyIfAlreadyHave: true
     refreshOnReactivate: true
@@ -1122,13 +1130,12 @@
   components:
   - type: XenoArtifactNode
     maxDurability: 4
-    maxDurabilityCanDecreaseBy:
-      min: 0
-      max: 3
   - type: XenoArtifactNodeBudget
     budgetRange:
       min: 0
       max: 12000
+    modifyBy:
+      enum.XenoArtifactEffectModifier.Durability: "budgetDependant add -3,0"
   - type: XAEApplyComponents
     applyIfAlreadyHave: true
     refreshOnReactivate: true
@@ -1181,13 +1188,12 @@
   components:
   - type: XenoArtifactNode
     maxDurability: 2
-    maxDurabilityCanDecreaseBy:
-      min: 0
-      max: 1
   - type: XenoArtifactNodeBudget
     budgetRange:
       min: 0
       max: 100000
+    modifyBy:
+      enum.XenoArtifactEffectModifier.Durability: "budgetDependant add -1,0"
   - type: XAEApplyComponents
     applyIfAlreadyHave: true
     refreshOnReactivate: true
@@ -1217,12 +1223,10 @@
       min: 0
       max: 12000
     modifyBy:
+      enum.XenoArtifactEffectModifier.Durability: "budgetDependant add -2,0"
       enum.XenoArtifactEffectModifier.Amount: 10
   - type: XenoArtifactNode
     maxDurability: 3
-    maxDurabilityCanDecreaseBy:
-      min: 0
-      max: 2
   - type: XAEDamageInArea
     damageChance: 0.75
     whitelist:
@@ -1242,12 +1246,10 @@
       min: 0
       max: 50000
     modifyBy:
+      enum.XenoArtifactEffectModifier.Durability: "budgetDependant add -5,0"
       enum.XenoArtifactEffectModifier.Amount: 10
   - type: XenoArtifactNode
     maxDurability: 7
-    maxDurabilityCanDecreaseBy:
-      min: 0
-      max: 5
   - type: XAEFoam
     replaceDescription: true
     reagents:
@@ -1386,14 +1388,11 @@
       min: 9500
       max: 28000
     modifyBy:
+      enum.XenoArtifactEffectModifier.Durability: "budgetDependant add -3,3"
       enum.XenoArtifactEffectModifier.Range: 15
       enum.XenoArtifactEffectModifier.Duration: 3
-      enum.XenoArtifactEffectModifier.Durability: 3
   - type: XenoArtifactNode
     maxDurability: 5
-    maxDurabilityCanDecreaseBy:
-      min: 0
-      max: 3
   - type: XAEEmpInArea
 
 - type: entity
@@ -1466,11 +1465,11 @@
   components:
   - type: XenoArtifactNodeBudget
     budgetRange:
-      min: 0000
+      min: 8000
       max: 50000
     modifyBy:
       dictionary:
-        enum.XenoArtifactEntityTableSpawnerEffectModifier.SpawnCountChange: 40
+        enum.XenoArtifactEntityTableSpawnerEffectModifier.SpawnCountChange: "budgetDependant add -25,25"
   - type: XAEApplyComponents
     applyIfAlreadyHave: true
     refreshOnReactivate: true
@@ -1480,7 +1479,7 @@
       autoStack: true
       table: !type:EntSelector
         id: SheetGlass1
-        amount: 50
+        amount: 30
 
 
 - type: entity
@@ -1492,17 +1491,18 @@
     budgetRange:
       min: 11000
       max: 50000
-    # modifyBy:
-    #   :0
+    modifyBy:
+      dictionary:
+        enum.XenoArtifactEntityTableSpawnerEffectModifier.SpawnCountChange: "budgetDependant add -25,25"
   - type: XAEApplyComponents
     applyIfAlreadyHave: true
     refreshOnReactivate: true
     components:
     - type: EntityTableSpawner
       deleteSpawnerAfterSpawn: false
-      table: !type:GroupSelector
-        children:
-        - id: SheetSteel
+      table: !type:EntSelector
+        id: SheetSteel1
+        amount: 30
 
 - type: entity
   id: XenoArtifactMaterialSpawnPlastic
@@ -1513,17 +1513,18 @@
     budgetRange:
       min: 9000
       max: 50000
-    # modifyBy:
-    #   :0
+    modifyBy:
+      dictionary:
+        enum.XenoArtifactEntityTableSpawnerEffectModifier.SpawnCountChange: "budgetDependant add -25,25"
   - type: XAEApplyComponents
     applyIfAlreadyHave: true
     refreshOnReactivate: true
     components:
     - type: EntityTableSpawner
       deleteSpawnerAfterSpawn: false
-      table: !type:GroupSelector
-        children:
-        - id: SheetPlastic
+      table: !type:EntSelector
+        id: SheetPlastic1
+        amount: 30
 
 - type: entity
   id: XenoArtifactPortal
@@ -1535,8 +1536,8 @@
       min: 9000
       max: 18000
     modifyBy:
-      enum.XenoArtifactEffectModifier.Durability: 2
-      enum.XenoArtifactEffectModifier.Duration: 15
+      enum.XenoArtifactEffectModifier.Durability: "budgetDependant add -2,-1"
+      enum.XenoArtifactEffectModifier.Duration: "budgetDependant add -2,15"
   - type: XAEPortal
 
 - type: entity
@@ -1549,21 +1550,17 @@
       min: 30000
       max: 70000
     modifyBy:
-      enum.XenoArtifactEffectModifier.Durability: 1
+      enum.XenoArtifactEffectModifier.Durability: "budgetDependant add -1,0"
   - type: XenoArtifactNode
     maxDurability: 2
-    maxDurabilityCanDecreaseBy:
-      min: 0
-      max: 1
   - type: XAEApplyComponents
     applyIfAlreadyHave: true
     refreshOnReactivate: true
     components:
     - type: EntityTableSpawner
       deleteSpawnerAfterSpawn: false
-      table: !type:AllSelector
-        children:
-        - id: RandomArtifactSpawner
+      table: !type:EntSelector
+        id: RandomArtifactSpawner
 
 - type: entity
   id: XenoArtifactShuffle
@@ -1575,8 +1572,8 @@
       min: 8000
       max: 25000
     modifyBy:
-      enum.XenoArtifactEffectModifier.Range: 10
-      enum.XenoArtifactEffectModifier.Durability: 1
+      enum.XenoArtifactEffectModifier.Range: "budgetDependant add 0,15"
+      enum.XenoArtifactEffectModifier.Durability: "budgetDependant add -3,1"
   - type: XAEShuffle
     range: 5
   - type: XAETelepathic
@@ -1594,8 +1591,8 @@
       min: 8000
       max: 30000
     modifyBy:
-      enum.XenoArtifactDamageEffectModifier.DamageAmount: -250
-      enum.XenoArtifactEffectModifier.Durability: 3
+      enum.XenoArtifactDamageEffectModifier.DamageAmount: "budgetDependant add -20,-250"
+      enum.XenoArtifactEffectModifier.Durability: "budgetDependant add -2,3"
   - type: XAEDamageInArea
     damageChance: 1
     radius: 8

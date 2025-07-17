@@ -31,7 +31,7 @@ public sealed partial class XAEApplyComponentsComponent : Component
 public enum XenoArtifactMeleeWeaponEffectModifier
 {
     Damage,
-    AttackRate
+    AttackRateMultiplier
 }
 
 public enum XenoArtifactAmmoSourceEffectModifier
@@ -41,7 +41,7 @@ public enum XenoArtifactAmmoSourceEffectModifier
 
 public enum XenoArtifactRadiationSourceEffectModifier
 {
-    Effectiveness
+    IntensityChange
 }
 
 public enum XenoArtifactToolEffectModifier

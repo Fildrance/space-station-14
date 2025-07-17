@@ -19,20 +19,23 @@ public abstract partial class SharedXenoArtifactSystem
     {
         SubscribeLocalEvent<XenoArtifactNodeComponent, MapInitEvent>(OnNodeMapInit);
         SubscribeLocalEvent<XenoArtifactNodeComponent, XenoArtifactCollectEffectModificationsOnInitEvent>(OnAmplify);
+        SubscribeLocalEvent<XenoArtifactNodeBudgetComponent, AfterAutoHandleStateEvent>(OnHandleState);
 
         _xenoArtifactQuery = GetEntityQuery<XenoArtifactComponent>();
         _nodeQuery = GetEntityQuery<XenoArtifactNodeComponent>();
     }
 
+    private void OnHandleState(Entity<XenoArtifactNodeBudgetComponent> ent, ref AfterAutoHandleStateEvent args)
+    {
+        XenoArtifactNodeBudgetComponent component = ent;
+        component.ModifyBy.ApplyActualBudgetPlacement(component.PlacementInBudgetRange);
+    }
+
     private void OnAmplify(Entity<XenoArtifactNodeComponent> ent, ref XenoArtifactCollectEffectModificationsOnInitEvent args)
     {
-        
         if (args.Modifications.TryGetValue(XenoArtifactEffectModifier.Durability, out var durabilityChange))
         {
-            ent.Comp.Durability += (int) durabilityChange;
-            if (ent.Comp.Durability <= 0)
-                ent.Comp.Durability = 1;
-
+            ent.Comp.Durability = Math.Max(1, (int) durabilityChange.Modify(ent.Comp.Durability));
             Dirty(ent);
         }
     }
@@ -43,7 +46,6 @@ public abstract partial class SharedXenoArtifactSystem
     private void OnNodeMapInit(Entity<XenoArtifactNodeComponent> ent, ref MapInitEvent args)
     {
         XenoArtifactNodeComponent nodeComponent = ent;
-        nodeComponent.MaxDurability -= nodeComponent.MaxDurabilityCanDecreaseBy.Next(RobustRandom);
         SetNodeDurability((ent, ent), nodeComponent.MaxDurability);
     }
 
@@ -151,7 +153,7 @@ public abstract partial class SharedXenoArtifactSystem
         Dictionary<(EntityPrototype Prototype, XenoArtifactNodeBudgetComponent Budget), float> fittingEffectsByWeight = new();
         foreach (var (e, weight) in effects)
         {
-            if (!e.Components.TryGetComponent("XenoArtifactNodeBudget", out var comp) || comp is not XenoArtifactNodeBudgetComponent nodeBudgetComp)
+            if (!Factory.TryGetComponent<XenoArtifactNodeBudgetComponent>(e.Components, out var nodeBudgetComp))
                 continue;
 
             var budgetRange = nodeBudgetComp.BudgetRange;
@@ -181,6 +183,17 @@ public abstract partial class SharedXenoArtifactSystem
         var nodeComponent = nodeEnt.Value.Comp;
         nodeComponent.Depth = depth;
         nodeComponent.Budget = actualBudget;
+
+        // Calculate where node is placed inside budget range.
+        // For example for range  1000 - 2000 node with 2000 actual budget will be at '1'=100%,
+        // node with 1500 will be at '0.5'=50%, with 500 at '-0.5'=-50%
+        // placement in budget range affects how node modifier affects power of effect.
+        // Negative means lowering power, positive improved power
+        var budget = EnsureComp<XenoArtifactNodeBudgetComponent>(nodeEnt.Value);
+        var halfRange = (float)(budget.BudgetRange.Max + budget.BudgetRange.Min) / 2;
+        var placementInBudgetRange = (actualBudget - halfRange) / halfRange;
+        budget.ModifyBy.ApplyActualBudgetPlacement(placementInBudgetRange);
+        Dirty(nodeEnt.Value, budget);
 
         nodeComponent.TriggerTip = trigger.Tip;
         EntityManager.AddComponents(nodeEnt.Value, trigger.Components);
@@ -483,18 +496,7 @@ public abstract partial class SharedXenoArtifactSystem
             return currentAmplification;
         }
 
-        var actualBudget = node.Comp.Budget;
-        if (!budget.ModifyBy.IsEmpty)
-        {
-            var halfRange = (budget.BudgetRange.Max - budget.BudgetRange.Min) / 2;
-            var changePerPoint = budget.ModifyBy / halfRange;
-            var midPoint = budget.BudgetRange.Min + halfRange;
-            var distance = actualBudget - midPoint;
-
-            currentAmplification = changePerPoint * distance;
-        }
-
-        return currentAmplification;
+        return budget.ModifyBy;
     }
 }
 

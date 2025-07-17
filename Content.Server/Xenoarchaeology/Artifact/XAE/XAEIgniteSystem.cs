@@ -3,7 +3,6 @@ using Content.Server.Atmos.EntitySystems;
 using Content.Server.Xenoarchaeology.Artifact.XAE.Components;
 using Content.Shared.Destructible.Thresholds;
 using Content.Shared.Xenoarchaeology.Artifact;
-using Content.Shared.Xenoarchaeology.Artifact.Components;
 using Content.Shared.Xenoarchaeology.Artifact.XAE;
 using Robust.Shared.Random;
 
@@ -36,16 +35,16 @@ public sealed class XAEIgniteSystem : BaseXAESystem<XAEIgniteComponent>
     {
         var range = ent.Comp.Range;
 
-        if (args.Modifications.TryGetValue(XenoArtifactEffectModifier.Range, out var rangeChange))
+        if (args.Modifications.TryGetValue(XenoArtifactEffectModifier.Range, out var rangeModifier))
         {
-            range = Math.Max(range + rangeChange, 2f);
+            range = Math.Max(2f, rangeModifier.Modify(range));
         }
 
         var stacks = ent.Comp.FireStack;
-        if (args.Modifications.TryGetValue(XenoArtifactIgniteEffectModifier.Effectiveness, out var effectiveness))
+        if (args.Modifications.TryGetValue(XenoArtifactIgniteEffectModifier.Effectiveness, out var effectivenessModifier))
         {
-            var stacksMin = Math.Max(1, stacks.Min + (int)effectiveness);
-            var stacksMax = Math.Max(stacksMin, stacks.Max + (int)effectiveness);
+            var stacksMin = Math.Max(1, (int)effectivenessModifier.Modify(stacks.Min));
+            var stacksMax = Math.Max(stacksMin, (int)effectivenessModifier.Modify(stacks.Max));
             stacks = new MinMax(stacksMin, stacksMax);
         }
 

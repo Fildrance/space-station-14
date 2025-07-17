@@ -2,7 +2,6 @@ using Content.Server.Atmos.EntitySystems;
 using Content.Server.Xenoarchaeology.Artifact.XAE.Components;
 using Content.Shared.Atmos;
 using Content.Shared.Xenoarchaeology.Artifact;
-using Content.Shared.Xenoarchaeology.Artifact.Components;
 using Content.Shared.Xenoarchaeology.Artifact.XAE;
 using Robust.Server.GameObjects;
 using Robust.Shared.Random;
@@ -23,15 +22,15 @@ public sealed class XAETemperatureSystem : BaseXAESystem<XAETemperatureComponent
     {
         XAETemperatureComponent component = ent;
         var adjacentTileEffectProbability = component.AdjacentTileEffectProbability;
-        if (args.Modifications.TryGetValue(XenoArtifactTemperatureEffectModifier.AdjacentTileChance, out var chanceChange))
+        if (args.Modifications.TryGetValue(XenoArtifactTemperatureEffectModifier.AdjacentTileChance, out var chanceModifier))
         {
-            adjacentTileEffectProbability = Math.Max(0.1f, adjacentTileEffectProbability + chanceChange);
+            adjacentTileEffectProbability = Math.Max(0.1f, chanceModifier.Modify(adjacentTileEffectProbability));
         }
 
         var targetTemperature = ent.Comp.TargetTemperature;
-        if (args.Modifications.TryGetValue(XenoArtifactEffectModifier.Amount, out var amountChange))
+        if (args.Modifications.TryGetValue(XenoArtifactEffectModifier.Amount, out var amountModifier))
         {
-            targetTemperature = Math.Max(targetTemperature / 8, targetTemperature + amountChange);
+            targetTemperature = Math.Max(targetTemperature / 8, amountModifier.Modify(targetTemperature));
         }
 
         var center = _atmosphereSystem.GetContainingMixture(ent.Owner, false, true);

@@ -1,10 +1,8 @@
-using Content.Server.Polymorph.Components;
 using Content.Server.Polymorph.Systems;
 using Content.Server.Xenoarchaeology.Artifact.XAE.Components;
 using Content.Shared.Humanoid;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Xenoarchaeology.Artifact;
-using Content.Shared.Xenoarchaeology.Artifact.Components;
 using Content.Shared.Xenoarchaeology.Artifact.XAE;
 using Robust.Shared.Audio.Systems;
 
@@ -27,8 +25,8 @@ public sealed class XAEPolymorphSystem : BaseXAESystem<XAEPolymorphComponent>
     protected override void OnActivated(Entity<XAEPolymorphComponent> ent, ref XenoArtifactNodeActivatedEvent args)
     {
         var duration = ent.Comp.AdditionalDuration;
-        if (args.Modifications.TryGetValue(XenoArtifactEffectModifier.Duration, out var durationChange))
-            duration = Math.Max(1, duration + durationChange);
+        if (args.Modifications.TryGetValue(XenoArtifactEffectModifier.Duration, out var durationModifier))
+            duration = Math.Max(1, durationModifier.Modify(duration));
 
         _humanoids.Clear();
         _lookup.GetEntitiesInRange(args.Coordinates, ent.Comp.Range, _humanoids);

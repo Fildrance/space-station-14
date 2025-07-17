@@ -19,18 +19,17 @@ public sealed class XAETriggerExplosivesSystem : BaseXAESystem<XAETriggerExplosi
         if (!TryComp<ExplosiveComponent>(ent, out var explosiveComp))
             return;
 
-        var maxIntensity = explosiveComp.MaxIntensity;
-
+        var totalIntensity = explosiveComp.TotalIntensity;
         if (args.Modifications.TryGetValue(XenoArtifactExplosionEffectModifier.TotalIntensity,
-                out var totalIntensityChange))
+                out var totalIntensityModifier))
         {
-            maxIntensity = Math.Max(maxIntensity / 4, maxIntensity + totalIntensityChange);
+            totalIntensity += Math.Max(totalIntensity / 4, totalIntensityModifier.Modify(totalIntensity));
         }
 
-        var totalIntensity = explosiveComp.TotalIntensity;
-        if (args.Modifications.TryGetValue(XenoArtifactExplosionEffectModifier.MaxIntensity, out var maxIntensityChange))
+        var maxIntensity = explosiveComp.MaxIntensity;
+        if (args.Modifications.TryGetValue(XenoArtifactExplosionEffectModifier.MaxIntensity, out var maxIntensityModifier))
         {
-            totalIntensity += Math.Max(totalIntensity / 4, totalIntensity + maxIntensityChange);
+            maxIntensity = Math.Max(maxIntensity / 4, maxIntensityModifier.Modify(maxIntensity));
         }
 
         _explosion.TriggerExplosive(ent, explosiveComp, totalIntensity: totalIntensity, maxIntensity: maxIntensity);

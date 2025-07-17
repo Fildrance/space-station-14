@@ -1,6 +1,9 @@
+using System.Diagnostics.CodeAnalysis;
 using Content.Shared.Destructible.Thresholds;
+using Content.Shared.Xenoarchaeology.Artifact.Modifiers;
 using Robust.Shared.Collections;
 using Robust.Shared.GameStates;
+using Robust.Shared.Serialization;
 
 namespace Content.Shared.Xenoarchaeology.Artifact.Components;
 
@@ -9,11 +12,14 @@ namespace Content.Shared.Xenoarchaeology.Artifact.Components;
 /// <para/> - budget range (min and max budget for which this node can fit
 /// <para/> - list of amplification effects which are applicable to node
 /// </summary>
-[RegisterComponent, Access(typeof(SharedXenoArtifactSystem))]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState, Access(typeof(SharedXenoArtifactSystem))]
 public sealed partial class XenoArtifactNodeBudgetComponent : Component
 {
     [DataField(required: true)]
     public MinMax BudgetRange;
+
+    [DataField, AutoNetworkedField]
+    public float PlacementInBudgetRange;
 
     [DataField]
     public XenoArtifactEffectsModifications ModifyBy = new ();
@@ -23,9 +29,15 @@ public sealed partial class XenoArtifactNodeBudgetComponent : Component
 public sealed partial class XenoArtifactEffectsModifications
 {
     [DataField]
-    public Dictionary<Enum, float> Dictionary = new();
-     
+    public Dictionary<Enum, Modifiers.ModifierProviderBase> Dictionary = new();
+
     public bool IsEmpty => Dictionary.Count <= 0;
+
+    /// <inheritdoc cref="Dictionary{TKey,TValue}.TryGetValue"/>>
+    public bool TryGetValue(Enum key, [NotNullWhen(true)] out Modifiers.ModifierProviderBase? value)
+    {
+        return Dictionary.TryGetValue(key, out value);
+    }
 
     /// <summary>
     /// Produces new dictionary with values from both original and other, using sum of both
@@ -42,7 +54,7 @@ public sealed partial class XenoArtifactEffectsModifications
         {
             if (other.Dictionary.TryGetValue(modKey, out var otherValue))
             {
-                result.Dictionary[modKey] = modValue + otherValue;
+                result.Dictionary[modKey] = new Modifiers.WrapperModifierProvider([modValue, otherValue]);
                 alreadyMatched.Add(modKey);
             }
             else
@@ -62,44 +74,15 @@ public sealed partial class XenoArtifactEffectsModifications
         return result;
     }
 
-    /// <summary>
-    /// Creates new dictionary, keys and values are copied from original,
-    /// but they are divided provided float when possible.
-    /// </summary>
-    public static XenoArtifactEffectsModifications operator /(XenoArtifactEffectsModifications original, float c)
+    public void ApplyActualBudgetPlacement(float placementInBudgetRange)
     {
-        var newEffects = new XenoArtifactEffectsModifications();
-        var newDict = newEffects.Dictionary;
-
-        foreach (var (key, value) in original.Dictionary)
+        foreach (var (_, provider) in Dictionary)
         {
-            newDict[key] = value / c;
+            if (provider is IBudgetPlacementAwareModifier budgetPlacementAware)
+            {
+                budgetPlacementAware.SetPlacementInBudget(placementInBudgetRange);
+            }
         }
-
-        return newEffects;
-    }
-
-    /// <summary>
-    /// Creates new dictionary, keys and values are copied from original,
-    /// but they are divided provided float when possible.
-    /// </summary>
-    public static XenoArtifactEffectsModifications operator *(XenoArtifactEffectsModifications original, float c)
-    {
-        var newEffects = new XenoArtifactEffectsModifications();
-        var newDict = newEffects.Dictionary;
-
-        foreach (var (key, value) in original.Dictionary)
-        {
-            newDict[key] = value * c;
-        }
-
-        return newEffects;
-    }
-
-    /// <inheritdoc cref="Dictionary{TKey,TValue}.TryGetValue"/>>
-    public bool TryGetValue(Enum key, out float value)
-    {
-        return Dictionary.TryGetValue(key, out value);
     }
 }
 
@@ -157,12 +140,6 @@ public sealed partial class XenoArtifactNodeComponent : Component
     /// </summary>
     [DataField, AutoNetworkedField]
     public int MaxDurability = 5;
-
-    /// <summary>
-    /// The variance from MaxDurability present when a node is created.
-    /// </summary>
-    [DataField]
-    public MinMax MaxDurabilityCanDecreaseBy = new(0, 2);
     #endregion
 
     #region Research

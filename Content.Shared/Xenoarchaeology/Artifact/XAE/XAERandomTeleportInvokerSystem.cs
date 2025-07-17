@@ -1,5 +1,4 @@
 using Content.Shared.Popups;
-using Content.Shared.Xenoarchaeology.Artifact.Components;
 using Content.Shared.Xenoarchaeology.Artifact.XAE.Components;
 using Robust.Shared.Random;
 using Robust.Shared.Timing;
@@ -22,10 +21,10 @@ public sealed class XAERandomTeleportInvokerSystem : BaseXAESystem<XAERandomTele
         var component = ent.Comp;
         var minRange = component.MinRange;
         var maxRange = component.MaxRange;
-        if (args.Modifications.TryGetValue(XenoArtifactEffectModifier.Range, out var rangeChange))
+        if (args.Modifications.TryGetValue(XenoArtifactEffectModifier.Range, out var rangeModifier))
         {
-            maxRange = MathF.Max(4f, maxRange + rangeChange);
-            minRange = MathF.Max(4f, minRange + rangeChange);
+            maxRange = MathF.Max(4f, rangeModifier.Modify(maxRange));
+            minRange = MathF.Max(4f, rangeModifier.Modify(minRange));
         }
 
         // todo: teleport person who activated artifact with artifact itself
