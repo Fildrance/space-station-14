@@ -51,10 +51,10 @@ public sealed class XAEFoamSystem : BaseXAESystem<XAEFoamComponent>
     protected override void OnActivated(Entity<XAEFoamComponent> ent, ref XenoArtifactNodeActivatedEvent args)
     {
         var foamAmount = ent.Comp.FoamAmount;
-        if (args.Modifications.TryGetValue(XenoArtifactEffectModifier.Amount, out var amountModifier))
+        if (args.Modifications.TryGetValue(XenoArtifactEffectModifier.Power, out var modifier))
         {
-            var amountMin = Math.Min(foamAmount.Min / 4, (int)amountModifier.Modify(foamAmount.Min));
-            var amountMax = Math.Min(foamAmount.Min, (int)amountModifier.Modify(foamAmount.Max));
+            var amountMin = Math.Max(foamAmount.Min / 4, (int)modifier.Modify(foamAmount.Min));
+            var amountMax = Math.Max(foamAmount.Min, (int)modifier.Modify(foamAmount.Max));
 
             ent.Comp.FoamAmount = new MinMax(amountMin, amountMax);
         }

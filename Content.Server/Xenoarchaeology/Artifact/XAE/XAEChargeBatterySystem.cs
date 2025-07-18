@@ -27,9 +27,9 @@ public sealed class XAEChargeBatterySystem : BaseXAESystem<XAEChargeBatteryCompo
         }
 
         var charge = ent.Comp.AddChargeAmount;
-        if (args.Modifications.TryGetValue(XenoArtifactEffectModifier.Amount, out var amountModifier))
+        if (args.Modifications.TryGetValue(XenoArtifactEffectModifier.Power, out var amountModifier))
         {
-            charge = Math.Max(charge / 8, amountModifier.Modify(charge));
+            charge = Math.Max(10, amountModifier.Modify(charge));
         }
 
         _batteryEntities.Clear();

@@ -4,6 +4,7 @@ using Content.Shared.Random.Helpers;
 using Content.Shared.Xenoarchaeology.Artifact.Components;
 using Content.Shared.Xenoarchaeology.Artifact.Prototypes;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Serialization;
 using Robust.Shared.Utility;
 
 namespace Content.Shared.Xenoarchaeology.Artifact;
@@ -504,6 +505,7 @@ public abstract partial class SharedXenoArtifactSystem
 /// <summary>
 /// XenoArtifact effect modifiers, can be used to affect aspects of effects, increasing or decreasing its power.
 /// </summary>
+[Serializable, NetSerializable]
 public enum XenoArtifactEffectModifier
 {
     /// <summary>
@@ -519,9 +521,9 @@ public enum XenoArtifactEffectModifier
     /// </summary>
     Duration,
     /// <summary>
-    /// Increase or decrease amount of essense effect produces.
+    /// Increase effect power - actual effect depends on exact artifact effect.
     /// </summary>
-    Amount,
+    Power,
 }
 /// <summary>
 /// Event for collecting artifact node effects modifications on node init.

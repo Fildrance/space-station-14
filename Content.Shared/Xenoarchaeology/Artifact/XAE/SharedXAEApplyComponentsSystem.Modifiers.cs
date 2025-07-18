@@ -9,7 +9,6 @@ using Content.Shared.Tools.Systems;
 using Content.Shared.Weapons.Melee;
 using Content.Shared.Weapons.Ranged.Components;
 using Content.Shared.Xenoarchaeology.Artifact.Components;
-using Content.Shared.Xenoarchaeology.Artifact.XAE.Components;
 
 namespace Content.Shared.Xenoarchaeology.Artifact.XAE;
 
@@ -37,7 +36,7 @@ public partial class SharedXAEApplyComponentsSystem
 
     private bool TryApplyModifiersFor(StealthOnMoveComponent stealthOnMove, XenoArtifactEffectsModifications modifications)
     {
-        if (modifications.TryGetValue(XenoArtifactStealthEffectModifier.Effectiveness, out var effectivenessModifier))
+        if (modifications.TryGetValue(XenoArtifactEffectModifier.Power, out var effectivenessModifier))
         {
             stealthOnMove.PassiveVisibilityRate = effectivenessModifier.Modify(stealthOnMove.PassiveVisibilityRate);
             stealthOnMove.MovementVisibilityRate = effectivenessModifier.Modify(stealthOnMove.MovementVisibilityRate);
@@ -49,7 +48,7 @@ public partial class SharedXAEApplyComponentsSystem
 
     private bool TryApplyModifiersFor(RadiationSourceComponent radiationSource, XenoArtifactEffectsModifications modifications)
     {
-        if (modifications.TryGetValue(XenoArtifactRadiationSourceEffectModifier.IntensityChange, out var modifier))
+        if (modifications.TryGetValue(XenoArtifactEffectModifier.Power, out var modifier))
         {
             radiationSource.Intensity = modifier.Modify(radiationSource.Intensity);
             return true;
@@ -60,7 +59,7 @@ public partial class SharedXAEApplyComponentsSystem
 
     private bool TryApplyModifiersFor(ToolComponent tool, XenoArtifactEffectsModifications modifications)
     {
-        if (modifications.TryGetValue(XenoArtifactToolEffectModifier.Effectiveness, out var modifier))
+        if (modifications.TryGetValue(XenoArtifactEffectModifier.Power, out var modifier))
         {
             var newSpeedModifier = Math.Max(0.5f, modifier.Modify(tool.SpeedModifier));
             _tool.ChangeSpeedModifier(tool, newSpeedModifier);
@@ -72,7 +71,7 @@ public partial class SharedXAEApplyComponentsSystem
 
     private bool TryApplyModifiersFor(RevolverAmmoProviderComponent revolverAmmoProvider, XenoArtifactEffectsModifications modifications)
     {
-        if (modifications.TryGetValue(XenoArtifactAmmoSourceEffectModifier.CapacityChange, out var modifier))
+        if (modifications.TryGetValue(XenoArtifactEffectModifier.Power, out var modifier))
         {
             revolverAmmoProvider.Capacity = Math.Max(1, (int) modifier.Modify(revolverAmmoProvider.Capacity));
             return true;
@@ -84,7 +83,7 @@ public partial class SharedXAEApplyComponentsSystem
     private bool TryApplyModifiersFor(MeleeWeaponComponent meleeWeapon, XenoArtifactEffectsModifications modifications)
     {
         var changed = false;
-        if (modifications.TryGetValue(XenoArtifactMeleeWeaponEffectModifier.Damage, out var damageModifier))
+        if (modifications.TryGetValue(XenoArtifactEffectModifier.Power, out var damageModifier))
         {
             foreach (var (key, value) in meleeWeapon.Damage.DamageDict)
             {
@@ -94,7 +93,7 @@ public partial class SharedXAEApplyComponentsSystem
             changed = true;
         }
 
-        if (modifications.TryGetValue(XenoArtifactMeleeWeaponEffectModifier.AttackRateMultiplier, out var modifier))
+        if (modifications.TryGetValue(XenoArtifactEffectModifier.Power, out var modifier))
         {
             meleeWeapon.AttackRate = Math.Max(0.8f, modifier.Modify(meleeWeapon.AttackRate));
             changed = true;
@@ -105,7 +104,7 @@ public partial class SharedXAEApplyComponentsSystem
 
     private bool TryApplyModifiersFor(HeldSpeedModifierComponent speedModifier, XenoArtifactEffectsModifications modifications)
     {
-        if (modifications.TryGetValue(XenoArtifactHeldSpeedModifierEffectModifier.Multiplier, out var modifier))
+        if (modifications.TryGetValue(XenoArtifactEffectModifier.Power, out var modifier))
         {
             _heldSpeedModifier.ChangeModifiers(
                 speedModifier,
@@ -123,7 +122,7 @@ public partial class SharedXAEApplyComponentsSystem
         XenoArtifactEffectsModifications modifications
     )
     {
-        if (modifications.TryGetValue(XenoArtifactSolutionStorageEffectModifier.VolumeChange, out var modifier)
+        if (modifications.TryGetValue(XenoArtifactEffectModifier.Power, out var modifier)
             && _solutionsContainer.TryGetSolution(solutionStorage, "beaker", out var sol))
         {
             sol.MaxVolume = MathF.Max(5, modifier.Modify(sol.MaxVolume.Value));
@@ -142,13 +141,13 @@ public partial class SharedXAEApplyComponentsSystem
         var height = storageToModify.Height;
         var width = storageToModify.Width;
         var changed = false;
-        if (modifications.TryGetValue(XenoArtifactStorageEffectModifier.HeightChange, out var heightModifier))
+        if (modifications.TryGetValue(XenoArtifactEffectModifier.Power, out var heightModifier))
         {
             height = Math.Max(1, height + (int)heightModifier.Modify(height));
             changed = true;
         }
 
-        if (modifications.TryGetValue(XenoArtifactStorageEffectModifier.WidthChange, out var widthModifier))
+        if (modifications.TryGetValue(XenoArtifactEffectModifier.Power, out var widthModifier))
         {
             width = Math.Max(1, width + (int)widthModifier.Modify(width));
             changed = true;

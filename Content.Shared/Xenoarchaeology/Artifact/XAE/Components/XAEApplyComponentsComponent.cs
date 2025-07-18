@@ -1,5 +1,4 @@
 using Robust.Shared.Prototypes;
-using Robust.Shared.Serialization;
 
 namespace Content.Shared.Xenoarchaeology.Artifact.XAE.Components;
 
@@ -26,58 +25,4 @@ public sealed partial class XAEApplyComponentsComponent : Component
     /// </summary>
     [DataField]
     public bool RefreshOnReactivate { get; set; }
-}
-
-public enum XenoArtifactMeleeWeaponEffectModifier
-{
-    Damage,
-    AttackRateMultiplier
-}
-
-public enum XenoArtifactAmmoSourceEffectModifier
-{
-    CapacityChange
-}
-
-public enum XenoArtifactRadiationSourceEffectModifier
-{
-    IntensityChange
-}
-
-public enum XenoArtifactToolEffectModifier
-{
-    Effectiveness
-}
-
-public enum XenoArtifactStealthEffectModifier
-{
-    Effectiveness
-}
-
-public enum XenoArtifactStorageEffectModifier
-{
-    WidthChange,
-    HeightChange,
-}
-
-public enum XenoArtifactHeldSpeedModifierEffectModifier
-{
-    Multiplier
-}
-
-public enum XenoArtifactSolutionStorageEffectModifier
-{
-    VolumeChange
-}
-
-
-[Serializable, NetSerializable]
-public enum XenoArtifactEntityTableSpawnerEffectModifier
-{
-    SpawnCountChange
-}
-
-public enum XenoArtifactPowerSupplierEffectModifier
-{
-    Effectiveness
 }

@@ -28,9 +28,9 @@ public sealed class XAETemperatureSystem : BaseXAESystem<XAETemperatureComponent
         }
 
         var targetTemperature = ent.Comp.TargetTemperature;
-        if (args.Modifications.TryGetValue(XenoArtifactEffectModifier.Amount, out var amountModifier))
+        if (args.Modifications.TryGetValue(XenoArtifactEffectModifier.Power, out var modifier))
         {
-            targetTemperature = Math.Max(targetTemperature / 8, amountModifier.Modify(targetTemperature));
+            targetTemperature = Math.Max(targetTemperature / 8, modifier.Modify(targetTemperature));
         }
 
         var center = _atmosphereSystem.GetContainingMixture(ent.Owner, false, true);

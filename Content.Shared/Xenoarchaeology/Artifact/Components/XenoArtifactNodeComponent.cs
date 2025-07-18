@@ -3,7 +3,6 @@ using Content.Shared.Destructible.Thresholds;
 using Content.Shared.Xenoarchaeology.Artifact.Modifiers;
 using Robust.Shared.Collections;
 using Robust.Shared.GameStates;
-using Robust.Shared.Serialization;
 
 namespace Content.Shared.Xenoarchaeology.Artifact.Components;
 
@@ -119,10 +118,7 @@ public sealed partial class XenoArtifactNodeComponent : Component
 
     [DataField, AutoNetworkedField]
     public int Budget;
-
-    [DataField, AutoNetworkedField]
-    public int? EffectMultiplier;
-
+    
     #region Durability
     /// <summary>
     /// Marker, is durability of node degraded or not.

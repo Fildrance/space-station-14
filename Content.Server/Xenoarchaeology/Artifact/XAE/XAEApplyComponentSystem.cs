@@ -2,9 +2,9 @@ using Content.Server.Power.Components;
 using Content.Server.Spawners.Components;
 using Content.Shared.EntityTable.EntitySelectors;
 using Content.Shared.EntityTable.ValueSelector;
+using Content.Shared.Xenoarchaeology.Artifact;
 using Content.Shared.Xenoarchaeology.Artifact.Components;
 using Content.Shared.Xenoarchaeology.Artifact.XAE;
-using Content.Shared.Xenoarchaeology.Artifact.XAE.Components;
 using Robust.Shared.Random;
 
 /// <inheritdoc />
@@ -24,12 +24,11 @@ public sealed class XAEApplyComponentSystem : SharedXAEApplyComponentsSystem
 
     private bool TryApplyModifiersFor(EntityTableSpawnerComponent tableSpawner, XenoArtifactEffectsModifications modifications)
     {
-        if (modifications.TryGetValue(XenoArtifactEntityTableSpawnerEffectModifier.SpawnCountChange,
-                out var spawnCountModifier))
+        if (modifications.TryGetValue(XenoArtifactEffectModifier.Power, out var modifier))
         {
             if (tableSpawner.Table is EntSelector entSelector)
             {
-                var newValue = spawnCountModifier.Modify(entSelector.Amount.Get(_random.GetRandom()));
+                var newValue = modifier.Modify(entSelector.Amount.Get(_random.GetRandom()));
                 entSelector.Amount = new ConstantNumberSelector((int)newValue);
             }
 
@@ -40,9 +39,9 @@ public sealed class XAEApplyComponentSystem : SharedXAEApplyComponentsSystem
 
     private bool TryApplyModifiersFor(PowerSupplierComponent powerSupplier, XenoArtifactEffectsModifications modifications)
     {
-        if (modifications.TryGetValue(XenoArtifactPowerSupplierEffectModifier.Effectiveness, out var effectivenessModifier))
+        if (modifications.TryGetValue(XenoArtifactEffectModifier.Power, out var modifier))
         {
-            powerSupplier.MaxSupply = effectivenessModifier.Modify(powerSupplier.MaxSupply);
+            powerSupplier.MaxSupply = modifier.Modify(powerSupplier.MaxSupply);
             return true;
         }
 
