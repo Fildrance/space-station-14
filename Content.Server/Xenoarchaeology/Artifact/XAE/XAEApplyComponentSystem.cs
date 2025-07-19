@@ -24,14 +24,12 @@ public sealed class XAEApplyComponentSystem : SharedXAEApplyComponentsSystem
 
     private bool TryApplyModifiersFor(EntityTableSpawnerComponent tableSpawner, XenoArtifactEffectsModifications modifications)
     {
-        if (modifications.TryGetValue(XenoArtifactEffectModifier.Power, out var modifier))
+        if (modifications.TryGetValue(XenoArtifactEffectModifier.Power, out var modifier) && tableSpawner.Table is EntSelector entSelector)
         {
-            if (tableSpawner.Table is EntSelector entSelector)
-            {
-                var newValue = modifier.Modify(entSelector.Amount.Get(_random.GetRandom()));
-                entSelector.Amount = new ConstantNumberSelector((int)newValue);
-            }
-
+            var originalAmount = entSelector.Amount.Get(_random.GetRandom());
+            var newAmount = modifier.Modify(originalAmount);
+            entSelector.Amount = new ConstantNumberSelector((int)newAmount);
+            return true;
         }
 
         return false;

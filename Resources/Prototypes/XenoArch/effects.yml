@@ -21,6 +21,7 @@
     XenoArtifactMonkeySpawn: 10.0
     XenoArtifactRadioactive: 8.0
     XenoArtifactChargeBattery: 10.0
+    XenoArtifactChargeEnergyStorage: 3.0
     XenoArtifactKnock: 4.0
     XenoArtifactMagnet: 2.0
     XenoArtifactMagnetNegative: 2.0
@@ -109,6 +110,8 @@
       weight: 8.0
     - id: XenoArtifactChargeBattery
       weight: 10.0
+    - id: XenoArtifactChargeEnergyStorage
+      weight: 2.0
     - id: XenoArtifactKnock
       weight: 4.0
     - id: XenoArtifactMagnet
@@ -883,8 +886,33 @@
       max: 12000
     modifyBy:
       enum.XenoArtifactEffectModifier.Range: "budgetDependant add 5,-10"
-      enum.XenoArtifactEffectModifier.Amount: "budgetDependant add -300,1100"
+      enum.XenoArtifactEffectModifier.Amount: "budgetDependant add -300,600"
   - type: XAEChargeBattery
+    defaultRadius: 5
+    radiusRestrictions: 5,40
+    addChargeAmount: 400
+    chargeAmountRestrictions: 50,2000
+  - type: XAETelepathic
+    messages:
+    - charge-artifact-popup
+
+- type: entity
+  id: XenoArtifactChargeEnergyStorage
+  parent: BaseXenoArtifactEffect
+  description: Charges up energy storages in short range
+  components:
+  - type: XenoArtifactNodeBudget
+    budgetRange:
+      min: 25000
+      max: 70000
+    modifyBy:
+      enum.XenoArtifactEffectModifier.Range: "budgetDependant add 5,-10"
+      enum.XenoArtifactEffectModifier.Power: "budgetDependant multiply 0.2,,5"
+  - type: XAEChargeBattery
+    defaultRadius: 3
+    radiusRestrictions: 2,8
+    addChargeAmount: 100000
+    chargeAmountRestrictions: 20000,1000000
   - type: XAETelepathic
     messages:
     - charge-artifact-popup

@@ -3,6 +3,8 @@ using Content.Shared.Destructible.Thresholds;
 using Content.Shared.Xenoarchaeology.Artifact.Modifiers;
 using Robust.Shared.Collections;
 using Robust.Shared.GameStates;
+using Robust.Shared.Random;
+using Robust.Shared.Serialization;
 
 namespace Content.Shared.Xenoarchaeology.Artifact.Components;
 
@@ -17,23 +19,30 @@ public sealed partial class XenoArtifactNodeBudgetComponent : Component
     [DataField(required: true)]
     public MinMax BudgetRange;
 
-    [DataField, AutoNetworkedField]
+    [DataField]
     public float PlacementInBudgetRange;
 
-    [DataField]
+    [DataField, AutoNetworkedField]
     public XenoArtifactEffectsModifications ModifyBy = new ();
 }
 
-[DataDefinition]
+[DataDefinition, Serializable, NetSerializable]
 public sealed partial class XenoArtifactEffectsModifications
 {
+    private static readonly PlacementBudgetDistributionStrategyBase[] BudgetDistributionStrategies =
+    [
+        new AllInOnePlacementBudgetDistributionStrategy(),
+        new NormalPlacementBudgetDistributionStrategy(),
+        new OffsettingPlacementBudgetDistributionStrategy()
+    ];
+
     [DataField]
-    public Dictionary<Enum, Modifiers.ModifierProviderBase> Dictionary = new();
+    public Dictionary<Enum, ModifierProviderBase> Dictionary = new();
 
     public bool IsEmpty => Dictionary.Count <= 0;
 
     /// <inheritdoc cref="Dictionary{TKey,TValue}.TryGetValue"/>>
-    public bool TryGetValue(Enum key, [NotNullWhen(true)] out Modifiers.ModifierProviderBase? value)
+    public bool TryGetValue(Enum key, [NotNullWhen(true)] out ModifierProviderBase? value)
     {
         return Dictionary.TryGetValue(key, out value);
     }
@@ -73,17 +82,85 @@ public sealed partial class XenoArtifactEffectsModifications
         return result;
     }
 
-    public void ApplyActualBudgetPlacement(float placementInBudgetRange)
+    public void ApplyActualBudgetPlacement(float placementInBudgetRange, IRobustRandom random)
     {
-        foreach (var (_, provider) in Dictionary)
+        var keys = Dictionary.Keys;
+
+        var pickedStrategy = random.Pick(BudgetDistributionStrategies);
+        var distribution = pickedStrategy.Distribute(placementInBudgetRange, keys, random);
+
+        foreach (var (key, provider) in Dictionary)
         {
-            if (provider is IBudgetPlacementAwareModifier budgetPlacementAware)
+            if (provider is IBudgetPlacementAwareModifier budgetPlacementAware && distribution.TryGetValue(key, out var share))
             {
-                budgetPlacementAware.SetPlacementInBudget(placementInBudgetRange);
+                budgetPlacementAware.PlacementInBudget = share;
             }
         }
     }
 }
+
+public abstract class PlacementBudgetDistributionStrategyBase
+{
+    public abstract Dictionary<Enum, float> Distribute(float placementInBudget, IReadOnlyCollection<Enum> modifiers, IRobustRandom random);
+}
+
+public sealed class AllInOnePlacementBudgetDistributionStrategy : PlacementBudgetDistributionStrategyBase
+{
+    /// <inheritdoc />
+    public override Dictionary<Enum, float> Distribute(float placementInBudget, IReadOnlyCollection<Enum> modifiers, IRobustRandom random)
+    {
+        var selected = random.Pick(modifiers);
+        var result = new Dictionary<Enum, float>();
+        foreach (var mod in modifiers)
+        {
+            var share = Equals(mod, selected)
+                ? placementInBudget
+                : 0;
+
+            result.Add(mod, share);
+        }
+
+        return result;
+    }
+}
+
+public sealed class NormalPlacementBudgetDistributionStrategy : PlacementBudgetDistributionStrategyBase
+{
+    /// <inheritdoc />
+    public override Dictionary<Enum, float> Distribute(float placementInBudget, IReadOnlyCollection<Enum> modifiers, IRobustRandom random)
+    {
+        var fairShare = placementInBudget / modifiers.Count;
+        var result = new Dictionary<Enum, float>();
+        foreach (var mod in modifiers)
+        {
+            result.Add(mod, fairShare);
+        }
+
+        return result;
+    }
+}
+
+public sealed class OffsettingPlacementBudgetDistributionStrategy : PlacementBudgetDistributionStrategyBase
+{
+    /// <inheritdoc />
+    public override Dictionary<Enum, float> Distribute(float placementInBudget, IReadOnlyCollection<Enum> modifiers, IRobustRandom random)
+    {
+        var selected = random.Pick(modifiers);
+        var mostPoints = placementInBudget * 0.7f;
+        var othersShare = (placementInBudget * 0.3f) / (modifiers.Count - 1);
+        var result = new Dictionary<Enum, float>();
+        foreach (var mod in modifiers)
+        {
+            var share = Equals(mod, selected)
+                ? mostPoints
+                : othersShare;
+            result.Add(mod, share);
+        }
+
+        return result;
+    }
+}
+
 
 /// <summary>
 /// Stores metadata about a particular artifact node

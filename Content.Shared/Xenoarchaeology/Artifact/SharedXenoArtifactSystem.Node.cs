@@ -20,16 +20,9 @@ public abstract partial class SharedXenoArtifactSystem
     {
         SubscribeLocalEvent<XenoArtifactNodeComponent, MapInitEvent>(OnNodeMapInit);
         SubscribeLocalEvent<XenoArtifactNodeComponent, XenoArtifactCollectEffectModificationsOnInitEvent>(OnAmplify);
-        SubscribeLocalEvent<XenoArtifactNodeBudgetComponent, AfterAutoHandleStateEvent>(OnHandleState);
 
         _xenoArtifactQuery = GetEntityQuery<XenoArtifactComponent>();
         _nodeQuery = GetEntityQuery<XenoArtifactNodeComponent>();
-    }
-
-    private void OnHandleState(Entity<XenoArtifactNodeBudgetComponent> ent, ref AfterAutoHandleStateEvent args)
-    {
-        XenoArtifactNodeBudgetComponent component = ent;
-        component.ModifyBy.ApplyActualBudgetPlacement(component.PlacementInBudgetRange);
     }
 
     private void OnAmplify(Entity<XenoArtifactNodeComponent> ent, ref XenoArtifactCollectEffectModificationsOnInitEvent args)
@@ -150,7 +143,6 @@ public abstract partial class SharedXenoArtifactSystem
         var actualBudget = predecessorBudgetSum + trigger.TriggerBudget;
 
         // pick effect based on effect ranges and actual node budget.
-
         Dictionary<(EntityPrototype Prototype, XenoArtifactNodeBudgetComponent Budget), float> fittingEffectsByWeight = new();
         foreach (var (e, weight) in effects)
         {
@@ -193,7 +185,7 @@ public abstract partial class SharedXenoArtifactSystem
         var budget = EnsureComp<XenoArtifactNodeBudgetComponent>(nodeEnt.Value);
         var halfRange = (float)(budget.BudgetRange.Max + budget.BudgetRange.Min) / 2;
         var placementInBudgetRange = (actualBudget - halfRange) / halfRange;
-        budget.ModifyBy.ApplyActualBudgetPlacement(placementInBudgetRange);
+        budget.ModifyBy.ApplyActualBudgetPlacement(placementInBudgetRange, RobustRandom);
         Dirty(nodeEnt.Value, budget);
 
         nodeComponent.TriggerTip = trigger.Tip;

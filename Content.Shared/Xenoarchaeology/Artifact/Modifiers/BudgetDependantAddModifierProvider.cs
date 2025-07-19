@@ -11,8 +11,8 @@ public sealed partial class BudgetDependantAddModifierProvider : ModifierProvide
     [DataField]
     public float? RangeCenter;
 
-    [UsedImplicitly]
-    public float? PlacementInBudget;
+    [DataField]
+    public float? PlacementInBudget { get; set; }
 
     /// <inheritdoc />
     public override float Modify(float originalValue)
@@ -45,12 +45,6 @@ public sealed partial class BudgetDependantAddModifierProvider : ModifierProvide
         var valueChange = rangeCenter + distanceFromCenter * PlacementInBudget.Value;
         return valueChange + originalValue;
     }
-
-    /// <inheritdoc />
-    public void SetPlacementInBudget(float placementInBudget)
-    {
-        PlacementInBudget = placementInBudget;
-    }
 }
 
 
@@ -62,8 +56,8 @@ public sealed partial class BudgetDependantMultiplyModifierProvider : ModifierPr
     [DataField]
     public float? RangeCenter;
 
-    [UsedImplicitly]
-    public float? PlacementInBudget;
+    [DataField]
+    public float? PlacementInBudget { get; set; }
 
     /// <inheritdoc />
     public override float Modify(float originalValue)
@@ -95,11 +89,5 @@ public sealed partial class BudgetDependantMultiplyModifierProvider : ModifierPr
 
         var multiplyBy = rangeCenter + distanceFromCenter * PlacementInBudget.Value;
         return originalValue * multiplyBy;
-    }
-
-    /// <inheritdoc />
-    public void SetPlacementInBudget(float placementInBudget)
-    {
-        PlacementInBudget = placementInBudget;
     }
 }

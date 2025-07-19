@@ -10,8 +10,8 @@ public sealed partial class BudgetDependantLogEffectivenessModifierProvider : Mo
     [DataField]
     public float IncrementToOffsetZero = 2;
 
-    [UsedImplicitly]
-    public float? PlacementInBudget;
+    [DataField]
+    public float? PlacementInBudget { get; set; }
 
     /// <inheritdoc />
     public override float Modify(float originalValue)
@@ -21,11 +21,5 @@ public sealed partial class BudgetDependantLogEffectivenessModifierProvider : Mo
 
         PlacementInBudget += IncrementToOffsetZero;
         return MathF.Log(PlacementInBudget.Value, LogBase) * originalValue;
-    }
-
-    /// <inheritdoc />
-    public void SetPlacementInBudget(float placementInBudget)
-    {
-        PlacementInBudget = placementInBudget;
     }
 }
