@@ -1,5 +1,5 @@
+using System.Numerics;
 using Content.Shared.Chemistry.Reagent;
-using Content.Shared.Destructible.Thresholds;
 using Robust.Shared.Prototypes;
 
 namespace Content.Server.Xenoarchaeology.Artifact.XAE.Components;
@@ -27,19 +27,37 @@ public sealed partial class XAEFoamComponent : Component
     /// How long does the foam last?
     /// </summary>
     [DataField]
-    public float Duration = 10f;
+    public float DefaultDuration = 10f;
 
     /// <summary>
-    /// How much reagent is in the foam?
+    /// Min and max value for foam duration.
     /// </summary>
     [DataField]
-    public float ReagentAmount = 100f;
+    public Vector2 DurationRestrictions = new Vector2(5, 30);
 
     /// <summary>
-    /// Radius of foam spawned.
+    /// Range for foam spreading.
     /// </summary>
     [DataField]
-    public MinMax FoamAmount = new MinMax(15, 20);
+    public float DefaultRange = 3;
+
+    /// <summary>
+    /// Min and max value for foam spreading range.
+    /// </summary>
+    [DataField]
+    public Vector2 RangeRestrictions = new Vector2(2, 15);
+
+    /// <summary>
+    /// Default amount of foam reagent in foam mass.
+    /// </summary>
+    [DataField]
+    public float DefaultFoamAmount = 20f;
+
+    /// <summary>
+    /// Min and max amount of foam reagent in foam mass.
+    /// </summary>
+    [DataField]
+    public Vector2 FoamAmountRestrictions = new Vector2(15f, 50f);
 
     /// <summary>
     /// Marker, if entity where this component is placed should have description replaced with selected chemicals

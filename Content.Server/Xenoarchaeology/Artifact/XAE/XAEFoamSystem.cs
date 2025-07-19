@@ -3,7 +3,6 @@ using Content.Server.Xenoarchaeology.Artifact.XAE.Components;
 using Content.Shared.Chemistry.Components;
 using Content.Shared.Chemistry.Reaction;
 using Content.Shared.Chemistry.Reagent;
-using Content.Shared.Destructible.Thresholds;
 using Content.Shared.Xenoarchaeology.Artifact;
 using Content.Shared.Xenoarchaeology.Artifact.XAE;
 using Robust.Shared.Prototypes;
@@ -50,24 +49,35 @@ public sealed class XAEFoamSystem : BaseXAESystem<XAEFoamComponent>
     /// <inheritdoc />
     protected override void OnActivated(Entity<XAEFoamComponent> ent, ref XenoArtifactNodeActivatedEvent args)
     {
-        var foamAmount = ent.Comp.FoamAmount;
-        if (args.Modifications.TryGetValue(XenoArtifactEffectModifier.Power, out var modifier))
+        XAEFoamComponent component = ent;
+        var foamAmount = component.DefaultFoamAmount;
+        var foamAmountRestrictions = component.FoamAmountRestrictions;
+        if (args.Modifications.TryGetValue(XenoArtifactEffectModifier.Power, out var amountModifier))
         {
-            var amountMin = Math.Max(foamAmount.Min / 4, (int)modifier.Modify(foamAmount.Min));
-            var amountMax = Math.Max(foamAmount.Min, (int)modifier.Modify(foamAmount.Max));
-
-            ent.Comp.FoamAmount = new MinMax(amountMin, amountMax);
+            foamAmount = Math.Clamp(amountModifier.Modify(foamAmount), foamAmountRestrictions.X, foamAmountRestrictions.Y);
         }
 
-        var component = ent.Comp;
+        var range = component.DefaultRange;
+        var rangeRestrictions = component.RangeRestrictions;
+        if (args.Modifications.TryGetValue(XenoArtifactEffectModifier.Range, out var rangeModifier))
+        {
+            range = Math.Clamp(rangeModifier.Modify(foamAmount), rangeRestrictions.X, rangeRestrictions.Y);
+        }
+
+        var duration = component.DefaultDuration;
+        var durationRestrictions = component.DurationRestrictions;
+        if (args.Modifications.TryGetValue(XenoArtifactEffectModifier.Duration, out var durationModifier))
+        {
+            duration = Math.Clamp(durationModifier.Modify(duration), durationRestrictions.X, durationRestrictions.Y);
+        }
+
         if (component.SelectedReagent == null)
             return;
 
         var sol = new Solution();
-        var range = (int)MathF.Round(MathHelper.Lerp(foamAmount.Min, foamAmount.Max, _random.NextFloat(0, 1f)));
-        sol.AddReagent(component.SelectedReagent, component.ReagentAmount);
+        sol.AddReagent(component.SelectedReagent, foamAmount);
         var foamEnt = Spawn(ChemicalReactionSystem.FoamReaction, args.Coordinates);
-        var spreadAmount = range * 4;
-        _smoke.StartSmoke(foamEnt, sol, component.Duration, spreadAmount);
+
+        _smoke.StartSmoke(foamEnt, sol, duration, (int)(range * 4));
     }
 }

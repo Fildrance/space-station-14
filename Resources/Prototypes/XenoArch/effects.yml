@@ -45,7 +45,7 @@
     XenoArtifactPolyLuminous: 2.0
     XenoArtifactPolyLizard: 2.0
     XenoArtifactRadioactiveStrong: 3.0
-    XenoArtifactMaterialSpawnGlass: 3000.3
+    XenoArtifactMaterialSpawnGlass: 3.3
     XenoArtifactMaterialSpawnSteel: 3.3
     XenoArtifactMaterialSpawnPlastic: 3.3
     XenoArtifactPortal: 2.0
@@ -62,136 +62,6 @@
     XenoArtifactEffectCreationGasFrezon: 1.0
     XenoArtifactEffectCreationGasNitrousOxide: 4.0
     XenoArtifactEffectCreationGasCarbonDioxide: 4.0
-
-- type: entityTable
-  id: XenoArtifactEffectsDefaultTable
-  table: !type:GroupSelector
-    children:
-    # hijacks use key, prevents from using artifact, sadly
-    #- id: XenoArtifactEffectUniversalIntercom
-    #  weight: 10.0
-    - id: XenoArtifactSolutionStorage
-      weight: 10.0
-    - id: XenoArtifactPhasing
-      weight: 2.0
-    - id: XenoArtifactWandering
-      weight: 4.0
-    - id: XenoArtifactSpeedUp
-      weight: 4.0
-    - id: XenoArtifactGhost
-      weight: 2.0
-    - id: XenoArtifactEffectBadFeeling
-      weight: 10.0
-    - id: XenoArtifactEffectGoodFeeling
-      weight: 10.0
-    - id: XenoArtifactEffectJunkSpawn
-      weight: 10.0
-    - id: XenoArtifactEffectLightFlicker
-      weight: 10.0
-    - id: XenoArtifactPotassiumWave
-      weight: 7.0
-    - id: XenoArtifactFloraSpawn
-      weight: 10.0
-    - id: XenoArtifactChemicalPuddle
-      weight: 10.0
-    - id: XenoArtifactThrowThingsAround
-      weight: 10.0
-    - id: XenoArtifactColdWave
-      weight: 10.0
-    - id: XenoArtifactHeatWave
-      weight: 4.0
-    - id: XenoArtifactFoamMild
-      weight: 8.0
-    - id: XenoArtifactRandomInstrumentSpawn
-      weight: 10.0
-    - id: XenoArtifactMonkeySpawn
-      weight: 10.0
-    - id: XenoArtifactRadioactive
-      weight: 8.0
-    - id: XenoArtifactChargeBattery
-      weight: 10.0
-    - id: XenoArtifactChargeEnergyStorage
-      weight: 2.0
-    - id: XenoArtifactKnock
-      weight: 4.0
-    - id: XenoArtifactMagnet
-      weight: 2.0
-    - id: XenoArtifactMagnetNegative
-      weight: 2.0
-    - id: XenoArtifactStealth
-      weight: 1.0
-    - id: XenoArtifactRareMaterialSpawnSilver
-      weight: 1.8 # amount is laughable
-    - id: XenoArtifactRareMaterialSpawnPlasma
-      weight: 2.0 # amount is laughable
-    - id: XenoArtifactRareMaterialSpawnGold
-      weight: 1.8 # amount is laughable
-    - id: XenoArtifactRareMaterialSpawnUranium
-      weight: 1.0 # amount is laughable
-    - id: XenoArtifactAngryCarpSpawn
-      weight: 4.0
-    - id: XenoArtifactFaunaSpawn
-      weight: 10.0
-    - id: XenoArtifactCashSpawn
-      weight: 10.0
-    - id: XenoArtifactShatterWindows
-      weight: 8.0
-    - id: XenoArtifactFoamGood
-      weight: 4.0
-    - id: XenoArtifactFoamDangerous
-      weight: 2.0
-    - id: XenoArtifactPuddleRare
-      weight: 2.0
-    - id: XenoArtifactAnomalySpawn
-      weight: 10.0
-    - id: XenoArtifactIgnite
-      weight: 2.0
-    - id: XenoArtifactTeleport
-      weight: 2.0
-    - id: XenoArtifactEmp
-      weight: 2.0
-    - id: XenoArtifactPolyMonkey
-      weight: 2.0
-    - id: XenoArtifactPolyLuminous
-      weight: 2.0
-    - id: XenoArtifactPolyLizard
-      weight: 2.0
-    - id: XenoArtifactRadioactiveStrong
-      weight: 3.0
-    - id: XenoArtifactMaterialSpawnGlass
-      weight: 3.3
-    - id: XenoArtifactMaterialSpawnSteel
-      weight: 3.3
-    - id: XenoArtifactMaterialSpawnPlastic
-      weight: 3.3
-    - id: XenoArtifactPortal
-      weight: 2.0
-    - id: XenoArtifactArtifactSpawn
-      weight: 0.5
-    - id: XenoArtifactShuffle
-      weight: 3.0
-    - id: XenoArtifactHealAll
-      weight: 1.0
-    - id: XenoArtifactTesla
-      weight: 0.4
-    - id: XenoArtifactSingularity
-      weight: 0.4
-    - id: XenoArtifactExplosionScary
-      weight: 1.0
-    - id: XenoArtifactBoom
-      weight: 5.0
-    - id: XenoArtifactEffectCreationGasPlasma
-      weight: 2.0
-    - id: XenoArtifactEffectCreationGasTritium
-      weight: 2.0
-    - id: XenoArtifactEffectCreationGasAmmonia
-      weight: 3.0
-    - id: XenoArtifactEffectCreationGasFrezon
-      weight: 1.0
-    - id: XenoArtifactEffectCreationGasNitrousOxide
-      weight: 4.0
-    - id: XenoArtifactEffectCreationGasCarbonDioxide
-      weight: 4.0
 
 - type: entityTable
   id: XenoArtifactEffectsHandheldOnlyTable
@@ -786,8 +656,9 @@
     budgetRange:
       min: 0
       max: 12000
-    modifyBy:
-      enum.XenoArtifactEffectModifier.Power: "budgetDependant add -90,0,30"
+      enum.XenoArtifactEffectModifier.Power: "budgetDependant add -15,30"
+      enum.XenoArtifactEffectModifier.Range: "budgetDependant add -3,0,10"
+      enum.XenoArtifactEffectModifier.Duration: "budgetDependant add -5,15,20"
   - type: XAEFoam
     replaceDescription: true
     reagents:
@@ -1271,7 +1142,9 @@
       max: 50000
     modifyBy:
       enum.XenoArtifactEffectModifier.Durability: "budgetDependant add -5,0"
-      enum.XenoArtifactEffectModifier.Power: 10
+      enum.XenoArtifactEffectModifier.Power: "budgetDependant add -15,30"
+      enum.XenoArtifactEffectModifier.Range: "budgetDependant add -3,0,10"
+      enum.XenoArtifactEffectModifier.Duration: "budgetDependant add -5,15,20"
   - type: XenoArtifactNode
     maxDurability: 7
   - type: XAEFoam
@@ -1295,11 +1168,12 @@
       min: 0
       max: 50000
     modifyBy:
-      enum.XenoArtifactEffectModifier.Power: 30
+      enum.XenoArtifactEffectModifier.Power: "budgetDependant add -15,30"
+      enum.XenoArtifactEffectModifier.Range: "budgetDependant add -3,0,10"
+      enum.XenoArtifactEffectModifier.Duration: "budgetDependant add -5,15,20"
   - type: XAEFoam
-    foamAmount:
-      min: 20
-      max: 30
+    defaultFoamAmount: 25
+    foamAmountRestrictions: 10,50
     replaceDescription: true
     reagents:
     - Tritium
