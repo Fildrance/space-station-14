@@ -42,6 +42,12 @@ public sealed class HeldSpeedModifierSystem : EntitySystem
         return (walkMod, sprintMod);
     }
 
+    public void ChangeModifiers(HeldSpeedModifierComponent component, float walkMod, float sprintMod)
+    {
+        component.SprintModifier = sprintMod;
+        component.WalkModifier = walkMod;
+    }
+
     private void OnRefreshMovementSpeedModifiers(EntityUid uid, HeldSpeedModifierComponent component, HeldRelayedEvent<RefreshMovementSpeedModifiersEvent> args)
     {
         var (walkMod, sprintMod) = GetHeldMovementSpeedModifiers(uid, component);
