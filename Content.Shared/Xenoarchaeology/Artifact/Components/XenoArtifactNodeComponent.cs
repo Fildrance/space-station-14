@@ -101,13 +101,40 @@ public sealed partial class XenoArtifactEffectsModifications
 
 public abstract class PlacementBudgetDistributionStrategyBase
 {
-    public abstract Dictionary<Enum, float> Distribute(float placementInBudget, IReadOnlyCollection<Enum> modifiers, IRobustRandom random);
+    public Dictionary<Enum, float> Distribute(
+        float placementInBudget,
+        IReadOnlyCollection<Enum> modifiers,
+        IRobustRandom random
+    )
+    {
+        if (modifiers.Count == 0)
+            return new Dictionary<Enum, float>();
+
+        if (placementInBudget == 0)
+        {
+            var result = new Dictionary<Enum, float>();
+            foreach (var mod in modifiers)
+            {
+                result.Add(mod, 0);
+            }
+
+            return result;
+        }
+
+        return DistributeInternal(placementInBudget, modifiers, random);
+    }
+
+    protected abstract Dictionary<Enum, float> DistributeInternal(
+        float placementInBudget,
+        IReadOnlyCollection<Enum> modifiers,
+        IRobustRandom random
+    );
 }
 
 public sealed class AllInOnePlacementBudgetDistributionStrategy : PlacementBudgetDistributionStrategyBase
 {
     /// <inheritdoc />
-    public override Dictionary<Enum, float> Distribute(float placementInBudget, IReadOnlyCollection<Enum> modifiers, IRobustRandom random)
+    protected override Dictionary<Enum, float> DistributeInternal(float placementInBudget, IReadOnlyCollection<Enum> modifiers, IRobustRandom random)
     {
         var selected = random.Pick(modifiers);
         var result = new Dictionary<Enum, float>();
@@ -127,7 +154,7 @@ public sealed class AllInOnePlacementBudgetDistributionStrategy : PlacementBudge
 public sealed class NormalPlacementBudgetDistributionStrategy : PlacementBudgetDistributionStrategyBase
 {
     /// <inheritdoc />
-    public override Dictionary<Enum, float> Distribute(float placementInBudget, IReadOnlyCollection<Enum> modifiers, IRobustRandom random)
+    protected override Dictionary<Enum, float> DistributeInternal(float placementInBudget, IReadOnlyCollection<Enum> modifiers, IRobustRandom random)
     {
         var fairShare = placementInBudget / modifiers.Count;
         var result = new Dictionary<Enum, float>();
@@ -143,7 +170,7 @@ public sealed class NormalPlacementBudgetDistributionStrategy : PlacementBudgetD
 public sealed class OffsettingPlacementBudgetDistributionStrategy : PlacementBudgetDistributionStrategyBase
 {
     /// <inheritdoc />
-    public override Dictionary<Enum, float> Distribute(float placementInBudget, IReadOnlyCollection<Enum> modifiers, IRobustRandom random)
+    protected override Dictionary<Enum, float> DistributeInternal(float placementInBudget, IReadOnlyCollection<Enum> modifiers, IRobustRandom random)
     {
         var selected = random.Pick(modifiers);
         var mostPoints = placementInBudget * 0.7f;

@@ -1,7 +1,8 @@
-using JetBrains.Annotations;
+using Robust.Shared.Serialization;
 
 namespace Content.Shared.Xenoarchaeology.Artifact.Modifiers;
 
+[Serializable, NetSerializable]
 public sealed partial class BudgetDependantLogEffectivenessModifierProvider : ModifierProviderBase, IBudgetPlacementAwareModifier
 {
     [DataField]

@@ -2,8 +2,9 @@ using System.Numerics;
 using Robust.Shared.Serialization;
 
 namespace Content.Shared.Xenoarchaeology.Artifact.Modifiers;
+
 [Serializable, NetSerializable]
-public sealed partial class BudgetDependantAddModifierProvider : ModifierProviderBase, IBudgetPlacementAwareModifier
+public sealed partial class BudgetDependantMultiplyModifierProvider : ModifierProviderBase, IBudgetPlacementAwareModifier
 {
     [DataField]
     public Vector2 Range = new(1, 1);
@@ -42,7 +43,7 @@ public sealed partial class BudgetDependantAddModifierProvider : ModifierProvide
 
         // distanceFromCenter = Math.Abs(distanceFromCenter);
 
-        var valueChange = rangeCenter + distanceFromCenter * PlacementInBudget.Value;
-        return valueChange + originalValue;
+        var multiplyBy = rangeCenter + distanceFromCenter * PlacementInBudget.Value;
+        return originalValue * multiplyBy;
     }
 }

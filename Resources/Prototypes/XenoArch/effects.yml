@@ -290,8 +290,7 @@
       min: 9000
       max: 20000
     modifyBy:
-      enum.XenoArtifactStorageEffectModifier.HeightChange: "budgetDependant add -2,3"
-      enum.XenoArtifactStorageEffectModifier.WidthChange: "budgetDependant add -5,5"
+      enum.XenoArtifactEffectModifier.Power: "budgetDependant add -5,5"
   - type: XAEApplyComponents
     components:
     - type: Item
@@ -339,7 +338,7 @@
       min: 0
       max: 8000
     modifyBy:
-      enum.XenoArtifactSolutionStorageEffectModifier.VolumeChange: "budgetDependant add -100,100"
+      enum.XenoArtifactEffectModifier.Power: "budgetDependant add -100,100"
   - type: XAEApplyComponents
     components:
     - type: SolutionContainerManager
@@ -373,7 +372,7 @@
       min: 16000
       max: 30000
     modifyBy:
-      enum.XenoArtifactHeldSpeedModifierEffectModifier.Multiplier: "budgetDependant multiply 0.9,1,1.3"
+      enum.XenoArtifactEffectModifier.Power: "budgetDependant multiply 0.9,1,1.3"
   - type: XAEApplyComponents
     components:
     - type: HeldSpeedModifier
@@ -390,8 +389,7 @@
       min: 0
       max: 12000
     modifyBy:
-      enum.XenoArtifactMeleeWeaponEffectModifier.Damage: "budgetDependant add -3,3"
-      enum.XenoArtifactMeleeWeaponEffectModifier.AttackRateMultiplier: "budgetDependant multiply 1.5,1,0.8"
+      enum.XenoArtifactEffectModifier.Power: "budgetDependant add -3,3"
   - type: XAEApplyComponents
     components:
     - type: MeleeWeapon
@@ -413,7 +411,7 @@
       min: 10000
       max: 70000
     modifyBy:
-      enum.XenoArtifactPowerSupplierEffectModifier.Effectiveness: "budgetDependant multiply 0.5,2,4"
+      enum.XenoArtifactEffectModifier.Power: "budgetDependant multiply 0.5,2,4"
   - type: XAEApplyComponents
     components:
     - type: PowerSupplier
@@ -435,7 +433,7 @@
       min: 8000
       max: 17000
     modifyBy:
-      enum.XenoArtifactAmmoSourceEffectModifier.CapacityChange: "budgetDependant add -3,8"
+      enum.XenoArtifactEffectModifier.Power: "budgetDependant add -3,8"
   - type: XAEApplyComponents
     applyIfAlreadyHave: true
     refreshOnReactivate: true
@@ -496,7 +494,7 @@
       min: 5000
       max: 8000
     modifyBy:
-      enum.XenoArtifactToolEffectModifier.Effectiveness: "budgetDependant multiply 4,1.5,0.8"
+      enum.XenoArtifactEffectModifier.Power: "budgetDependant multiply 4,1.5,0.8"
   - type: XAEApplyComponents
     components:
     - type: UserInterface
@@ -614,7 +612,7 @@
   - type: XenoArtifactNodeBudget
     budgetRange:
       min: 0
-      max: 10000 // todo
+      max: 10000 #todo
   - type: XAEApplyComponents
     applyIfAlreadyHave: true
     refreshOnReactivate: true
@@ -656,7 +654,7 @@
       min: 15000
       max: 40000
     modifyBy:
-      enum.XenoArtifactEffectModifier.Amount: "budgetDependant add -90,100"
+      enum.XenoArtifactEffectModifier.Power: "budgetDependant add -90,100"
   - type: XAEApplyComponents
     applyIfAlreadyHave: true
     refreshOnReactivate: true
@@ -708,7 +706,7 @@
       min: 6000
       max: 28000
     modifyBy:
-      enum.XenoArtifactEffectModifier.Amount: "budgetDependant add -450,-200,450"
+      enum.XenoArtifactEffectModifier.Power: "budgetDependant add -450,-200,450"
   - type: XAECreatePuddle
     chemAmount:
       min: 1
@@ -761,8 +759,7 @@
       min: 9500
       max: 22000
     modifyBy:
-      enum.XenoArtifactEffectModifier.Amount: "budgetDependant add 150,70,-29"
-      enum.XenoArtifactTemperatureEffectModifier.AdjacentTileChance: "budgetDependant multiply 0,2"
+      enum.XenoArtifactEffectModifier.Power: "budgetDependant add 150,70,-29"
   - type: XAETemperature
     targetTemp: 50
 
@@ -776,8 +773,7 @@
       min: 9500
       max: 22000
     modifyBy:
-      enum.XenoArtifactEffectModifier.Amount: "budgetDependant add -200,100,300"
-      enum.XenoArtifactTemperatureEffectModifier.AdjacentTileChance: "budgetDependant multiply 0,2"
+      enum.XenoArtifactEffectModifier.Power: "budgetDependant add -200,100,300"
   - type: XAETemperature
     targetTemp: 300
 
@@ -791,7 +787,7 @@
       min: 0
       max: 12000
     modifyBy:
-      enum.XenoArtifactEffectModifier.Amount: "budgetDependant add -90,0,30"
+      enum.XenoArtifactEffectModifier.Power: "budgetDependant add -90,0,30"
   - type: XAEFoam
     replaceDescription: true
     reagents:
@@ -866,7 +862,7 @@
       min: 8000
       max: 16000
     modifyBy:
-      enum.XenoArtifactRadiationSourceEffectModifier.IntensityChange: "budgetDependant multiply 0.8,1,1.5"
+      enum.XenoArtifactEffectModifier.Power: "budgetDependant multiply 0.8,1,1.5"
   - type: XAEApplyComponents
     applyIfAlreadyHave: true
     refreshOnReactivate: true
@@ -886,7 +882,7 @@
       max: 12000
     modifyBy:
       enum.XenoArtifactEffectModifier.Range: "budgetDependant add 5,-10"
-      enum.XenoArtifactEffectModifier.Amount: "budgetDependant add -300,600"
+      enum.XenoArtifactEffectModifier.Power: "budgetDependant add -300,600"
   - type: XAEChargeBattery
     defaultRadius: 5
     radiusRestrictions: 5,40
@@ -978,7 +974,7 @@
       min: 6000
       max: 15000
     modifyBy:
-      enum.XenoArtifactStealthEffectModifier.Effectiveness: "budgetDependant multiply 0.8,1,1.5"
+      enum.XenoArtifactEffectModifier.Power: "budgetDependant multiply 0.8,1,1.5"
   - type: XAEApplyComponents
     components:
     - type: Stealth
@@ -1252,7 +1248,7 @@
       max: 12000
     modifyBy:
       enum.XenoArtifactEffectModifier.Durability: "budgetDependant add -2,0"
-      enum.XenoArtifactEffectModifier.Amount: 10
+      enum.XenoArtifactEffectModifier.Power: 10
   - type: XenoArtifactNode
     maxDurability: 3
   - type: XAEDamageInArea
@@ -1275,7 +1271,7 @@
       max: 50000
     modifyBy:
       enum.XenoArtifactEffectModifier.Durability: "budgetDependant add -5,0"
-      enum.XenoArtifactEffectModifier.Amount: 10
+      enum.XenoArtifactEffectModifier.Power: 10
   - type: XenoArtifactNode
     maxDurability: 7
   - type: XAEFoam
@@ -1299,7 +1295,7 @@
       min: 0
       max: 50000
     modifyBy:
-      enum.XenoArtifactEffectModifier.Amount: 30
+      enum.XenoArtifactEffectModifier.Power: 30
   - type: XAEFoam
     foamAmount:
       min: 20
@@ -1328,7 +1324,7 @@
       min: 0
       max: 50000
     modifyBy:
-      enum.XenoArtifactEffectModifier.Amount: 450
+      enum.XenoArtifactEffectModifier.Power: 450
   - type: XAECreatePuddle
     chemAmount:
       min: 1
@@ -1386,7 +1382,7 @@
       max: 50000
     modifyBy:
       enum.XenoArtifactEffectModifier.Range: 15
-      enum.XenoArtifactIgniteEffectModifier.Effectiveness: 8
+      enum.XenoArtifactEffectModifier.Power: 8
   - type: XAEIgnite
     range: 7
     fireStack:
@@ -1493,11 +1489,11 @@
   components:
   - type: XenoArtifactNodeBudget
     budgetRange:
-      min: 8000
+      min: 0000
       max: 50000
     modifyBy:
       dictionary:
-        enum.XenoArtifactEntityTableSpawnerEffectModifier.SpawnCountChange: "budgetDependant add -25,25"
+        enum.XenoArtifactEffectModifier.Power: "budgetDependant add -25,25"
   - type: XAEApplyComponents
     applyIfAlreadyHave: true
     refreshOnReactivate: true
@@ -1521,7 +1517,7 @@
       max: 50000
     modifyBy:
       dictionary:
-        enum.XenoArtifactEntityTableSpawnerEffectModifier.SpawnCountChange: "budgetDependant add -25,25"
+        enum.XenoArtifactEffectModifier.Power: "budgetDependant add -25,25"
   - type: XAEApplyComponents
     applyIfAlreadyHave: true
     refreshOnReactivate: true
@@ -1543,7 +1539,7 @@
       max: 50000
     modifyBy:
       dictionary:
-        enum.XenoArtifactEntityTableSpawnerEffectModifier.SpawnCountChange: "budgetDependant add -25,25"
+        enum.XenoArtifactEffectModifier.Power: "budgetDependant add -25,25"
   - type: XAEApplyComponents
     applyIfAlreadyHave: true
     refreshOnReactivate: true
@@ -1619,7 +1615,7 @@
       min: 8000
       max: 30000
     modifyBy:
-      enum.XenoArtifactDamageEffectModifier.DamageAmount: "budgetDependant add -20,-250"
+      enum.XenoArtifactEffectModifier.Power: "budgetDependant add -20,-250"
       enum.XenoArtifactEffectModifier.Durability: "budgetDependant add -2,3"
   - type: XAEDamageInArea
     damageChance: 1
@@ -1681,8 +1677,7 @@
       min: 10000
       max: 30000
     modifyBy:
-      enum.XenoArtifactExplosionEffectModifier.TotalIntensity: 100
-      enum.XenoArtifactExplosionEffectModifier.MaxIntensity: 5
+      enum.XenoArtifactEffectModifier.Power: 100
   - type: Explosive
     deleteAfterExplosion: false
     explosionType: Radioactive
@@ -1702,8 +1697,7 @@
       min: 13000
       max: 50000
     modifyBy:
-      enum.XenoArtifactExplosionEffectModifier.TotalIntensity: 200
-      enum.XenoArtifactExplosionEffectModifier.MaxIntensity: 15
+      enum.XenoArtifactEffectModifier.Power: 200
   - type: XAETriggerExplosives
   - type: Explosive
     deleteAfterExplosion: false
@@ -1723,7 +1717,7 @@
       min: 8000
       max: 30000
     modifyBy:
-      enum.XenoArtifactGasEffectModifier.Amount: 150
+      enum.XenoArtifactEffectModifier.Power: 150
   - type: XAECreateGas
     gases:
       Plasma: 300
@@ -1738,7 +1732,7 @@
       min: 11000
       max: 32000
     modifyBy:
-      enum.XenoArtifactGasEffectModifier.Amount: 150
+      enum.XenoArtifactEffectModifier.Power: 150
   - type: XAECreateGas
     gases:
       Tritium: 300
@@ -1753,7 +1747,7 @@
       min: 7000
       max: 12000
     modifyBy:
-      enum.XenoArtifactGasEffectModifier.Amount: 150
+      enum.XenoArtifactEffectModifier.Power: 150
   - type: XAECreateGas
     gases:
       Ammonia: 300
@@ -1768,7 +1762,7 @@
       min: 11000
       max: 32000
     modifyBy:
-      enum.XenoArtifactGasEffectModifier.Amount: 150
+      enum.XenoArtifactEffectModifier.Power: 150
   - type: XAECreateGas
     gases:
       Frezon: 300
@@ -1783,7 +1777,7 @@
       min: 0
       max: 8000
     modifyBy:
-      enum.XenoArtifactGasEffectModifier.Amount: 150
+      enum.XenoArtifactEffectModifier.Power: 150
   - type: XAECreateGas
     gases:
       NitrousOxide: 300
@@ -1798,7 +1792,7 @@
       min: 9000
       max: 15000
     modifyBy:
-      enum.XenoArtifactGasEffectModifier.Amount: 150
+      enum.XenoArtifactEffectModifier.Power: 150
   - type: XAECreateGas
     gases:
       CarbonDioxide: 300

@@ -1,5 +1,8 @@
+using Robust.Shared.Serialization;
+
 namespace Content.Shared.Xenoarchaeology.Artifact.Modifiers;
 
+[Serializable, NetSerializable]
 public sealed partial class WrapperModifierProvider : ModifierProviderBase
 {
     [DataField]
