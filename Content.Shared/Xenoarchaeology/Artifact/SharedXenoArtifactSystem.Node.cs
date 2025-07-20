@@ -2,8 +2,10 @@ using System.Linq;
 using Content.Shared.NameIdentifier;
 using Content.Shared.Random.Helpers;
 using Content.Shared.Xenoarchaeology.Artifact.Components;
+using Content.Shared.Xenoarchaeology.Artifact.Modifiers;
 using Content.Shared.Xenoarchaeology.Artifact.Prototypes;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Random;
 using Robust.Shared.Serialization;
 using Robust.Shared.Utility;
 
@@ -12,6 +14,13 @@ namespace Content.Shared.Xenoarchaeology.Artifact;
 public abstract partial class SharedXenoArtifactSystem
 {
     private static readonly Enum[] OnInitEffectModifiers = [XenoArtifactEffectModifier.Durability];
+
+    private static readonly PlacementBudgetDistributionStrategyBase[] BudgetDistributionStrategies =
+    [
+        new AllInOnePlacementBudgetDistributionStrategy(),
+        new NormalPlacementBudgetDistributionStrategy(),
+        new OffsettingPlacementBudgetDistributionStrategy()
+    ];
 
     private EntityQuery<XenoArtifactComponent> _xenoArtifactQuery;
     private EntityQuery<XenoArtifactNodeComponent> _nodeQuery;
@@ -177,16 +186,7 @@ public abstract partial class SharedXenoArtifactSystem
         nodeComponent.Depth = depth;
         nodeComponent.Budget = actualBudget;
 
-        // Calculate where node is placed inside budget range.
-        // For example for range  1000 - 2000 node with 2000 actual budget will be at '1'=100%,
-        // node with 1500 will be at '0.5'=50%, with 500 at '-0.5'=-50%
-        // placement in budget range affects how node modifier affects power of effect.
-        // Negative means lowering power, positive improved power
-        var budget = EnsureComp<XenoArtifactNodeBudgetComponent>(nodeEnt.Value);
-        var halfRange = (float)(budget.BudgetRange.Max + budget.BudgetRange.Min) / 2;
-        var placementInBudgetRange = (actualBudget - halfRange) / halfRange;
-        budget.ModifyBy.ApplyActualBudgetPlacement(placementInBudgetRange, RobustRandom);
-        Dirty(nodeEnt.Value, budget);
+        ApplyActualBudgetPlacement(nodeEnt.Value, actualBudget);
 
         nodeComponent.TriggerTip = trigger.Tip;
         EntityManager.AddComponents(nodeEnt.Value, trigger.Components);
@@ -199,6 +199,32 @@ public abstract partial class SharedXenoArtifactSystem
 
         Dirty(nodeEnt.Value);
         return nodeEnt.Value;
+    }
+
+    private void ApplyActualBudgetPlacement(Entity<XenoArtifactNodeComponent> nodeEnt, int actualBudget)
+    {
+        // Calculate where node is placed inside budget range.
+        // For example for range  1000 - 2000 node with 2000 actual budget will be at '1'=100%,
+        // node with 1500 will be at '0.5'=50%, with 500 at '-0.5'=-50%
+        // placement in budget range affects how node modifier affects power of effect.
+        // Negative means lowering power, positive improved power
+        var budget = EnsureComp<XenoArtifactNodeBudgetComponent>(nodeEnt);
+        var halfRange = (float)(budget.BudgetRange.Max + budget.BudgetRange.Min) / 2;
+        var placementInBudgetRange = (actualBudget - halfRange) / halfRange;
+
+        var pickedStrategy = RobustRandom.Pick(BudgetDistributionStrategies);
+        var keys = budget.ModifyBy.Dictionary.Keys;
+        var distribution = pickedStrategy.Distribute(placementInBudgetRange, keys, RobustRandom);
+
+        foreach (var (key, provider) in budget.ModifyBy.Dictionary)
+        {
+            if (provider is IBudgetPlacementAwareModifier budgetPlacementAware && distribution.TryGetValue(key, out var share))
+            {
+                budgetPlacementAware.PlacementInBudget = share;
+            }
+        }
+
+        Dirty(nodeEnt, budget);
     }
 
     /// <summary> Checks if all predecessor nodes are marked as 'unlocked'. </summary>
