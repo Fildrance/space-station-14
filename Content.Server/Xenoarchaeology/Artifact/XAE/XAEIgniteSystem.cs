@@ -41,7 +41,7 @@ public sealed class XAEIgniteSystem : BaseXAESystem<XAEIgniteComponent>
         }
 
         var stacks = ent.Comp.FireStack;
-        if (args.Modifications.TryGetValue(XenoArtifactIgniteEffectModifier.Effectiveness, out var effectivenessModifier))
+        if (args.Modifications.TryGetValue(XenoArtifactEffectModifier.Power, out var effectivenessModifier))
         {
             var stacksMin = Math.Max(1, (int)effectivenessModifier.Modify(stacks.Min));
             var stacksMax = Math.Max(stacksMin, (int)effectivenessModifier.Modify(stacks.Max));
@@ -58,10 +58,5 @@ public sealed class XAEIgniteSystem : BaseXAESystem<XAEIgniteComponent>
             fl.FireStacks += stacks.Next(_random);
             _flammable.Ignite(target, ent.Owner, fl);
         }
-    }
-
-    public enum XenoArtifactIgniteEffectModifier
-    {
-        Effectiveness
     }
 }

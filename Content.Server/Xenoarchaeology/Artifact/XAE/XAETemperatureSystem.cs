@@ -22,7 +22,7 @@ public sealed class XAETemperatureSystem : BaseXAESystem<XAETemperatureComponent
     {
         XAETemperatureComponent component = ent;
         var adjacentTileEffectProbability = component.AdjacentTileEffectProbability;
-        if (args.Modifications.TryGetValue(XenoArtifactTemperatureEffectModifier.AdjacentTileChance, out var chanceModifier))
+        if (args.Modifications.TryGetValue(XenoArtifactEffectModifier.Range, out var chanceModifier))
         {
             adjacentTileEffectProbability = Math.Max(0.1f, chanceModifier.Modify(adjacentTileEffectProbability));
         }
@@ -65,9 +65,4 @@ public sealed class XAETemperatureSystem : BaseXAESystem<XAETemperatureComponent
         var step = Math.Min(absDif, component.SpawnTemperature);
         environment.Temperature += dif > 0 ? step : -step;
     }
-}
-
-public enum XenoArtifactTemperatureEffectModifier
-{
-    AdjacentTileChance
 }

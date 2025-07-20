@@ -34,7 +34,7 @@
     XenoArtifactFaunaSpawn: 10.0
     XenoArtifactCashSpawn: 10.0
     XenoArtifactShatterWindows: 8.0
-    XenoArtifactFoamGood: 4.0
+    XenoArtifactFoamGood: 40000.0
     XenoArtifactFoamDangerous: 2.0
     XenoArtifactPuddleRare: 2.0
     XenoArtifactAnomalySpawn: 10.0
@@ -1141,10 +1141,11 @@
       min: 0
       max: 50000
     modifyBy:
-      enum.XenoArtifactEffectModifier.Durability: "budgetDependant add -5,0"
-      enum.XenoArtifactEffectModifier.Power: "budgetDependant add -15,30"
-      enum.XenoArtifactEffectModifier.Range: "budgetDependant add -3,0,10"
-      enum.XenoArtifactEffectModifier.Duration: "budgetDependant add -5,15,20"
+      dictionary:
+        enum.XenoArtifactEffectModifier.Durability: "budgetDependant add -5,0"
+        enum.XenoArtifactEffectModifier.Power: "budgetDependant add -15,30"
+        enum.XenoArtifactEffectModifier.Range: "budgetDependant add -3,0,10"
+        enum.XenoArtifactEffectModifier.Duration: "budgetDependant add -5,15,20"
   - type: XenoArtifactNode
     maxDurability: 7
   - type: XAEFoam

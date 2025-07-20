@@ -484,12 +484,11 @@ public abstract partial class SharedXenoArtifactSystem
     private XenoArtifactEffectsModifications GetBudgetNodeEffectModifications(Entity<XenoArtifactNodeComponent> node)
     {
         var currentAmplification = new XenoArtifactEffectsModifications();
-        if (!TryComp<XenoArtifactNodeBudgetComponent>(node, out var budget))
-        {
-            return currentAmplification;
-        }
+        if (TryComp<XenoArtifactNodeBudgetComponent>(node, out var budget))
+            return budget.ModifyBy;
 
-        return budget.ModifyBy;
+        return currentAmplification;
+
     }
 }
 
