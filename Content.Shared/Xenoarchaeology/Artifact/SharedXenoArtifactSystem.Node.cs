@@ -155,7 +155,7 @@ public abstract partial class SharedXenoArtifactSystem
         Dictionary<(EntityPrototype Prototype, XenoArtifactNodeBudgetComponent Budget), float> fittingEffectsByWeight = new();
         foreach (var (e, weight) in effects)
         {
-            if (!Factory.TryGetComponent<XenoArtifactNodeBudgetComponent>(e.Components, out var nodeBudgetComp))
+            if (!e.Components.TryGetComponent<XenoArtifactNodeBudgetComponent>(Factory, out var nodeBudgetComp))
                 continue;
 
             var budgetRange = nodeBudgetComp.BudgetRange;
@@ -173,20 +173,22 @@ public abstract partial class SharedXenoArtifactSystem
         AddNode((ent, ent), effect.Prototype, out var nodeEnt, dirty: false);
         DebugTools.Assert(nodeEnt.HasValue, "Failed to create node on artifact.");
 
-        XenoArtifactEffectsModifications onInitAmplifications = new();
-        foreach (var onInitEffectModifier in OnInitEffectModifiers)
-        {
-            if(effect.Budget.ModifyBy.Dictionary.TryGetValue(onInitEffectModifier, out var value))
-            {
-                onInitAmplifications.Dictionary.Add(onInitEffectModifier, value);
-            }
-        }
-
         var nodeComponent = nodeEnt.Value.Comp;
         nodeComponent.Depth = depth;
         nodeComponent.Budget = actualBudget;
 
-        ApplyActualBudgetPlacement(nodeEnt.Value, actualBudget);
+        var budget = EnsureComp<XenoArtifactNodeBudgetComponent>(nodeEnt.Value);
+
+        ApplyActualBudgetPlacement((nodeEnt.Value, budget), actualBudget);
+
+        XenoArtifactEffectsModifications onInitAmplifications = new();
+        foreach (var onInitEffectModifier in OnInitEffectModifiers)
+        {
+            if (effect.Budget.ModifyBy.Dictionary.TryGetValue(onInitEffectModifier, out var value))
+            {
+                onInitAmplifications.Dictionary.Add(onInitEffectModifier, value);
+            }
+        }
 
         nodeComponent.TriggerTip = trigger.Tip;
         EntityManager.AddComponents(nodeEnt.Value, trigger.Components);
@@ -201,14 +203,14 @@ public abstract partial class SharedXenoArtifactSystem
         return nodeEnt.Value;
     }
 
-    private void ApplyActualBudgetPlacement(Entity<XenoArtifactNodeComponent> nodeEnt, int actualBudget)
+    private void ApplyActualBudgetPlacement(Entity<XenoArtifactNodeBudgetComponent> budgetEnt, int actualBudget)
     {
         // Calculate where node is placed inside budget range.
         // For example for range  1000 - 2000 node with 2000 actual budget will be at '1'=100%,
         // node with 1500 will be at '0.5'=50%, with 500 at '-0.5'=-50%
         // placement in budget range affects how node modifier affects power of effect.
         // Negative means lowering power, positive improved power
-        var budget = EnsureComp<XenoArtifactNodeBudgetComponent>(nodeEnt);
+        XenoArtifactNodeBudgetComponent budget = budgetEnt;
         var halfRange = (float)(budget.BudgetRange.Max + budget.BudgetRange.Min) / 2;
         var placementInBudgetRange = (actualBudget - halfRange) / halfRange;
 
@@ -224,7 +226,7 @@ public abstract partial class SharedXenoArtifactSystem
             }
         }
 
-        Dirty(nodeEnt, budget);
+        Dirty(budgetEnt, budget);
     }
 
     /// <summary> Checks if all predecessor nodes are marked as 'unlocked'. </summary>
@@ -420,7 +422,7 @@ public abstract partial class SharedXenoArtifactSystem
         ent.Comp.CachedSegments.Clear();
 
         var entities = GetAllNodes((ent, ent.Comp))
-            .ToList();
+            .ToArray();
         var segments = GetSegmentsFromNodes((ent, ent.Comp), entities);
         var netEntities = segments.Select(
             s => s.Select(n => GetNetEntity(n))
@@ -434,7 +436,10 @@ public abstract partial class SharedXenoArtifactSystem
     /// <summary>
     /// Gets two-dimensional array (as lists inside enumeration) that contains artifact nodes, grouped by segment.
     /// </summary>
-    public IEnumerable<List<Entity<XenoArtifactNodeComponent>>> GetSegmentsFromNodes(Entity<XenoArtifactComponent> ent, List<Entity<XenoArtifactNodeComponent>> nodes)
+    public List<List<Entity<XenoArtifactNodeComponent>>> GetSegmentsFromNodes(
+        Entity<XenoArtifactComponent> ent,
+        IReadOnlyCollection<Entity<XenoArtifactNodeComponent>> nodes
+    )
     {
         var outSegments = new List<List<Entity<XenoArtifactNodeComponent>>>();
         foreach (var node in nodes)
