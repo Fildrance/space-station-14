@@ -62,11 +62,17 @@ public sealed class XAECreatePuddleSystem: BaseXAESystem<XAECreatePuddleComponen
     /// <inheritdoc />
     protected override void OnActivated(Entity<XAECreatePuddleComponent> ent, ref XenoArtifactNodeActivatedEvent args)
     {
+        var currentMaxVolume = ent.Comp.ChemicalSolution.MaxVolume.Value;
+        if (args.Modifications.TryGetValue(XenoArtifactEffectModifier.Power, out var amountModifier))
+        {
+            currentMaxVolume = Math.Max(5, (int)amountModifier.Modify(currentMaxVolume));
+        }
+
         var component = ent.Comp;
         if (component.SelectedChemicals == null)
             return;
 
-        var amountPerChem = component.ChemicalSolution.MaxVolume / component.SelectedChemicals.Count;
+        var amountPerChem = currentMaxVolume / component.SelectedChemicals.Count;
         foreach (var reagent in component.SelectedChemicals)
         {
             component.ChemicalSolution.AddReagent(reagent, amountPerChem);

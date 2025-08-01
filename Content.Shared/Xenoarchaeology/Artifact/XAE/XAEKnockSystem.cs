@@ -1,4 +1,5 @@
 using Content.Shared.Magic.Events;
+using Content.Shared.Xenoarchaeology.Artifact.Components;
 using Content.Shared.Xenoarchaeology.Artifact.XAE.Components;
 using Robust.Shared.Timing;
 
@@ -17,10 +18,14 @@ public sealed class XAEKnockSystem : BaseXAESystem<XAEKnockComponent>
         if (!_timing.IsFirstTimePredicted)
             return;
 
+        var range = ent.Comp.KnockRange;
+        if (args.Modifications.TryGetValue(XenoArtifactEffectModifier.Range, out var rangeModifier))
+            range = Math.Max(1f, rangeModifier.Modify(range));
+
         var ev = new KnockSpellEvent
         {
             Performer = ent.Owner,
-            Range = ent.Comp.KnockRange
+            Range = range
         };
         RaiseLocalEvent(ev);
     }

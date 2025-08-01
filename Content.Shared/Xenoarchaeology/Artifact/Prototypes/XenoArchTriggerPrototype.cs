@@ -1,3 +1,4 @@
+using Content.Shared.Destructible.Thresholds;
 using Content.Shared.Random;
 using Content.Shared.Whitelist;
 using Robust.Shared.Prototypes;
@@ -30,6 +31,12 @@ public sealed partial class XenoArchTriggerPrototype : IPrototype
     /// </summary>
     [DataField]
     public ComponentRegistry Components = new();
+
+    [DataField(required: true)]
+    public int TriggerBudget;
+
+    [DataField(required: true)]
+    public MinMax BudgetRange;
 }
 
 /// <summary>
@@ -37,6 +44,20 @@ public sealed partial class XenoArchTriggerPrototype : IPrototype
 /// </summary>
 [Prototype]
 public sealed partial class WeightedRandomXenoArchTriggerPrototype : IWeightedRandomPrototype
+{
+    [IdDataField]
+    public string ID { get; private set; } = default!;
+
+    [DataField(customTypeSerializer: typeof(PrototypeIdDictionarySerializer<float, XenoArchTriggerPrototype>))]
+    public Dictionary<string, float> Weights { get; private set; } = new();
+}
+
+
+/// <summary>
+/// Container for list of xeno artifact triggers and their respective weights to be used in case randomly rolling trigger is required.
+/// </summary>
+[Prototype]
+public sealed partial class WeightedRandomXenoArchEffectPrototype : IWeightedRandomPrototype
 {
     [IdDataField]
     public string ID { get; private set; } = default!;
