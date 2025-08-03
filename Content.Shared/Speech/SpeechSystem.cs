@@ -25,10 +25,7 @@ public sealed class SpeechSystem : EntitySystem
         if (ent.Comp.Enabled)
             return;
 
-        args = new AttemptSendChatMessageEvent(args.MessageContext, args.CommunicationChannel)
-        {
-            CanHandle = true
-        };
+        args.CanHandle = true;
     }
 
     private void OnGetPotentialRecipients(Entity<SpeechComponent> ent, ref GetPotentialRecipientsChatMessageEvent args)

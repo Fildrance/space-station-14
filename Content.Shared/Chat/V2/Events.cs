@@ -43,28 +43,28 @@ public struct AttemptSendChatMessageEvent
     }
 
     public bool CanHandle;
-    public ChatMessageContext MessageContext;
-    public CommunicationChannelPrototype CommunicationChannel;
+    public readonly ChatMessageContext MessageContext;
+    public readonly CommunicationChannelPrototype CommunicationChannel;
 }
 
 [ByRefEvent]
 public struct GetPotentialRecipientsChatMessageEvent(ChatMessageContext messageContext, CommunicationChannelPrototype communicationChannel)
 {
-    public List<EntityUid> Recipients = new();
-    public ChatMessageContext MessageContext = messageContext;
-    public CommunicationChannelPrototype CommunicationChannel = communicationChannel;
+    public readonly List<EntityUid> Recipients = new();
+    public readonly ChatMessageContext MessageContext = messageContext;
+    public readonly CommunicationChannelPrototype CommunicationChannel = communicationChannel;
 }
 
 [ByRefEvent]
 public struct ReceiveChatMessageEvent(ChatMessageContext messageContext)
 {
-    public ChatMessageContext MessageContext = messageContext;
+    public readonly ChatMessageContext MessageContext = messageContext;
 }
 
 [ByRefEvent]
 public struct AttemptReceiveChatMessageEvent(ChatMessageContext messageContext)
 {
-    public ChatMessageContext MessageContext = messageContext;
+    public readonly ChatMessageContext MessageContext = messageContext;
     public bool Cancelled;
 }
 
