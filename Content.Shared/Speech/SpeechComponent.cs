@@ -64,24 +64,18 @@ public sealed partial class SpeechComponent : Component
     public float SpeechBubbleOffset = 0f;
 
     /// <summary>
-    /// The minimum range to meet this condition; inclusive.
+    /// The maximum range to meet this condition; inclusive.
     /// </summary>
     [DataField]
-    public float MinimumRange = 0f;
-
-    /// <summary>
-    /// The maximum range to meet this condition; exclusive.
-    /// </summary>
-    [DataField]
-    public float MaximumRange = 5f;
+    public float Range = 5f;
 }
 
 
 public sealed partial class SpeechReceiverComponent : Component
 {
+    /// <summary>
+    /// Additional change to speech range of speak event producer.
+    /// </summary>
     [DataField]
-    public float MaxRangeChange = 0;
-
-    [DataField]
-    public float MinRangeChange = 0;
+    public float RangeChange = 0;
 }

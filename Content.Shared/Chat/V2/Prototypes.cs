@@ -72,6 +72,7 @@ public enum DefaultChannelParameters
     RadioChannel,
     GlobalAudioPath,
     GlobalAudioVolume,
+    RangeToEntities,
 }
 
 public class CommunicationMediumPrototype : IPrototype

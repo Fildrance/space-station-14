@@ -45,7 +45,7 @@ public sealed class ChatSystem : EntitySystem
 
         // If the sender failed the publishing conditions, this attempt a back-up channel.
         // Useful for e.g. making ghosts trying to send LOOC messages fall back to Deadchat instead.
-        if (!attemptEvent.CanHandle)
+        if (!attemptEvent.CanHandle || attemptEvent.Cancelled)
         {
             AlsoSendTo(args, messageContext, targetChannel.FallbackChannels);
 

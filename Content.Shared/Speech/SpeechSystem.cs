@@ -1,5 +1,4 @@
 using Content.Shared.Chat.V2;
-using Robust.Shared.Collections;
 using Robust.Shared.Prototypes;
 
 namespace Content.Shared.Speech;
@@ -33,7 +32,7 @@ public sealed class SpeechSystem : EntitySystem
         if (args.CommunicationChannel.ChatMedium != SpeechMedium)
             return;
 
-        ValueList<EntityUid> recipients = new();
+        var rangeByRecipient = new Dictionary<EntityUid, float>();
         var query = EntityQueryEnumerator<SpeechReceiverComponent>();
         while (query.MoveNext(out var uid, out var comp))
         {
@@ -46,12 +45,21 @@ public sealed class SpeechSystem : EntitySystem
             // If you wanted to do something like a hard-of-hearing trait, our hearing extension component,
             // this is probably where you'd check for it.
             // Even if they are a ghost hearer, in some situations we still need the range
-            var inRange = sourceTransform.Coordinates.TryDistance(EntityManager, targetTransform.Coordinates, out var distance)
-                          && distance < ent.Comp.MaximumRange + comp.MaxRangeChange
-                          && distance >= ent.Comp.MinimumRange + comp.MinRangeChange;
+            var targetCoordinates = targetTransform.Coordinates;
+
+            if (!sourceTransform.Coordinates.TryDistance(EntityManager, targetCoordinates, out var distance))
+                continue;
+
+
+            var inRange = distance <= ent.Comp.Range + comp.RangeChange;
             if (inRange)
-                recipients.Add(uid);
+                rangeByRecipient.Add(uid, distance);
         }
+
+        args.Recipients.AddRange(rangeByRecipient.Keys);
+
+        args.MessageContext[DefaultChannelParameters.RangeToEntities] = rangeByRecipient;
+
     }
 
     public void SetSpeech(EntityUid uid, bool value, SpeechComponent? component = null)

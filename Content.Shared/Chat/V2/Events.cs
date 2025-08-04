@@ -43,6 +43,7 @@ public struct AttemptSendChatMessageEvent
     }
 
     public bool CanHandle;
+    public bool Cancelled;
     public readonly ChatMessageContext MessageContext;
     public readonly CommunicationChannelPrototype CommunicationChannel;
 }
