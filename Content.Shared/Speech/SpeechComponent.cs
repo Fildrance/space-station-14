@@ -64,12 +64,23 @@ public sealed partial class SpeechComponent : Component
     public float SpeechBubbleOffset = 0f;
 
     /// <summary>
-    /// The maximum range to meet this condition; inclusive.
+    /// Additional range that is added per exclamation in message.
     /// </summary>
     [DataField]
-    public float Range = 5f;
-}
+    public float YellingAdditionalRange = 1.5f;
 
+    /// <summary>
+    /// The maximum range for usual speaking.
+    /// </summary>
+    [DataField]
+    public float Range = 10f;
+
+    /// <summary>
+    /// Maximum range for whispering.
+    /// </summary>
+    [DataField]
+    public float WhisperRange = 5f;
+}
 
 public sealed partial class SpeechReceiverComponent : Component
 {

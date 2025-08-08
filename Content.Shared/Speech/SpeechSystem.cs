@@ -1,5 +1,7 @@
+using System.Linq;
 using Content.Shared.Chat.V2;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Utility;
 
 namespace Content.Shared.Speech;
 
@@ -32,6 +34,8 @@ public sealed class SpeechSystem : EntitySystem
         if (args.CommunicationChannel.ChatMedium != SpeechMedium)
             return;
 
+        args.MessageContext.TryGet<bool>(SpeechChatContextParameters.IsWhispering, out var isWhispering);
+
         var rangeByRecipient = new Dictionary<EntityUid, float>();
         var query = EntityQueryEnumerator<SpeechReceiverComponent>();
         while (query.MoveNext(out var uid, out var comp))
@@ -50,8 +54,11 @@ public sealed class SpeechSystem : EntitySystem
             if (!sourceTransform.Coordinates.TryDistance(EntityManager, targetCoordinates, out var distance))
                 continue;
 
+            var range = isWhispering
+                ? ent.Comp.WhisperRange
+                : GetRange(ent.Comp, args.Message);
 
-            var inRange = distance <= ent.Comp.Range + comp.RangeChange;
+            var inRange = distance <= range + comp.RangeChange;
             if (inRange)
                 rangeByRecipient.Add(uid, distance);
         }
@@ -60,6 +67,35 @@ public sealed class SpeechSystem : EntitySystem
 
         args.MessageContext[DefaultChannelParameters.RangeToEntities] = rangeByRecipient;
 
+    }
+
+    private static float GetRange(SpeechComponent component, FormattedMessage message)
+    {
+        var exclamationCount = CountExclamation(message);
+        var additionalRange = component.YellingAdditionalRange * exclamationCount;
+        return component.Range + additionalRange;
+    }
+
+    private static int CountExclamation(FormattedMessage message)
+    {
+        var exclamationCount = 0;
+        foreach (var node in message)
+        {
+            if (node.Name == null && node.Value.StringValue != null)
+            {
+                foreach (var text in node.Value.StringValue)
+                {
+                    if (text == '!')
+                    {
+                        exclamationCount++;
+                        if (exclamationCount == 3)
+                            return exclamationCount;
+                    }
+                }
+            }
+        }
+
+        return exclamationCount;
     }
 
     public void SetSpeech(EntityUid uid, bool value, SpeechComponent? component = null)
@@ -82,4 +118,9 @@ public sealed class SpeechSystem : EntitySystem
         if (!TryComp(args.Uid, out SpeechComponent? speech) || !speech.Enabled)
             args.Cancel();
     }
+}
+
+public enum SpeechChatContextParameters
+{
+    IsWhispering
 }

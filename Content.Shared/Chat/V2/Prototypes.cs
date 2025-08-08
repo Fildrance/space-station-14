@@ -21,6 +21,10 @@ public sealed partial class CommunicationChannelPrototype : IPrototype, IInherit
     [AbstractDataField]
     public bool Abstract { get; }
 
+    [DataField(required: true)]
+    [AlwaysPushInheritance]
+    public LocId MessageFormatLayout;
+
     /// <summary>
     /// The way the message is conveyed in the game; audio, visual, OOC or such.
     /// </summary>
