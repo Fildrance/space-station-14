@@ -10,9 +10,6 @@
         </ScrollContainer>
         <controls:StripeBack HasBottomEdge="False" HasMargins="False">
             <BoxContainer Orientation="Horizontal" Margin="8 8" HorizontalExpand="True">
-                <Button Name="AddCommandBindButton"
-                        Text="Add Custom Key Bind"
-                        HorizontalAlignment="Left" />
                 <Control MinSize="8 0" />
                 <Label Text="{Loc 'ui-options-binds-explanation'}" StyleClasses="LabelSubText" />
                 <Button Name="ResetAllButton"
