@@ -6,7 +6,7 @@ using Robust.Shared.Utility;
 
 namespace Content.Shared.Chat.V2;
 
-public sealed partial class ChatSystem : EntitySystem
+public abstract partial class SharedChatSystemNew : EntitySystem
 {
     [Dependency] private readonly IPrototypeManager _prototype = default!;
     [Dependency] private readonly IChatRepository _repository = default!;
@@ -76,56 +76,51 @@ public sealed partial class ChatSystem : EntitySystem
             }
         }
 
-        var modifiedMessage = Modify(formattedMessage, targetChannel, context);
+        RefineContext(formattedMessage, targetChannel, context);
 
         foreach (var target in recipientsFilteredList)
         {
-            var receiveEvent = new ReceiveChatMessageEvent(context, modifiedMessage);
-            RaiseLocalEvent(target, ref receiveEvent);
+            var receiveEvent = new ReceiveChatMessageEvent
+            {
+                Message = formattedMessage,
+                MessageContext = context,
+                CommunicationChannelProtoId = args.CommunicationChannel
+            };
+            RaiseNetworkEvent(receiveEvent, target);
         }
     }
 
-    private FormattedMessage Modify(FormattedMessage input, CommunicationChannelPrototype channel, ChatMessageContext context)
-    {
-        var message = input;
-
-        var (entityName, verbId) = PrepareData(message, context);
-        // get speech verb
-        // get owner accents?
-        // get color for output!
-        // hook into other stuff?
-
-        LocId layout = channel.MessageFormatLayout;
-
-        var transformed = Loc.GetString(
-            layout,
-            ("sourceMessage", message.ToString()),
-            ("entityName", entityName), //"EntityNameHeader"
-            ("verbId", verbId) // [SpeechVerb id='']
-        );
-        message = FormattedMessage.FromMarkupOrThrow(transformed);
-        return message;
-    }
-
-    private (string VoiceName, int VerbId) PrepareData(FormattedMessage message, ChatMessageContext context)
+    private void RefineContext(FormattedMessage input, CommunicationChannelPrototype channel, ChatMessageContext context)
     {
         var sender = context.Sender;
         var metaData = MetaData(sender);
 
         var nameEv = new TransformSpeakerNameEvent(sender, metaData.EntityName);
         RaiseLocalEvent(sender, nameEv);
-        var voiceName = nameEv.VoiceName;
+        context[MessageParts.EntityName] = nameEv.VoiceName;
 
         var hash = SharedRandomExtensions.HashCodeCombine([(int)GetNetEntity(context.Sender)]);
         var random = new System.Random(hash);
 
-        var current = GetSpeechVerbProto(message, nameEv.SpeechVerb, sender);
+        var current = GetSpeechVerbProto(input, nameEv.SpeechVerb, sender);
 
         var count = current.SpeechVerbStrings.Count;
 
-        var verbId = random.Next(count);
+        context[MessageParts.VerbId] = random.Next(count);
 
-        return (voiceName, verbId);
+        // get owner accents?
+        // hook into other stuff?
+    }
+
+    public enum MessageParts
+    {
+        VerbId,
+        EntityName,
+    }
+
+    public enum MessageData
+    {
+        SpeechBubbleType
     }
 
     private void AlsoSendTo(

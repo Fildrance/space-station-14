@@ -1,7 +1,6 @@
 using Robust.Shared.Utility;
 using Content.Shared.CCVar;
 using Content.Shared.Decals;
-using Content.Shared.Speech;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 using Content.Shared.Access.Systems;
@@ -9,22 +8,22 @@ using Robust.Shared.Configuration;
 
 namespace Content.Shared.Chat.V2;
 
-public partial class ChatSystem
+public partial class SharedChatSystemNew
 {
     [Dependency] private IRobustRandom _random = default!;
     [Dependency] private SharedAccessSystem _accent = default!;
     [Dependency] private IConfigurationManager _config = default!;
 
-    public FormattedMessage AccentChatModifier(FormattedMessage message, ChatMessageContext chatMessageContext)
-    {
-        var accents = _accent.GetAccentList(chatMessageContext.Sender);
-        foreach (var accentsDicts in accents)
-        {
-            message.InsertInsideTag(new MarkupNode("Accent", new MarkupParameter(accentsDicts.Key), accentsDicts.Value, false), "MainMessage");
-        }
+    //public FormattedMessage AccentChatModifier(FormattedMessage message, ChatMessageContext chatMessageContext)
+    //{
+    //    var accents = _accent.GetAccentList(chatMessageContext.Sender);
+    //    foreach (var accentsDicts in accents)
+    //    {
+    //        message.InsertInsideTag(new MarkupNode("Accent", new MarkupParameter(accentsDicts.Key), accentsDicts.Value, false), "MainMessage");
+    //    }
 
-        return message;
-    }
+    //    return message;
+    //}
 
     [DataField]
     public string DefaultColorKey = "Base";
@@ -44,8 +43,9 @@ public partial class ChatSystem
         Color,
     }
 
+    #region CLIENT SHIT
 
-    private static ProtoId<ColorPalettePrototype> _chatNamePalette = "ChatNames";
+    private static readonly ProtoId<ColorPalettePrototype> ChatNamePalette = "ChatNames";
 
     public FormattedMessage ColorEntityNameHeaderChatModifier(FormattedMessage message, ChatMessageContext chatMessageContext)
     {
@@ -69,9 +69,8 @@ public partial class ChatSystem
 
     public Color GetNameColor(string name)
     {
-        var nameColors = _prototype.Index<ColorPalettePrototype>(_chatNamePalette).Colors.Values;
+        var nameColors = _prototype.Index(ChatNamePalette).Colors.Values;
         var colorIdx = Math.Abs(name.GetHashCode() % nameColors.Count);
-        // simplified ElementAt, required to find element from ICollection without any allocations
         var i = 0;
         foreach (var nameColor in nameColors)
         {
@@ -83,32 +82,6 @@ public partial class ChatSystem
         return default;
     }
 
-    public FormattedMessage MainMessageChatModifier(FormattedMessage message, ChatMessageContext chatMessageContext)
-    {
-        message.InsertAroundText(new MarkupNode("MainMessage", null, null));
-        return message;
-    }
-
-    public FormattedMessage ItalicsFulltextChatModifier(FormattedMessage message, ChatMessageContext chatMessageContext)
-    {
-        message.InsertAroundMessage(new MarkupNode("italic", null, null));
-        return message;
-    }
-
-    public  FormattedMessage BoldFulltextChatModifier(FormattedMessage message, ChatMessageContext chatMessageContext)
-    {
-        message.InsertAroundMessage(new MarkupNode("bold", null, null));
-        return message;
-    }
-
-    public FormattedMessage BoldTagChatModifier(FormattedMessage message, ChatMessageContext chatMessageContext)
-    {
-        if (TargetNode != null)
-            message.InsertOutsideTag(new MarkupNode("bold", null, null), TargetNode);
-
-        return message;
-    }
-
     [DataField]
     public SpeechType SpeechType = SpeechType.Say;
 
@@ -118,6 +91,9 @@ public partial class ChatSystem
         message.InsertOutsideTag(new MarkupNode(ChatConstants.BubbleBodyTagName, new MarkupParameter((int)SpeechType), null), "MainMessage");
         return message;
     }
+
+    #endregion
+
 }
 
 // CHAT-TODO: This enum needs to be merged with the one in SpeechBubble.cs

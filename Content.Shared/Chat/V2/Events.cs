@@ -1,4 +1,6 @@
+using Robust.Shared.Network;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Serialization;
 using Robust.Shared.Utility;
 
 namespace Content.Shared.Chat.V2;
@@ -68,11 +70,12 @@ public struct GetPotentialRecipientsChatMessageEvent(
     public readonly FormattedMessage Message = message;
 }
 
-[ByRefEvent]
-public struct ReceiveChatMessageEvent(ChatMessageContext messageContext, FormattedMessage message)
+[Serializable, NetSerializable]
+public sealed class ReceiveChatMessageEvent : EntityEventArgs
 {
-    public readonly ChatMessageContext MessageContext = messageContext;
-    public FormattedMessage Message = message;
+    public ProtoId<CommunicationChannelPrototype> CommunicationChannelProtoId;
+    public ChatMessageContext MessageContext = default!;
+    public FormattedMessage Message = default!;
 }
 
 [ByRefEvent]
