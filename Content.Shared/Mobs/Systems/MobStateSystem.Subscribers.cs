@@ -1,5 +1,6 @@
-﻿using Content.Shared.Bed.Sleep;
+using Content.Shared.Bed.Sleep;
 using Content.Shared.Buckle.Components;
+using Content.Shared.Chat.V2;
 using Content.Shared.CombatMode.Pacification;
 using Content.Shared.Damage;
 using Content.Shared.Damage.ForceSay;
@@ -46,8 +47,15 @@ public partial class MobStateSystem
         SubscribeLocalEvent<MobStateComponent, CombatModeShouldHandInteractEvent>(OnCombatModeShouldHandInteract);
         SubscribeLocalEvent<MobStateComponent, AttemptPacifiedAttackEvent>(OnAttemptPacifiedAttack);
         SubscribeLocalEvent<MobStateComponent, DamageModifyEvent>(OnDamageModify);
+        SubscribeLocalEvent<MobStateComponent, AttemptSendChatMessageEvent>(OnAttemptSendChatMessage);
 
         SubscribeLocalEvent<MobStateComponent, UnbuckleAttemptEvent>(OnUnbuckleAttempt);
+    }
+
+    private void OnAttemptSendChatMessage(Entity<MobStateComponent> ent, ref AttemptSendChatMessageEvent args)
+    {
+        if (IsIncapacitated(ent, ent))
+            args.Cancelled = true;
     }
 
     private void OnUnbuckleAttempt(Entity<MobStateComponent> ent, ref UnbuckleAttemptEvent args)
