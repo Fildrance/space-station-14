@@ -72,9 +72,17 @@ public struct GetPotentialRecipientsChatMessageEvent(
 }
 
 [Serializable, NetSerializable]
-public sealed partial class ChatMessageWrapper(ChatMessage wrapped) : EntityEventArgs
+public sealed partial class ReceiveChatMessage(
+    NetEntity sender,
+    FormattedMessage message,
+    ChatMessageContext context,
+    CommunicationChannelPrototype communicationChannel
+) : EntityEventArgs
 {
-    public ChatMessage Wrapped = wrapped;
+    public readonly NetEntity Sender = sender;
+    public readonly FormattedMessage Message = message;
+    public readonly ChatMessageContext Context = context;
+    public readonly CommunicationChannelPrototype CommunicationChannel = communicationChannel;
 }
 
 [ByRefEvent]

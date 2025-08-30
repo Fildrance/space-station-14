@@ -1,4 +1,5 @@
 using Content.Client.UserInterface.Systems.Chat;
+using Content.Shared.Chat;
 using Content.Shared.Chat.V2;
 using Robust.Client.Player;
 using Robust.Client.UserInterface;
@@ -20,10 +21,10 @@ public sealed class ChatSystemNew : SharedChatSystemNew
 
         _chatController = _interfaceManager.GetUIController<ChatUIController>();
         
-        SubscribeNetworkEvent<ChatMessageWrapper>(OnReceiveChatMessage);
+        SubscribeNetworkEvent<ReceiveChatMessage>(OnReceiveChatMessage);
     }
 
-    private void OnReceiveChatMessage(ChatMessageWrapper msg, EntitySessionEventArgs args)
+    private void OnReceiveChatMessage(ReceiveChatMessage msg, EntitySessionEventArgs args)
     {
         if (!Timing.IsFirstTimePredicted)
             return;
@@ -31,7 +32,36 @@ public sealed class ChatSystemNew : SharedChatSystemNew
         if (args.SenderSession.AttachedEntity != _playerManager.LocalEntity)
             return;
 
-        _chatController.AddMessage(msg.Wrapped);
+        var formattedMessage = msg.Message;
+        var context = msg.Context;
+        var targetChannel = msg.CommunicationChannel;
+        var sender = msg.Sender;
+
+        if (!formattedMessage.TryGetMessageInsideTag("BubbleContent", out var text))
+        {
+            text = FormattedMessage.Empty;
+        }
+
+        var templateId = targetChannel.MessageFormatLayout;
+
+        if (!context.TryGetString(MessageParts.EntityName, out var entityName))
+        {
+            entityName = "";
+        }
+
+        var message = Loc.GetString(templateId, ("entityName", entityName), ("verb", "lmao"), ("sourceMessage", formattedMessage.ToMarkup()));
+        var markup = FormattedMessage.FromMarkupPermissive(message);
+
+        var chatMessage = new ChatMessage(
+            ChatChannel.Local,
+            text.ToString(),
+            markup.ToMarkup(),
+            sender,
+            null,
+            targetChannel.HideChat
+        );
+
+        _chatController.AddMessage(chatMessage);
     }
 
     public void SendMessage(ProtoId<CommunicationChannelPrototype> channelProtoId, EntityUid? entity, string str)
@@ -47,7 +77,7 @@ public sealed class ChatSystemNew : SharedChatSystemNew
         var markup = FormattedMessage.FromMarkupPermissive(str);
         var sender = GetNetEntity(entity.Value);
         var context = new ChatMessageContext(messageId);
-        var sendChatMessageEvent = new SendChatMessageEvent(messageId, channelProtoId, sender, markup, context);
-        RaisePredictiveEvent(sendChatMessageEvent);
+        var @event = new SendChatMessageEvent(messageId, channelProtoId, sender, markup, context);
+        RaisePredictiveEvent(@event);
     }
 }
