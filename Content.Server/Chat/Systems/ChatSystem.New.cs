@@ -1,21 +1,22 @@
 using Content.Shared.Chat.V2;
-using Robust.Shared.Utility;
+using Robust.Shared.Player;
 
 namespace Content.Server.Chat.Systems;
 
 public sealed partial class ChatSystem
 {
-    /// <inheritdoc />
-    protected override void SendChatMessageReceivedCommand(
-        EntityUid sender,
-        EntityUid target,
-        FormattedMessage formattedMessage,
-        ChatMessageContext context,
-        CommunicationChannelPrototype targetChannel
-    )
+    private void InitializeSendMessage()
     {
-        var senderNetEntity = GetNetEntity(sender);
-        var chatMessageWrapper = new ReceiveChatMessage(senderNetEntity, formattedMessage, context, targetChannel);
-        RaiseNetworkEvent(chatMessageWrapper, target);
+        SubscribeLocalEvent<ActorComponent, ReceiveChatMessageEvent>(Handler);
+    }
+
+    private void Handler(Entity<ActorComponent> ent, ref ReceiveChatMessageEvent args)
+    {
+        var senderNetEntity = GetNetEntity(args.Sender);
+        if(!senderNetEntity.HasValue)
+            return;
+
+        var chatMessageWrapper = new ReceiveChatMessage(senderNetEntity.Value, args.Message, args.MessageContext, args.CommunicationChannel);
+        RaiseNetworkEvent(chatMessageWrapper, ent);
     }
 }

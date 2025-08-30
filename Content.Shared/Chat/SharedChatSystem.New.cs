@@ -65,16 +65,14 @@ public abstract partial class SharedChatSystem
 
         foreach (var target in targets)
         {
-            var attemptReceiveEvent = new AttemptReceiveChatMessageEvent(context, formattedMessage);
+            var attemptReceiveEvent = new AttemptReceiveChatMessageEvent(sender, context, formattedMessage);
             RaiseLocalEvent(target, ref attemptReceiveEvent);
 
             if (attemptReceiveEvent.Cancelled)
                 continue;
 
-            var receiveEvent = new ReceiveChatMessageEvent(formattedMessage, context, targetChannel);
+            var receiveEvent = new ReceiveChatMessageEvent(sender, formattedMessage, context, targetChannel);
             RaiseLocalEvent(target, ref receiveEvent);
-
-            SendChatMessageReceivedCommand(sender, target, formattedMessage, context, targetChannel);
         }
 
         // We also pass it on to any child channels that should be included.

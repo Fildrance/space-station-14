@@ -28,31 +28,17 @@ public sealed class SendChatMessageEvent(
 }
 
 [ByRefEvent]
-public struct AttemptSendChatMessageEvent
+public struct AttemptSendChatMessageEvent(
+    ChatMessageContext messageContext,
+    CommunicationChannelPrototype communicationChannel,
+    FormattedMessage message
+)
 {
-    public AttemptSendChatMessageEvent(AttemptSendChatMessageEvent other)
-    {
-        MessageContext = other.MessageContext;
-        CommunicationChannel = other.CommunicationChannel;
-        Message = other.Message;
-    }
-
-    public AttemptSendChatMessageEvent(
-        ChatMessageContext messageContext,
-        CommunicationChannelPrototype communicationChannel,
-        FormattedMessage message
-    )
-    {
-        MessageContext = messageContext;
-        CommunicationChannel = communicationChannel;
-        Message = message;
-    }
-
     public bool CanHandle;
     public bool Cancelled;
-    public readonly ChatMessageContext MessageContext;
-    public readonly CommunicationChannelPrototype CommunicationChannel;
-    public readonly FormattedMessage Message;
+    public readonly ChatMessageContext MessageContext = messageContext;
+    public readonly CommunicationChannelPrototype CommunicationChannel = communicationChannel;
+    public readonly FormattedMessage Message = message;
 }
 
 [ByRefEvent]
@@ -83,18 +69,20 @@ public sealed partial class ReceiveChatMessage(
 }
 
 [ByRefEvent]
-public struct ReceiveChatMessageEvent(FormattedMessage message, ChatMessageContext messageContext, CommunicationChannelPrototype communicationChannel)
+public struct ReceiveChatMessageEvent(EntityUid? sender, FormattedMessage message, ChatMessageContext messageContext, CommunicationChannelPrototype communicationChannel)
 {
+    public readonly EntityUid? Sender = sender;
     public readonly FormattedMessage Message = message;
     public readonly ChatMessageContext MessageContext = messageContext;
     public readonly CommunicationChannelPrototype CommunicationChannel = communicationChannel;
 }
 
 [ByRefEvent]
-public struct AttemptReceiveChatMessageEvent(ChatMessageContext messageContext, FormattedMessage message)
+public struct AttemptReceiveChatMessageEvent(EntityUid? sender, ChatMessageContext messageContext, FormattedMessage message)
 {
-    public FormattedMessage Message = message;
+    public readonly EntityUid? Sender = sender;
+    public readonly FormattedMessage Message = message;
     public readonly ChatMessageContext MessageContext = messageContext;
-    public bool Cancelled;
+    public readonly bool Cancelled;
 }
 
