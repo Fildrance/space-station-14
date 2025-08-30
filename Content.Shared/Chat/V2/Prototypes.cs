@@ -62,24 +62,12 @@ public sealed partial class CommunicationChannelPrototype : IPrototype, IInherit
     /// </summary>
     [DataField]
     [AlwaysPushInheritance]
-    public Dictionary<Enum, object> ChannelParameters = new();
+    public Dictionary<MessageParts, string> ChannelParameters = new();
 }
 
-/// <summary>
-/// Default channel parameters utilized by various conditions and suppliers. Not guaranteed to be set.
-/// </summary>
 [Serializable]
-public enum DefaultChannelParameters
-{
-    SenderSession,
-    RandomSeed,
-    RadioChannel,
-    GlobalAudioPath,
-    GlobalAudioVolume,
-    RangeToEntities,
-}
-
-public class CommunicationMediumPrototype : IPrototype
+[Prototype("communicationMedium")]
+public partial class CommunicationMediumPrototype : IPrototype
 {
     [IdDataField]
     public string ID { get; } = default!;

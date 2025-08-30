@@ -11,22 +11,30 @@ public struct AttemptReceiveChatMessage
     public bool Cancelled;
 }
 
-[ByRefEvent]
-public sealed class SendChatMessageEvent(uint messageId, EntityUid sender, FormattedMessage message)
+[Serializable, NetSerializable]
+public sealed class SendChatMessageEvent(
+    uint messageId,
+    ProtoId<CommunicationChannelPrototype> communicationChannel,
+    NetEntity sender,
+    FormattedMessage message,
+    ChatMessageContext context,
+    SendChatMessageEvent? parent = null,
+    NetEntity? target = null
+) : EntityEventArgs
 {
-    public uint MessageId = messageId;
+    public readonly uint MessageId = messageId;
 
-    public ProtoId<CommunicationChannelPrototype> CommunicationChannel;
+    public readonly ProtoId<CommunicationChannelPrototype> CommunicationChannel = communicationChannel;
 
-    public SendChatMessageEvent? Parent;
+    public readonly SendChatMessageEvent? Parent = parent;
 
-    public EntityUid Sender = sender;
+    public readonly NetEntity Sender = sender;
 
-    public EntityUid? Target;
+    public readonly NetEntity? Target = target;
 
-    public FormattedMessage Message = message;
+    public readonly FormattedMessage Message = message;
 
-    public ChatMessageContext? Context;
+    public readonly ChatMessageContext? Context = context;
 }
 
 [ByRefEvent]
@@ -71,11 +79,17 @@ public struct GetPotentialRecipientsChatMessageEvent(
 }
 
 [Serializable, NetSerializable]
-public sealed class ReceiveChatMessageEvent : EntityEventArgs
+public sealed partial class ChatMessageWrapper(ChatMessage wrapped) : EntityEventArgs
 {
-    public ProtoId<CommunicationChannelPrototype> CommunicationChannelProtoId;
-    public ChatMessageContext MessageContext = default!;
-    public FormattedMessage Message = default!;
+    public ChatMessage Wrapped = wrapped;
+}
+
+[ByRefEvent]
+public struct ReceiveChatMessageEvent(FormattedMessage message, ChatMessageContext messageContext, CommunicationChannelPrototype communicationChannel)
+{
+    public readonly FormattedMessage Message = message;
+    public readonly ChatMessageContext MessageContext = messageContext;
+    public readonly CommunicationChannelPrototype CommunicationChannel = communicationChannel;
 }
 
 [ByRefEvent]

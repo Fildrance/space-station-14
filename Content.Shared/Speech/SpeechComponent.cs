@@ -82,6 +82,7 @@ public sealed partial class SpeechComponent : Component
     public float WhisperRange = 5f;
 }
 
+[RegisterComponent, NetworkedComponent]
 public sealed partial class SpeechReceiverComponent : Component
 {
     /// <summary>

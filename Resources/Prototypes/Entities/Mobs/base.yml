@@ -46,6 +46,7 @@
   - type: RequireProjectileTarget
     active: False
   - type: StunVisuals
+  - type: SpeechReceiver
 
 - type: entity
   save: false

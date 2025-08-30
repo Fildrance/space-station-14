@@ -3,6 +3,7 @@ using Content.Client.Ghost;
 using Content.Shared.Administration;
 using Content.Shared.Chat;
 using Robust.Client.Console;
+using Robust.Client.Player;
 using Robust.Shared.Utility;
 
 namespace Content.Client.Chat.Managers;
@@ -12,6 +13,7 @@ internal sealed class ChatManager : IChatManager
     [Dependency] private readonly IClientConsoleHost _consoleHost = default!;
     [Dependency] private readonly IClientAdminManager _adminMgr = default!;
     [Dependency] private readonly IEntitySystemManager _systems = default!;
+    [Dependency] private readonly IPlayerManager _playerManager= default!;
 
     private ISawmill _sawmill = default!;
 
@@ -70,7 +72,8 @@ internal sealed class ChatManager : IChatManager
             // TODO sepearate radio and say into separate commands.
             case ChatSelectChannel.Radio:
             case ChatSelectChannel.Local:
-                _consoleHost.ExecuteCommand($"say \"{CommandParsing.Escape(str)}\"");
+                _systems.GetEntitySystem<V2.ChatSystem>()
+                        .SendMessage("ICSpeech", str, _playerManager.LocalEntity);
                 break;
 
             case ChatSelectChannel.Whisper:

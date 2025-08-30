@@ -183,7 +183,6 @@ public sealed partial class ChatUIController : UIController
         _player.LocalPlayerAttached += OnAttachedChanged;
         _player.LocalPlayerDetached += OnAttachedChanged;
         _state.OnStateChanged += StateChanged;
-        SubscribeNetworkEvent<ReceiveChatMessageEvent>(OnReceiveChatMessage);
         _net.RegisterNetMessage<MsgChatMessage>(OnChatMessage);
         _net.RegisterNetMessage<MsgDeleteChatMessagesBy>(OnDeleteChatMessagesBy);
         SubscribeNetworkEvent<DamageForceSayEvent>(OnDamageForceSay);
@@ -809,17 +808,6 @@ public sealed partial class ChatUIController : UIController
         chatBox.ChatInput.Input.ForceSubmitText();
     }
 
-    private void OnReceiveChatMessage(ReceiveChatMessageEvent message, EntitySessionEventArgs args)
-    {
-        var communicationChannel = _prototypeManager.Index(message.CommunicationChannelProtoId);
-        ProcessChatMessage(message.Message, message.MessageContext, communicationChannel);
-
-        if (//(msg.Channel & ChatChannel.AdminRelated) == 0 ||
-            _config.GetCVar(CCVars.ReplayRecordAdminChat))
-        {
-            _replayRecording.RecordClientMessage(message.Message);
-        }
-    }
 
     private void OnChatMessage(MsgChatMessage message)
     {
@@ -831,91 +819,6 @@ public sealed partial class ChatUIController : UIController
         {
             _replayRecording.RecordClientMessage(msg);
         }
-    }
-
-    private static readonly ProtoId<CommunicationChannelPrototype> Speech = "ICSpeech";
-    private static readonly ProtoId<CommunicationChannelPrototype> Dead = "Dead";
-    private static readonly ProtoId<CommunicationChannelPrototype> BubbleOnly = "BubbleOnlySpeech";
-    private static readonly ProtoId<CommunicationChannelPrototype> Emote = "Emote";
-    private static readonly ProtoId<CommunicationChannelPrototype> LocalOutOfCharacter = "LOOC";
-
-    private void ProcessChatMessage(
-        FormattedMessage message,
-        ChatMessageContext context,
-        CommunicationChannelPrototype communicationChannel
-    )
-    {
-        var template = communicationChannel.MessageFormatLayout;
-
-        // color the name unless it's something like "the old man"
-        if ((msg.Channel == ChatChannel.Local || msg.Channel == ChatChannel.Whisper) && _chatNameColorsEnabled)
-        {
-            var grammar = _ent.GetComponentOrNull<GrammarComponent>(_ent.GetEntity(msg.SenderEntity));
-            if (grammar != null && grammar.ProperNoun == true)
-            {
-                mesage = SharedChatSystem.InjectTagInsideTag(msg, "Name", "color", GetNameColor(SharedChatSystem.GetStringInsideTag(msg, "Name")));
-                message.InsertInsideTag(new MarkupNode("color", ));
-            }
-        }
-
-        // Color any words chosen by the client.
-        foreach (var highlight in _highlights)
-        {
-            var markupNode = new MarkupNode("color", new MarkupParameter(_highlightsColor), null);
-            message.InsertAroundString(markupNode, highlight);
-        }
-
-        // Color any codewords for minds that have roles that use them
-        if (_player.LocalUser != null && _mindSystem != null && _roleCodewordSystem != null)
-        {
-            if (_mindSystem.TryGetMind(_player.LocalUser.Value, out var mindId) && _ent.TryGetComponent(mindId, out RoleCodewordComponent? codewordComp))
-            {
-                foreach (var (_, codewordData) in codewordComp.RoleCodewords)
-                {
-                    foreach (var codeword in codewordData.Codewords)
-                    {
-                        var markupNode = new MarkupNode("color", new MarkupParameter(codewordData.Color.ToHex()), null);
-                        message.InsertAroundString(markupNode, codeword);
-                    }
-                }
-            }
-        }
-
-        // Log all incoming chat to repopulate when filter is un-toggled
-        if (!communicationChannel.HideChat)
-        {
-            History.Add((_timing.CurTick, msg));
-            MessageAdded?.Invoke(msg);
-
-            if (!msg.Read)
-            {
-                _sawmill.Debug($"Message filtered: {msg.Channel}: {message}");
-                var count = _unreadMessages.GetValueOrDefault(msg.Channel, 0);
-
-                count += 1;
-                _unreadMessages[msg.Channel] = count;
-                UnreadMessageCountsUpdated?.Invoke(msg.Channel, count);
-            }
-        }
-
-        // Local messages that have an entity attached get a speech bubble.
-        if (context.Sender == default)
-            return;
-
-        if (!context.TryGet<SpeechBubble.SpeechType>(SharedChatSystemNew.MessageData.SpeechBubbleType, out var speechBubbleType) || communicationChannel.ID ==  Dead && _ghost is not {IsGhost: true})
-        {
-            return;
-        }
-
-        var ent = EntityManager.GetEntity(context.Sender);
-
-        if (!EntityManager.EntityExists(ent))
-        {
-            _sawmill.Debug("Got local chat message with invalid sender entity: {0}", msg.SenderEntity);
-            return;
-        }
-
-        EnqueueSpeechBubble(ent, msg, speechBubbleType);
     }
 
     public void ProcessChatMessage(ChatMessage msg, bool speechBubble = true)
@@ -1061,5 +964,56 @@ public sealed partial class ChatUIController : UIController
         public float TimeLeft { get; set; }
 
         public Queue<SpeechBubbleData> MessageQueue { get; } = new();
+    }
+
+    // todo: remove code duplication - extract common stuff
+    public void AddMessage(ChatMessage msg)
+    {
+        // Log all incoming chat to repopulate when filter is un-toggled
+        if (!msg.HideChat)
+        {
+            History.Add((_timing.CurTick, msg));
+            MessageAdded?.Invoke(msg);
+
+            if (!msg.Read)
+            {
+                _sawmill.Debug($"Message filtered: {msg.Channel}: {msg.Message}");
+                var count = _unreadMessages.GetValueOrDefault(msg.Channel, 0);
+
+                count += 1;
+                _unreadMessages[msg.Channel] = count;
+                UnreadMessageCountsUpdated?.Invoke(msg.Channel, count);
+            }
+        }
+
+
+        if ((msg.Channel & ChatChannel.AdminRelated) == 0 ||
+            _config.GetCVar(CCVars.ReplayRecordAdminChat))
+        {
+            _replayRecording.RecordClientMessage(msg);
+        }
+
+        // Local messages that have an entity attached get a speech bubble.
+        if (msg.SenderEntity == default)
+            return;
+
+        if (msg.Channel == ChatChannel.Dead && _ghost is not { IsGhost: true })
+            return;
+
+        if (msg.Channel == ChatChannel.LOOC && !_config.GetCVar(CCVars.LoocAboveHeadShow))
+            return;
+
+        SpeechBubble.SpeechType? speechType = msg.Channel switch
+        {
+            ChatChannel.Local or ChatChannel.Emotes  or ChatChannel.Dead => SpeechBubble.SpeechType.Say,
+            ChatChannel.Whisper => SpeechBubble.SpeechType.Whisper,
+            ChatChannel.LOOC => SpeechBubble.SpeechType.Looc,
+            _ => null
+        };
+
+        if(!speechType.HasValue)
+            return;
+
+        AddSpeechBubble(msg, speechType.Value);
     }
 }

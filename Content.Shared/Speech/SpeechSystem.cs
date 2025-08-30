@@ -1,4 +1,3 @@
-using System.Linq;
 using Content.Shared.Chat.V2;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
@@ -7,7 +6,7 @@ namespace Content.Shared.Speech;
 
 public sealed class SpeechSystem : EntitySystem
 {
-    private static readonly ProtoId<CommunicationMediumPrototype> SpeechMedium = "Speech";
+    private static readonly ProtoId<CommunicationMediumPrototype> SpeechMedium = "Auditory";
 
     public override void Initialize()
     {
@@ -23,7 +22,7 @@ public sealed class SpeechSystem : EntitySystem
         if (args.CommunicationChannel.ChatMedium != SpeechMedium)
             return;
 
-        if (ent.Comp.Enabled)
+        if (!ent.Comp.Enabled)
             return;
 
         args.CanHandle = true;
@@ -34,7 +33,7 @@ public sealed class SpeechSystem : EntitySystem
         if (args.CommunicationChannel.ChatMedium != SpeechMedium)
             return;
 
-        args.MessageContext.TryGet<bool>(SpeechChatContextParameters.IsWhispering, out var isWhispering);
+        var isWhispering = args.MessageContext.TryGetBool(MessageParts.IsWhispering, out var result) && result.Value;
 
         var rangeByRecipient = new Dictionary<EntityUid, float>();
         var query = EntityQueryEnumerator<SpeechReceiverComponent>();
@@ -64,9 +63,6 @@ public sealed class SpeechSystem : EntitySystem
         }
 
         args.Recipients.AddRange(rangeByRecipient.Keys);
-
-        args.MessageContext[DefaultChannelParameters.RangeToEntities] = rangeByRecipient;
-
     }
 
     private static float GetRange(SpeechComponent component, FormattedMessage message)
@@ -118,9 +114,4 @@ public sealed class SpeechSystem : EntitySystem
         if (!TryComp(args.Uid, out SpeechComponent? speech) || !speech.Enabled)
             args.Cancel();
     }
-}
-
-public enum SpeechChatContextParameters
-{
-    IsWhispering
 }

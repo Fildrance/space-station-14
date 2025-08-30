@@ -1,42 +1,128 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using Robust.Shared.Serialization;
 
 namespace Content.Shared.Chat.V2;
 
-public sealed class ChatMessageContext(IDictionary<Enum, object> dictionary, EntityUid sender, uint id)
+[NetSerializable, Serializable]
+public sealed class ChatMessageContext
 {
-    private readonly IDictionary<Enum, object> _genericParameters = dictionary;
+    public readonly Dictionary<MessageParts, string> GenericParameters;
+    private readonly NetEntity _sender;
+    private readonly long _seed;
 
     public ChatMessageContext(
-        Dictionary<Enum, object> dictionary,
-        EntityUid sender,
-        uint id,
-        ChatMessageContext? otherContext
-    ) : this(dictionary, sender, id)
+        Dictionary<MessageParts, string> dictionary,
+        NetEntity sender,
+        ChatMessageContext? otherContext,
+        long seed
+    ) : this(dictionary, sender, seed)
     {
         if (otherContext == null)
             return;
 
-        foreach (var (key, value) in otherContext._genericParameters)
+        foreach (var (key, value) in otherContext.GenericParameters)
         {
-            _genericParameters[key] = value;
+            GenericParameters[key] = value;
         }
     }
 
-    public EntityUid Sender => sender;
-
-    public uint MessageId => id;
-
-    public object this[Enum key] { set => _genericParameters[key] = value; }
-
-    public bool TryGet<T>(Enum key, [NotNullWhen(true)] out T? value)
+    public ChatMessageContext(Dictionary<MessageParts, string> dictionary, NetEntity sender, long seed)
     {
-        if (_genericParameters.TryGetValue(key, out var val))
+        _sender = sender;
+        _seed = seed;
+        GenericParameters = dictionary;
+    }
+
+    public ChatMessageContext(NetEntity sender, long seed) : this(new Dictionary<MessageParts, string>(), sender, seed)
+    {
+    }
+
+    public NetEntity Sender => _sender;
+
+    public long Seed => _seed;
+
+    public int Count => GenericParameters.Count;
+
+    public void Set(MessageParts key, bool value)
+    {
+        GenericParameters[key] = value.ToString();
+    }
+
+    public void Set(MessageParts key, float value)
+    {
+        GenericParameters[key] = value.ToString(CultureInfo.InvariantCulture);
+    }
+
+    public void Set(MessageParts key, string value)
+    {
+        GenericParameters[key] = value;
+    }
+
+    public void Set(MessageParts key, int value)
+    {
+        GenericParameters[key] = value.ToString();
+    }
+
+
+    public bool TryGetFloat(MessageParts key, [NotNullWhen(true)] out float? value)
+    {
+        if (GenericParameters.TryGetValue(key, out var val) && float.TryParse(val, out var result))
         {
-            value = (T)val;
+            value = result;
             return true;
         }
 
-        value = default;
+        value = null;
         return false;
     }
+
+    public bool TryGetInt(MessageParts key, [NotNullWhen(true)] out int? value)
+    {
+        if (GenericParameters.TryGetValue(key, out var val) && int.TryParse(val, out var result))
+        {
+            value = result;
+            return true;
+        }
+
+        value = null;
+        return false;
+    }
+
+    public bool TryGetBool(MessageParts key, [NotNullWhen(true)] out bool? value)
+    {
+        if (GenericParameters.TryGetValue(key, out var val) && bool.TryParse(val, out var result))
+        {
+            value = result;
+            return true;
+        }
+
+        value = null;
+        return false;
+    }
+
+    public bool TryGetString(MessageParts key, [NotNullWhen(true)] out string? value)
+    {
+        if (GenericParameters.TryGetValue(key, out var val))
+        {
+            value = val;
+            return true;
+        }
+
+        value = null;
+        return false;
+    }
+}
+
+[Serializable, NetSerializable]
+public enum MessageParts
+{
+    EntityName,
+    SenderSession,
+    RandomSeed,
+    RadioChannel,
+    GlobalAudioPath,
+    GlobalAudioVolume,
+    ColorFulltext,
+    IsWhispering,
 }

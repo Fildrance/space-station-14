@@ -1,0 +1,171 @@
+- type: communicationMedium
+  id: Auditory
+
+- type: communicationMedium
+  id: Visual
+
+- type: communicationMedium
+  id: OOC
+
+- type: communicationMedium
+  id: GameMessage
+
+- type: communicationMedium
+  id: Server
+
+- type: communicationChannel
+  id: ICSpeech
+  messageFormatLayout: communication-channel-template-ic-speech
+  fallbackChannels:
+  - Dead #If dead, this should attempt the Dead channel
+  chatMedium: Auditory
+
+- type: communicationChannel
+  id: BubbleOnlySpeech # This is for IC speech that shouldn't appear in the chatbox, e.g vending machines
+  chatMedium: Auditory
+  messageFormatLayout: communication-channel-template-ic-speech
+  hideChat: true
+  fallbackChannels:
+  - Dead #If dead, this should attempt the Dead channel
+
+- type: communicationChannel
+  id: ICWhisper
+  messageFormatLayout: communication-channel-template-ic-speech
+  fallbackChannels:
+  - Dead #If dead, this should attempt the Dead channel
+  chatMedium: Auditory
+
+- type: communicationChannel
+  id: Emote
+  messageFormatLayout: communication-channel-template-ic-speech
+  chatMedium: Visual
+
+- type: communicationChannel
+  id: Dead
+  messageFormatLayout: communication-channel-template-ic-speech
+  chatMedium: OOC
+
+- type: communicationChannel
+  id: LOOC
+  messageFormatLayout: communication-channel-template-ic-speech
+  fallbackChannels:
+  - Dead #If dead & not Moderator, this should attempt the Dead channel
+  chatMedium: OOC
+
+- type: communicationChannel
+  id: OOC
+  messageFormatLayout: communication-channel-template-ic-speech
+  chatMedium: OOC
+
+# Start of Radios
+
+- type: communicationChannel
+  id: RadioBase
+  messageFormatLayout: communication-channel-template-ic-speech
+  abstract: true
+  chatMedium: Auditory
+
+- type: communicationChannel
+  parent: RadioBase
+  id: RadioCommon
+  channelParameters:
+    RadioChannel: Common
+
+- type: communicationChannel
+  parent: RadioBase
+  id: RadioCentCom
+  channelParameters:
+    RadioChannel: CentCom
+
+- type: communicationChannel
+  parent: RadioBase
+  id: RadioCommand
+  channelParameters:
+    RadioChannel: Command
+
+- type: communicationChannel
+  parent: RadioBase
+  id: RadioEngineering
+  channelParameters:
+    RadioChannel: Engineering
+
+- type: communicationChannel
+  parent: RadioBase
+  id: RadioMedical
+  channelParameters:
+    RadioChannel: Medical
+
+- type: communicationChannel
+  parent: RadioBase
+  id: RadioScience
+  channelParameters:
+    RadioChannel: Science
+
+- type: communicationChannel
+  parent: RadioBase
+  id: RadioSecurity
+  channelParameters:
+    RadioChannel: Security
+
+- type: communicationChannel
+  parent: RadioBase
+  id: RadioService
+  channelParameters:
+    RadioChannel: Service
+
+- type: communicationChannel
+  parent: RadioBase
+  id: RadioSupply
+  channelParameters:
+    RadioChannel: Supply
+
+- type: communicationChannel
+  parent: RadioBase
+  id: RadioSyndicate
+  channelParameters:
+    RadioChannel: Syndicate
+
+- type: communicationChannel
+  parent: RadioBase
+  id: RadioHandheld
+  channelParameters:
+    RadioChannel: Handheld
+
+- type: communicationChannel
+  parent: RadioBase
+  id: RadioBinary
+  channelParameters:
+    RadioChannel: Binary
+
+- type: communicationChannel
+  parent: RadioBase
+  id: RadioFreelance
+  channelParameters:
+    RadioChannel: Freelance
+
+# End of Radios
+
+- type: communicationChannel
+  id: AdminChat
+  messageFormatLayout: communication-channel-template-ic-speech
+  chatMedium: OOC
+
+- type: communicationChannel
+  id: AdminAlert
+  messageFormatLayout: communication-channel-template-ic-speech
+  chatMedium: GameMessage
+
+- type: communicationChannel
+  id: Server # Server announcements to go out to all players.
+  messageFormatLayout: communication-channel-template-ic-speech
+  chatMedium: Server
+
+- type: communicationChannel
+  id: GameMessage # Used to communicate non-diagetic info
+  messageFormatLayout: communication-channel-template-ic-speech
+  chatMedium: GameMessage
+
+- type: communicationChannel
+  id: StationAnnouncement # Used for station announcements
+  messageFormatLayout: communication-channel-template-ic-speech
+  chatMedium: Auditory

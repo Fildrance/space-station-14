@@ -25,22 +25,16 @@ public partial class SharedChatSystemNew
     //    return message;
     //}
 
-    [DataField]
     public string DefaultColorKey = "Base";
 
     public FormattedMessage ColorFulltextChatModifier(FormattedMessage message, ChatMessageContext chatMessageContext)
     {
         var colorKey = DefaultColorKey;
-        if (chatMessageContext.TryGet<string>(ColorFulltextMarkupParameter.Color, out var color))
+        if (chatMessageContext.TryGetString(MessageParts.ColorFulltext, out var color))
             colorKey = color;
 
         message.InsertAroundMessage(new MarkupNode("ColorValue", new MarkupParameter(colorKey), null, false));
         return message;
-    }
-
-    public enum ColorFulltextMarkupParameter
-    {
-        Color,
     }
 
     #region CLIENT SHIT
@@ -69,7 +63,7 @@ public partial class SharedChatSystemNew
 
     public Color GetNameColor(string name)
     {
-        var nameColors = _prototype.Index(ChatNamePalette).Colors.Values;
+        var nameColors = Prototype.Index(ChatNamePalette).Colors.Values;
         var colorIdx = Math.Abs(name.GetHashCode() % nameColors.Count);
         var i = 0;
         foreach (var nameColor in nameColors)
@@ -82,7 +76,6 @@ public partial class SharedChatSystemNew
         return default;
     }
 
-    [DataField]
     public SpeechType SpeechType = SpeechType.Say;
 
     public FormattedMessage BubbleProviderChatModifier(FormattedMessage message, ChatMessageContext chatMessageContext)

@@ -1,30 +1,34 @@
 using Content.Shared.Random.Helpers;
 using Content.Shared.Speech;
-using Robust.Shared.Collections;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Timing;
 using Robust.Shared.Utility;
 
 namespace Content.Shared.Chat.V2;
 
 public abstract partial class SharedChatSystemNew : EntitySystem
 {
-    [Dependency] private readonly IPrototypeManager _prototype = default!;
-    [Dependency] private readonly IChatRepository _repository = default!;
+    [Dependency] protected readonly IPrototypeManager Prototype = default!;
+    [Dependency] protected readonly IGameTiming Timing = default!;
 
     /// <inheritdoc />
     public override void Initialize()
     {
-        SubscribeLocalEvent<SendChatMessageEvent>(OnSendChat);
+        SubscribeAllEvent<SendChatMessageEvent>(OnSendChat);
     }
 
     private void OnSendChat(SendChatMessageEvent args)
     {
-        var targetChannel = _prototype.Index(args.CommunicationChannel);
+        if (!Timing.IsFirstTimePredicted)
+            return;
+
+        var targetChannel = Prototype.Index(args.CommunicationChannel);
         var formattedMessage = args.Message;
         // This section handles setting up the parameters and any other business that should happen before validation starts.
 
         // block if message was already sent by same entity and into same channel.
         var currentMessage = args;
+        var sender = GetEntity(args.Sender);
         while (currentMessage.Parent != null)
         {
             if (currentMessage.Parent.CommunicationChannel == args.CommunicationChannel
@@ -41,17 +45,15 @@ public abstract partial class SharedChatSystemNew : EntitySystem
 
         // This section handles validating the publisher based on ChatConditions, and passing on the message should the validation fail.
 
-        // We also pass it on to any child channels that should be included.
-        AlsoSendTo(args, context, targetChannel.AlwaysRelayedToChannels);
 
         var attemptEvent = new AttemptSendChatMessageEvent(context, targetChannel, formattedMessage);
-        RaiseLocalEvent(args.Sender, ref attemptEvent);
+        RaiseLocalEvent(sender, ref attemptEvent);
 
         // If the sender failed the publishing conditions, this attempt a back-up channel.
         // Useful for e.g. making ghosts trying to send LOOC messages fall back to Deadchat instead.
         if (!attemptEvent.CanHandle || attemptEvent.Cancelled)
         {
-            AlsoSendTo(args, context, targetChannel.FallbackChannels);
+            AlsoSendTo(args, context, targetChannel.FallbackChannels, sender);
 
             // we failed publishing, no reason to proceed.
             return;
@@ -62,60 +64,56 @@ public abstract partial class SharedChatSystemNew : EntitySystem
 
         // Evaluate what clients should consume this message.
         var getRecipientsEvent = new GetPotentialRecipientsChatMessageEvent(context, targetChannel, formattedMessage);
-        RaiseLocalEvent(args.Sender, ref getRecipientsEvent);
+        RaiseLocalEvent(sender, ref getRecipientsEvent);
 
-        var recipientsFilteredList = new ValueList<EntityUid>();
         var targets = getRecipientsEvent.Recipients;
+        if (targets.Count == 0)
+            return;
+
+        RefineContext(formattedMessage, targetChannel, context, sender);
+
         foreach (var target in targets)
         {
             var attemptReceiveEvent = new AttemptReceiveChatMessageEvent(context, formattedMessage);
             RaiseLocalEvent(target, ref attemptReceiveEvent);
-            if (!attemptReceiveEvent.Cancelled)
-            {
-                recipientsFilteredList.Add(target);
-            }
+
+            if (attemptReceiveEvent.Cancelled)
+                continue;
+
+            var receiveEvent = new ReceiveChatMessageEvent(formattedMessage, context, targetChannel);
+            RaiseLocalEvent(target, ref receiveEvent);
+
+            SendChatMessageReceivedCommand(target, formattedMessage, context, targetChannel);
         }
 
-        RefineContext(formattedMessage, targetChannel, context);
-
-        foreach (var target in recipientsFilteredList)
-        {
-            var receiveEvent = new ReceiveChatMessageEvent
-            {
-                Message = formattedMessage,
-                MessageContext = context,
-                CommunicationChannelProtoId = args.CommunicationChannel
-            };
-            RaiseNetworkEvent(receiveEvent, target);
-        }
+        // We also pass it on to any child channels that should be included.
+        AlsoSendTo(args, context, targetChannel.AlwaysRelayedToChannels, sender);
     }
 
-    private void RefineContext(FormattedMessage input, CommunicationChannelPrototype channel, ChatMessageContext context)
+    protected virtual void SendChatMessageReceivedCommand(
+        EntityUid target,
+        FormattedMessage formattedMessage,
+        ChatMessageContext context,
+        CommunicationChannelPrototype targetChannel
+    )
     {
-        var sender = context.Sender;
+        // no-op
+    }
+
+
+    private void RefineContext(FormattedMessage input, CommunicationChannelPrototype channel, ChatMessageContext context, EntityUid sender)
+    {
         var metaData = MetaData(sender);
 
         var nameEv = new TransformSpeakerNameEvent(sender, metaData.EntityName);
         RaiseLocalEvent(sender, nameEv);
-        context[MessageParts.EntityName] = nameEv.VoiceName;
+        context.Set(MessageParts.EntityName, nameEv.VoiceName);
 
-        var hash = SharedRandomExtensions.HashCodeCombine([(int)GetNetEntity(context.Sender)]);
+        var hash = SharedRandomExtensions.HashCodeCombine(new() { (int)context.Sender });
         var random = new System.Random(hash);
-
-        var current = GetSpeechVerbProto(input, nameEv.SpeechVerb, sender);
-
-        var count = current.SpeechVerbStrings.Count;
-
-        context[MessageParts.VerbId] = random.Next(count);
 
         // get owner accents?
         // hook into other stuff?
-    }
-
-    public enum MessageParts
-    {
-        VerbId,
-        EntityName,
     }
 
     public enum MessageData
@@ -126,20 +124,14 @@ public abstract partial class SharedChatSystemNew : EntitySystem
     private void AlsoSendTo(
         SendChatMessageEvent @event,
         ChatMessageContext messageContext,
-        IEnumerable<ProtoId<CommunicationChannelPrototype>> otherChannels
+        IEnumerable<ProtoId<CommunicationChannelPrototype>> otherChannels,
+        EntityUid sender
     )
     {
         foreach (var childChannel in otherChannels)
         {
-            var channelPrototype = _prototype.Index(childChannel);
-            var id = _repository.Save(); // todo: move real repository code.
-            var newMessage = new SendChatMessageEvent(id, @event.Sender, @event.Message)
-            {
-                CommunicationChannel = channelPrototype,
-                Parent = @event,
-                Context = messageContext,
-            };
-            RaiseLocalEvent(@event.Sender, ref newMessage);
+            var newMessage = new SendChatMessageEvent(1, childChannel, @event.Sender, @event.Message, messageContext, @event);
+            RaiseLocalEvent(sender, newMessage);
         }
     }
 
@@ -149,12 +141,14 @@ public abstract partial class SharedChatSystemNew : EntitySystem
     )
     {
         // Set the channel parameters, and supply any custom ones if necessary.
-        var messageContext = new ChatMessageContext(channelPrototype.ChannelParameters, @event.Sender, @event.MessageId, @event.Context)
-        {
-            // Include a random seed based on the message's hashcode.
-            // Since the message has yet to be formatted by anything, any child channels should get the same random seed.
-            [DefaultChannelParameters.RandomSeed] = @event.GetHashCode(),
-        };
+
+        // Include a random seed based on the message's hashcode.
+        // Since the message has yet to be formatted by anything, any child channels should get the same random seed.
+        var messageContext = new ChatMessageContext(channelPrototype.ChannelParameters,
+            @event.Sender,
+            @event.Context,
+            @event.GetHashCode()
+        );
 
         return messageContext;
     }
@@ -164,21 +158,21 @@ public abstract partial class SharedChatSystemNew : EntitySystem
     private SpeechVerbPrototype GetSpeechVerbProto(FormattedMessage message, ProtoId<SpeechVerbPrototype>? speechVerb, EntityUid sender)
     {
         // This if/else tree can probably be cleaned up at some point
-        if (speechVerb != null && _prototype.TryIndex(speechVerb, out var eventProto))
+        if (speechVerb != null && Prototype.TryIndex(speechVerb, out var eventProto))
         {
             return eventProto;
         }
 
         if (!TryComp<SpeechComponent>(sender, out var speech))
         {
-            return _prototype.Index(DefaultSpeechVerb);
+            return Prototype.Index(DefaultSpeechVerb);
         }
 
         SpeechVerbPrototype? current = null;
         // check for a suffix-applicable speech verb
         foreach (var (str, id) in speech.SuffixSpeechVerbs)
         {
-            var proto = _prototype.Index(id);
+            var proto = Prototype.Index(id);
             if (message.ToString().EndsWith(Loc.GetString(str)) &&
                 proto.Priority >= (current?.Priority ?? 0))
             {
@@ -187,13 +181,8 @@ public abstract partial class SharedChatSystemNew : EntitySystem
         }
 
         // if no applicable suffix verb return the normal one used by the entity
-        current ??= _prototype.Index(speech.SpeechVerb);
+        current ??= Prototype.Index(speech.SpeechVerb);
 
         return current;
     }
-}
-
-public interface IChatRepository
-{
-    uint Save();
 }
