@@ -1,15 +1,8 @@
-using Robust.Shared.Network;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization;
 using Robust.Shared.Utility;
 
 namespace Content.Shared.Chat.V2;
-
-[ByRefEvent]
-public struct AttemptReceiveChatMessage
-{
-    public bool Cancelled;
-}
 
 [Serializable, NetSerializable]
 public sealed class SendChatMessageEvent(

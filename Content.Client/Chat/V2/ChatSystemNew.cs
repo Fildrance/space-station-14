@@ -7,7 +7,7 @@ using Robust.Shared.Utility;
 
 namespace Content.Client.Chat.V2;
 
-public sealed class ChatSystem : SharedChatSystemNew
+public sealed class ChatSystemNew : SharedChatSystemNew
 {
     [Dependency] private readonly IUserInterfaceManager _interfaceManager = default!;
     [Dependency] private readonly IPlayerManager _playerManager= default!;
@@ -34,11 +34,7 @@ public sealed class ChatSystem : SharedChatSystemNew
         _chatController.AddMessage(msg.Wrapped);
     }
 
-    public void SendMessage(
-        ProtoId<CommunicationChannelPrototype> channelProtoId,
-        string str,
-        EntityUid? entity
-    )
+    public void SendMessage(ProtoId<CommunicationChannelPrototype> channelProtoId, EntityUid? entity, string str)
     {
         if (!entity.HasValue)
             return;
@@ -47,9 +43,11 @@ public sealed class ChatSystem : SharedChatSystemNew
         if(!netEntity.HasValue)
             return;
 
+        const uint messageId = 1u;
         var markup = FormattedMessage.FromMarkupPermissive(str);
-        var messageId = 1u;
-        var sendChatMessageEvent = new SendChatMessageEvent(messageId, channelProtoId, GetNetEntity(entity.Value), markup, new ChatMessageContext(netEntity.Value, messageId));
+        var sender = GetNetEntity(entity.Value);
+        var context = new ChatMessageContext(messageId);
+        var sendChatMessageEvent = new SendChatMessageEvent(messageId, channelProtoId, sender, markup, context);
         RaisePredictiveEvent(sendChatMessageEvent);
     }
 }

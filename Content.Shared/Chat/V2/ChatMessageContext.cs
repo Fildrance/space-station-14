@@ -8,15 +8,13 @@ namespace Content.Shared.Chat.V2;
 public sealed class ChatMessageContext
 {
     public readonly Dictionary<MessageParts, string> GenericParameters;
-    private readonly NetEntity _sender;
     private readonly long _seed;
 
     public ChatMessageContext(
         Dictionary<MessageParts, string> dictionary,
-        NetEntity sender,
         ChatMessageContext? otherContext,
         long seed
-    ) : this(dictionary, sender, seed)
+    ) : this(dictionary, seed)
     {
         if (otherContext == null)
             return;
@@ -27,18 +25,15 @@ public sealed class ChatMessageContext
         }
     }
 
-    public ChatMessageContext(Dictionary<MessageParts, string> dictionary, NetEntity sender, long seed)
+    public ChatMessageContext(Dictionary<MessageParts, string> dictionary, long seed)
     {
-        _sender = sender;
         _seed = seed;
         GenericParameters = dictionary;
     }
 
-    public ChatMessageContext(NetEntity sender, long seed) : this(new Dictionary<MessageParts, string>(), sender, seed)
+    public ChatMessageContext(long seed) : this(new Dictionary<MessageParts, string>(), seed)
     {
     }
-
-    public NetEntity Sender => _sender;
 
     public long Seed => _seed;
 

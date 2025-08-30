@@ -8,9 +8,6 @@
   id: OOC
 
 - type: communicationMedium
-  id: GameMessage
-
-- type: communicationMedium
   id: Server
 
 - type: communicationChannel
@@ -30,10 +27,10 @@
 
 - type: communicationChannel
   id: ICWhisper
-  messageFormatLayout: communication-channel-template-ic-speech
-  fallbackChannels:
-  - Dead #If dead, this should attempt the Dead channel
-  chatMedium: Auditory
+  parent: ICSpeech
+  messageFormatLayout: communication-channel-template-ic-whisper
+  channelParameters:
+    IsWhispering: True
 
 - type: communicationChannel
   id: Emote
@@ -153,7 +150,7 @@
 - type: communicationChannel
   id: AdminAlert
   messageFormatLayout: communication-channel-template-ic-speech
-  chatMedium: GameMessage
+  chatMedium: Server
 
 - type: communicationChannel
   id: Server # Server announcements to go out to all players.
@@ -163,7 +160,7 @@
 - type: communicationChannel
   id: GameMessage # Used to communicate non-diagetic info
   messageFormatLayout: communication-channel-template-ic-speech
-  chatMedium: GameMessage
+  chatMedium: Server
 
 - type: communicationChannel
   id: StationAnnouncement # Used for station announcements

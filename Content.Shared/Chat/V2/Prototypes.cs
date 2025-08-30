@@ -3,7 +3,6 @@ using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototy
 
 namespace Content.Shared.Chat.V2;
 
-
 [Serializable]
 [Prototype("communicationChannel")]
 public sealed partial class CommunicationChannelPrototype : IPrototype, IInheritingPrototype
@@ -22,14 +21,12 @@ public sealed partial class CommunicationChannelPrototype : IPrototype, IInherit
     public bool Abstract { get; }
 
     [DataField(required: true)]
-    [AlwaysPushInheritance]
     public LocId MessageFormatLayout;
 
     /// <summary>
     /// The way the message is conveyed in the game; audio, visual, OOC or such.
     /// </summary>
     [DataField(required: true)]
-    [AlwaysPushInheritance]
     public ProtoId<CommunicationMediumPrototype> ChatMedium;
 
     /// <summary>
@@ -52,7 +49,6 @@ public sealed partial class CommunicationChannelPrototype : IPrototype, IInherit
     /// Useful for vending machines, bots and other speech bubble pop-ups.
     /// </summary>
     [DataField]
-    [AlwaysPushInheritance]
     public bool HideChat = false;
 
     /// <summary>

@@ -808,7 +808,6 @@ public sealed partial class ChatUIController : UIController
         chatBox.ChatInput.Input.ForceSubmitText();
     }
 
-
     private void OnChatMessage(MsgChatMessage message)
     {
         var msg = message.Message;

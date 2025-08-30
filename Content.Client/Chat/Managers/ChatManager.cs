@@ -1,9 +1,12 @@
 using Content.Client.Administration.Managers;
+using Content.Client.Chat.V2;
 using Content.Client.Ghost;
 using Content.Shared.Administration;
 using Content.Shared.Chat;
+using Content.Shared.Chat.V2;
 using Robust.Client.Console;
 using Robust.Client.Player;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
 
 namespace Content.Client.Chat.Managers;
@@ -14,6 +17,9 @@ internal sealed class ChatManager : IChatManager
     [Dependency] private readonly IClientAdminManager _adminMgr = default!;
     [Dependency] private readonly IEntitySystemManager _systems = default!;
     [Dependency] private readonly IPlayerManager _playerManager= default!;
+
+    private static readonly ProtoId<CommunicationChannelPrototype> SpeechChannel = "ICSpeech";
+    private static readonly ProtoId<CommunicationChannelPrototype> WhisperChannel = "ICWhisper";
 
     private ISawmill _sawmill = default!;
 
@@ -35,7 +41,20 @@ internal sealed class ChatManager : IChatManager
 
     public void SendMessage(string text, ChatSelectChannel channel)
     {
-        var str = text.ToString();
+        ProtoId<CommunicationChannelPrototype>? communicationChannel = channel switch
+        {
+            ChatSelectChannel.Whisper => WhisperChannel,
+            ChatSelectChannel.Local => SpeechChannel,
+            _ => (ProtoId<CommunicationChannelPrototype>?)null,
+        };
+
+        if (communicationChannel.HasValue)
+        {
+            _systems.GetEntitySystem<ChatSystemNew>()
+                    .SendMessage(communicationChannel.Value, _playerManager.LocalEntity, text);
+            return;
+        }
+
         switch (channel)
         {
             case ChatSelectChannel.Console:
@@ -44,40 +63,34 @@ internal sealed class ChatManager : IChatManager
                 break;
 
             case ChatSelectChannel.LOOC:
-                _consoleHost.ExecuteCommand($"looc \"{CommandParsing.Escape(str)}\"");
+                _consoleHost.ExecuteCommand($"looc \"{CommandParsing.Escape(text)}\"");
                 break;
 
             case ChatSelectChannel.OOC:
-                _consoleHost.ExecuteCommand($"ooc \"{CommandParsing.Escape(str)}\"");
+                _consoleHost.ExecuteCommand($"ooc \"{CommandParsing.Escape(text)}\"");
                 break;
 
             case ChatSelectChannel.Admin:
-                _consoleHost.ExecuteCommand($"asay \"{CommandParsing.Escape(str)}\"");
+                _consoleHost.ExecuteCommand($"asay \"{CommandParsing.Escape(text)}\"");
                 break;
 
             case ChatSelectChannel.Emotes:
-                _consoleHost.ExecuteCommand($"me \"{CommandParsing.Escape(str)}\"");
+                _consoleHost.ExecuteCommand($"me \"{CommandParsing.Escape(text)}\"");
                 break;
 
             case ChatSelectChannel.Dead:
                 if (_systems.GetEntitySystemOrNull<GhostSystem>() is {IsGhost: true})
-                    goto case ChatSelectChannel.Local;
+                    goto case ChatSelectChannel.Radio;
 
                 if (_adminMgr.HasFlag(AdminFlags.Admin))
-                    _consoleHost.ExecuteCommand($"dsay \"{CommandParsing.Escape(str)}\"");
+                    _consoleHost.ExecuteCommand($"dsay \"{CommandParsing.Escape(text)}\"");
                 else
                     _sawmill.Warning("Tried to speak on deadchat without being ghost or admin.");
                 break;
 
             // TODO sepearate radio and say into separate commands.
             case ChatSelectChannel.Radio:
-            case ChatSelectChannel.Local:
-                _systems.GetEntitySystem<V2.ChatSystem>()
-                        .SendMessage("ICSpeech", str, _playerManager.LocalEntity);
-                break;
-
-            case ChatSelectChannel.Whisper:
-                _consoleHost.ExecuteCommand($"whisper \"{CommandParsing.Escape(str)}\"");
+                _consoleHost.ExecuteCommand($"say \"{CommandParsing.Escape(text)}\"");
                 break;
 
             default:

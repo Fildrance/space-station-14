@@ -40,7 +40,7 @@ public abstract partial class SharedChatSystemNew : EntitySystem
             currentMessage = currentMessage.Parent;
         }
 
-        var context = PrepareContext(args, targetChannel);
+        var context = PrepareContext(sender, args, targetChannel);
 
 
         // This section handles validating the publisher based on ChatConditions, and passing on the message should the validation fail.
@@ -83,7 +83,7 @@ public abstract partial class SharedChatSystemNew : EntitySystem
             var receiveEvent = new ReceiveChatMessageEvent(formattedMessage, context, targetChannel);
             RaiseLocalEvent(target, ref receiveEvent);
 
-            SendChatMessageReceivedCommand(target, formattedMessage, context, targetChannel);
+            SendChatMessageReceivedCommand(sender, target, formattedMessage, context, targetChannel);
         }
 
         // We also pass it on to any child channels that should be included.
@@ -91,6 +91,7 @@ public abstract partial class SharedChatSystemNew : EntitySystem
     }
 
     protected virtual void SendChatMessageReceivedCommand(
+        EntityUid sender,
         EntityUid target,
         FormattedMessage formattedMessage,
         ChatMessageContext context,
@@ -109,7 +110,7 @@ public abstract partial class SharedChatSystemNew : EntitySystem
         RaiseLocalEvent(sender, nameEv);
         context.Set(MessageParts.EntityName, nameEv.VoiceName);
 
-        var hash = SharedRandomExtensions.HashCodeCombine(new() { (int)context.Sender });
+        var hash = SharedRandomExtensions.HashCodeCombine(new() { (int)GetNetEntity(sender) });
         var random = new System.Random(hash);
 
         // get owner accents?
@@ -136,6 +137,7 @@ public abstract partial class SharedChatSystemNew : EntitySystem
     }
 
     private static ChatMessageContext PrepareContext(
+        EntityUid sender,
         SendChatMessageEvent @event,
         CommunicationChannelPrototype channelPrototype
     )
@@ -144,8 +146,8 @@ public abstract partial class SharedChatSystemNew : EntitySystem
 
         // Include a random seed based on the message's hashcode.
         // Since the message has yet to be formatted by anything, any child channels should get the same random seed.
-        var messageContext = new ChatMessageContext(channelPrototype.ChannelParameters,
-            @event.Sender,
+        var messageContext = new ChatMessageContext(
+            channelPrototype.ChannelParameters,
             @event.Context,
             @event.GetHashCode()
         );

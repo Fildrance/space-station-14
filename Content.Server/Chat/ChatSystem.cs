@@ -8,6 +8,7 @@ public sealed class ChatSystemNew : SharedChatSystemNew
 {
     /// <inheritdoc />
     protected override void SendChatMessageReceivedCommand(
+        EntityUid sender,
         EntityUid target,
         FormattedMessage formattedMessage,
         ChatMessageContext context,
@@ -33,7 +34,7 @@ public sealed class ChatSystemNew : SharedChatSystemNew
             ChatChannel.Local,
             text.ToString(),
             markup.ToMarkup(),
-            context.Sender,
+            GetNetEntity(sender),
             null,
             targetChannel.HideChat
         );
