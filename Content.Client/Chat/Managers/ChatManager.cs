@@ -1,5 +1,4 @@
 using Content.Client.Administration.Managers;
-using Content.Client.Chat.V2;
 using Content.Client.Ghost;
 using Content.Shared.Administration;
 using Content.Shared.Chat;
@@ -50,7 +49,7 @@ internal sealed class ChatManager : IChatManager
 
         if (communicationChannel.HasValue)
         {
-            _systems.GetEntitySystem<ChatSystemNew>()
+            _systems.GetEntitySystem<ChatSystem>()
                     .SendMessage(communicationChannel.Value, _playerManager.LocalEntity, text);
             return;
         }

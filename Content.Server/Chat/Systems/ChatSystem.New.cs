@@ -1,9 +1,9 @@
 using Content.Shared.Chat.V2;
 using Robust.Shared.Utility;
 
-namespace Content.Server.Chat;
+namespace Content.Server.Chat.Systems;
 
-public sealed class ChatSystemNew : SharedChatSystemNew
+public sealed partial class ChatSystem
 {
     /// <inheritdoc />
     protected override void SendChatMessageReceivedCommand(

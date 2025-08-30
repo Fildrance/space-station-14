@@ -1,18 +1,17 @@
+using Content.Shared.Chat.V2;
 using Content.Shared.Random.Helpers;
 using Content.Shared.Speech;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 using Robust.Shared.Utility;
 
-namespace Content.Shared.Chat.V2;
+namespace Content.Shared.Chat;
 
-public abstract partial class SharedChatSystemNew : EntitySystem
+public abstract partial class SharedChatSystem : EntitySystem
 {
-    [Dependency] protected readonly IPrototypeManager Prototype = default!;
     [Dependency] protected readonly IGameTiming Timing = default!;
 
-    /// <inheritdoc />
-    public override void Initialize()
+    public void InitializeNew()
     {
         SubscribeAllEvent<SendChatMessageEvent>(OnSendChat);
     }
@@ -154,8 +153,6 @@ public abstract partial class SharedChatSystemNew : EntitySystem
 
         return messageContext;
     }
-
-    public ProtoId<SpeechVerbPrototype> DefaultSpeechVerb = "Default";
 
     private SpeechVerbPrototype GetSpeechVerbProto(FormattedMessage message, ProtoId<SpeechVerbPrototype>? speechVerb, EntityUid sender)
     {
