@@ -6,17 +6,14 @@ namespace Content.Shared.Chat.V2;
 
 [Serializable, NetSerializable]
 public sealed class SendChatMessageEvent(
-    uint messageId,
     ProtoId<CommunicationChannelPrototype> communicationChannel,
     NetEntity sender,
     FormattedMessage message,
-    ChatMessageContext context,
+    ChatMessageContext? context = null,
     SendChatMessageEvent? parent = null,
     NetEntity? target = null
 ) : EntityEventArgs
 {
-    public readonly uint MessageId = messageId;
-
     public readonly ProtoId<CommunicationChannelPrototype> CommunicationChannel = communicationChannel;
 
     public readonly SendChatMessageEvent? Parent = parent;

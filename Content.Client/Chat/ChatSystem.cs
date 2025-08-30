@@ -73,11 +73,9 @@ public sealed class ChatSystem : SharedChatSystem
         if (!netEntity.HasValue)
             return;
 
-        const uint messageId = 1u;
         var markup = FormattedMessage.FromMarkupPermissive(str);
         var sender = GetNetEntity(entity.Value);
-        var context = new ChatMessageContext(messageId);
-        var @event = new SendChatMessageEvent(messageId, channelProtoId, sender, markup, context);
+        var @event = new SendChatMessageEvent(channelProtoId, sender, markup);
         RaisePredictiveEvent(@event);
     }
 }

@@ -7,11 +7,11 @@ using Robust.Shared.Utility;
 
 namespace Content.Shared.Chat;
 
-public abstract partial class SharedChatSystem : EntitySystem
+public abstract partial class SharedChatSystem
 {
     [Dependency] protected readonly IGameTiming Timing = default!;
 
-    public void InitializeNew()
+    private void InitializeNew()
     {
         SubscribeAllEvent<SendChatMessageEvent>(OnSendChat);
     }
@@ -23,24 +23,16 @@ public abstract partial class SharedChatSystem : EntitySystem
 
         var targetChannel = Prototype.Index(args.CommunicationChannel);
         var formattedMessage = args.Message;
+        var sender = GetEntity(args.Sender);
+
+        var seed = SharedRandomExtensions.HashCodeCombine(new() { (int)GetNetEntity(sender), (int)Timing.CurTick.Value, targetChannel.ID.GetHashCode(), args.Message.GetHashCode() });
+
         // This section handles setting up the parameters and any other business that should happen before validation starts.
 
-        // block if message was already sent by same entity and into same channel.
-        var currentMessage = args;
-        var sender = GetEntity(args.Sender);
-        while (currentMessage.Parent != null)
-        {
-            if (currentMessage.Parent.CommunicationChannel == args.CommunicationChannel
-                && currentMessage.Sender == args.Sender)
-            {
-                return;
-            }
+        if (IsRecursive(args))
+            return;
 
-            currentMessage = currentMessage.Parent;
-        }
-
-        var context = PrepareContext(sender, args, targetChannel);
-
+        var context = PrepareContext(sender, args.Context, targetChannel);
 
         // This section handles validating the publisher based on ChatConditions, and passing on the message should the validation fail.
 
@@ -89,6 +81,24 @@ public abstract partial class SharedChatSystem : EntitySystem
         AlsoSendTo(args, context, targetChannel.AlwaysRelayedToChannels, sender);
     }
 
+    private static bool IsRecursive(SendChatMessageEvent args)
+    {
+        // block if message was already sent by same entity and into same channel.
+        var currentMessage = args;
+        while (currentMessage.Parent != null)
+        {
+            if (currentMessage.Parent.CommunicationChannel == args.CommunicationChannel
+                && currentMessage.Sender == args.Sender)
+            {
+                return true;
+            }
+
+            currentMessage = currentMessage.Parent;
+        }
+
+        return false;
+    }
+
     protected virtual void SendChatMessageReceivedCommand(
         EntityUid sender,
         EntityUid target,
@@ -109,9 +119,6 @@ public abstract partial class SharedChatSystem : EntitySystem
         RaiseLocalEvent(sender, nameEv);
         context.Set(MessageParts.EntityName, nameEv.VoiceName);
 
-        var hash = SharedRandomExtensions.HashCodeCombine(new() { (int)GetNetEntity(sender) });
-        var random = new System.Random(hash);
-
         // get owner accents?
         // hook into other stuff?
     }
@@ -130,14 +137,14 @@ public abstract partial class SharedChatSystem : EntitySystem
     {
         foreach (var childChannel in otherChannels)
         {
-            var newMessage = new SendChatMessageEvent(1, childChannel, @event.Sender, @event.Message, messageContext, @event);
+            var newMessage = new SendChatMessageEvent(childChannel, @event.Sender, @event.Message, messageContext, @event);
             RaiseLocalEvent(sender, newMessage);
         }
     }
 
     private static ChatMessageContext PrepareContext(
         EntityUid sender,
-        SendChatMessageEvent @event,
+        ChatMessageContext? context,
         CommunicationChannelPrototype channelPrototype
     )
     {
@@ -147,8 +154,7 @@ public abstract partial class SharedChatSystem : EntitySystem
         // Since the message has yet to be formatted by anything, any child channels should get the same random seed.
         var messageContext = new ChatMessageContext(
             channelPrototype.ChannelParameters,
-            @event.Context,
-            @event.GetHashCode()
+            context
         );
 
         return messageContext;

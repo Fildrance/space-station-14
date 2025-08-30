@@ -8,13 +8,11 @@ namespace Content.Shared.Chat.V2;
 public sealed class ChatMessageContext
 {
     public readonly Dictionary<MessageParts, string> GenericParameters;
-    private readonly long _seed;
 
     public ChatMessageContext(
         Dictionary<MessageParts, string> dictionary,
-        ChatMessageContext? otherContext,
-        long seed
-    ) : this(dictionary, seed)
+        ChatMessageContext? otherContext
+    ) : this(dictionary)
     {
         if (otherContext == null)
             return;
@@ -25,17 +23,14 @@ public sealed class ChatMessageContext
         }
     }
 
-    public ChatMessageContext(Dictionary<MessageParts, string> dictionary, long seed)
+    public ChatMessageContext(Dictionary<MessageParts, string> dictionary)
     {
-        _seed = seed;
         GenericParameters = dictionary;
     }
 
-    public ChatMessageContext(long seed) : this(new Dictionary<MessageParts, string>(), seed)
+    public ChatMessageContext() : this(new Dictionary<MessageParts, string>())
     {
     }
-
-    public long Seed => _seed;
 
     public int Count => GenericParameters.Count;
 
