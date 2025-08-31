@@ -26,9 +26,6 @@ public sealed class ChatSystem : SharedChatSystem
 
     private void OnReceiveChatMessage(ReceiveChatMessage msg, EntitySessionEventArgs args)
     {
-        if (!Timing.IsFirstTimePredicted)
-            return;
-
         if (args.SenderSession.AttachedEntity != _playerManager.LocalEntity)
             return;
 

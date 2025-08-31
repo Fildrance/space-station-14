@@ -7,10 +7,10 @@ namespace Content.Shared.Chat.V2;
 [NetSerializable, Serializable]
 public sealed class ChatMessageContext
 {
-    public readonly Dictionary<MessageParts, string> GenericParameters;
+    public readonly Dictionary<string, string> GenericParameters;
 
     public ChatMessageContext(
-        Dictionary<MessageParts, string> dictionary,
+        Dictionary<string, string> dictionary,
         ChatMessageContext? otherContext
     ) : this(dictionary)
     {
@@ -23,39 +23,39 @@ public sealed class ChatMessageContext
         }
     }
 
-    public ChatMessageContext(Dictionary<MessageParts, string> dictionary)
+    public ChatMessageContext(Dictionary<string, string> dictionary)
     {
         GenericParameters = dictionary;
     }
 
-    public ChatMessageContext() : this(new Dictionary<MessageParts, string>())
+    public ChatMessageContext() : this(new Dictionary<string, string>())
     {
     }
 
     public int Count => GenericParameters.Count;
 
-    public void Set(MessageParts key, bool value)
+    public void Set(string key, bool value)
     {
         GenericParameters[key] = value.ToString();
     }
 
-    public void Set(MessageParts key, float value)
+    public void Set(string key, float value)
     {
         GenericParameters[key] = value.ToString(CultureInfo.InvariantCulture);
     }
 
-    public void Set(MessageParts key, string value)
+    public void Set(string key, string value)
     {
         GenericParameters[key] = value;
     }
 
-    public void Set(MessageParts key, int value)
+    public void Set(string key, int value)
     {
         GenericParameters[key] = value.ToString();
     }
 
 
-    public bool TryGetFloat(MessageParts key, [NotNullWhen(true)] out float? value)
+    public bool TryGetFloat(string key, [NotNullWhen(true)] out float? value)
     {
         if (GenericParameters.TryGetValue(key, out var val) && float.TryParse(val, out var result))
         {
@@ -67,7 +67,7 @@ public sealed class ChatMessageContext
         return false;
     }
 
-    public bool TryGetInt(MessageParts key, [NotNullWhen(true)] out int? value)
+    public bool TryGetInt(string key, [NotNullWhen(true)] out int? value)
     {
         if (GenericParameters.TryGetValue(key, out var val) && int.TryParse(val, out var result))
         {
@@ -79,7 +79,7 @@ public sealed class ChatMessageContext
         return false;
     }
 
-    public bool TryGetBool(MessageParts key, [NotNullWhen(true)] out bool? value)
+    public bool TryGetBool(string key, [NotNullWhen(true)] out bool? value)
     {
         if (GenericParameters.TryGetValue(key, out var val) && bool.TryParse(val, out var result))
         {
@@ -91,7 +91,7 @@ public sealed class ChatMessageContext
         return false;
     }
 
-    public bool TryGetString(MessageParts key, [NotNullWhen(true)] out string? value)
+    public bool TryGetString(string key, [NotNullWhen(true)] out string? value)
     {
         if (GenericParameters.TryGetValue(key, out var val))
         {
@@ -104,15 +104,12 @@ public sealed class ChatMessageContext
     }
 }
 
-[Serializable, NetSerializable]
-public enum MessageParts
+public static class MessageParts
 {
-    EntityName,
-    SenderSession,
-    RandomSeed,
-    RadioChannel,
-    GlobalAudioPath,
-    GlobalAudioVolume,
-    ColorFulltext,
-    IsWhispering,
+    public const string EntityName = "entityName";
+    public const string RadioChannel = "RadioChannel";
+    public const string GlobalAudioPath = "GlobalAudioPath";
+    public const string GlobalAudioVolume = "GlobalAudioVolume";
+    public const string ColorFulltext = "ColorFulltext";
+    public const string IsWhispering = "IsWhispering";
 }

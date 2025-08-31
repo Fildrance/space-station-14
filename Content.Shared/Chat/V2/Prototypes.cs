@@ -58,7 +58,7 @@ public sealed partial class CommunicationChannelPrototype : IPrototype, IInherit
     /// </summary>
     [DataField]
     [AlwaysPushInheritance]
-    public Dictionary<MessageParts, string> ChannelParameters = new();
+    public Dictionary<string, string> ChannelParameters = new();
 }
 
 [Serializable]
