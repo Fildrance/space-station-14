@@ -33,7 +33,7 @@ public sealed class SpeechSystem : EntitySystem
         if (args.CommunicationChannel.ChatMedium != SpeechMedium)
             return;
 
-        var isWhispering = args.MessageContext.TryGetBool(MessageParts.IsWhispering, out var result) && result.Value;
+        // var isWhispering = args.MessageContext.TryGetBool(MessageParts.IsWhispering, out var result) && result.Value;
 
         var rangeByRecipient = new Dictionary<EntityUid, float>();
         var query = EntityQueryEnumerator<SpeechReceiverComponent>();
@@ -53,7 +53,7 @@ public sealed class SpeechSystem : EntitySystem
             if (!sourceTransform.Coordinates.TryDistance(EntityManager, targetCoordinates, out var distance))
                 continue;
 
-            var range = isWhispering
+            var range = true
                 ? ent.Comp.WhisperRange
                 : GetRange(ent.Comp, args.Message);
 

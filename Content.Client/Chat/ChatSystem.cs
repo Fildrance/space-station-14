@@ -21,18 +21,21 @@ public sealed class ChatSystem : SharedChatSystem
 
         _chatController = _interfaceManager.GetUIController<ChatUIController>();
 
-        SubscribeNetworkEvent<ReceiveChatMessage>(OnReceiveChatMessage);
+        SubscribeNetworkEvent<ReceiveChatMessageNetworkMessage>(OnReceiveChatMessage);
     }
 
-    private void OnReceiveChatMessage(ReceiveChatMessage msg, EntitySessionEventArgs args)
+    private void OnReceiveChatMessage(ReceiveChatMessageNetworkMessage msg, EntitySessionEventArgs args)
     {
-        if (args.SenderSession.AttachedEntity != _playerManager.LocalEntity)
+        if (_playerManager.LocalEntity == null || args.SenderSession.AttachedEntity != _playerManager.LocalEntity)
             return;
 
         var formattedMessage = msg.Message;
         var context = msg.Context;
         var targetChannel = msg.CommunicationChannel;
-        var sender = msg.Sender;
+        var sender = GetEntity(msg.Sender);
+
+        var prepareEvent = new PrepareReceivedChatMessageEvent(sender, formattedMessage, context, targetChannel);
+        RaiseLocalEvent(_playerManager.LocalEntity.Value, ref prepareEvent);
 
         if (!formattedMessage.TryGetMessageInsideTag("BubbleContent", out var text))
         {
@@ -41,9 +44,12 @@ public sealed class ChatSystem : SharedChatSystem
 
         var templateId = targetChannel.MessageFormatLayout;
 
-        if (!context.TryGetString(MessageParts.EntityName, out var entityName))
+        string entityName = context.EntityName ?? "";
+
+        if (context.TryGet<AudialCommunicationContextData>(out var audialContextData))
         {
-            entityName = "";
+            var color = audialContextData.Color;
+            formattedMessage.AddMarkupPermissive(color);
         }
 
         var message = Loc.GetString(templateId, ("entityName", entityName), ("verb", "lmao"), ("sourceMessage", formattedMessage.ToMarkup()));
@@ -53,7 +59,7 @@ public sealed class ChatSystem : SharedChatSystem
             ChatChannel.Local,
             text.ToString(),
             markup.ToMarkup(),
-            sender,
+            msg.Sender,
             null,
             targetChannel.HideChat
         );
@@ -72,7 +78,7 @@ public sealed class ChatSystem : SharedChatSystem
 
         var markup = FormattedMessage.FromMarkupPermissive(str);
         var sender = GetNetEntity(entity.Value);
-        var @event = new SendChatMessageEvent(channelProtoId, sender, markup);
+        var @event = new ProduceChatMessageEvent(channelProtoId, sender, markup);
         RaisePredictiveEvent(@event);
     }
 }

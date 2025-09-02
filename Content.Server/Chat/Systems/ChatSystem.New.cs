@@ -16,7 +16,7 @@ public sealed partial class ChatSystem
         if(!senderNetEntity.HasValue)
             return;
 
-        var chatMessageWrapper = new ReceiveChatMessage(senderNetEntity.Value, args.Message, args.MessageContext, args.CommunicationChannel);
+        var chatMessageWrapper = new ReceiveChatMessageNetworkMessage(senderNetEntity.Value, args.Message, args.MessageContext, args.CommunicationChannel);
         RaiseNetworkEvent(chatMessageWrapper, ent);
     }
 }

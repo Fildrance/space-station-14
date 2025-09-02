@@ -1,107 +1,52 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using Robust.Shared.Serialization;
 
 namespace Content.Shared.Chat.V2;
 
-[NetSerializable, Serializable]
-public sealed class ChatMessageContext
+[ImplicitDataDefinitionForInheritors, Serializable, NetSerializable]
+public abstract partial class CommunicationContextData
 {
-    public readonly Dictionary<string, string> GenericParameters;
 
-    public ChatMessageContext(
-        Dictionary<string, string> dictionary,
-        ChatMessageContext? otherContext
-    ) : this(dictionary)
+}
+
+[ImplicitDataDefinitionForInheritors, Serializable, NetSerializable]
+public sealed partial class AudialCommunicationContextData : CommunicationContextData
+{
+    [DataField]
+    public bool IsWhispering = false;
+
+    public string Color { get; set; }
+}
+
+[NetSerializable, Serializable]
+public sealed partial class ChatMessageContext
+{
+    [DataField]
+    public List<CommunicationContextData> Data = new();
+
+    [DataField]
+    public string? EntityName;
+
+    public void Set(CommunicationContextData data)
     {
-        if (otherContext == null)
-            return;
+        Data.Add(data);
+    }
 
-        foreach (var (key, value) in otherContext.GenericParameters)
+    public bool TryGet<T>([NotNullWhen(true)]out T? result) where T : CommunicationContextData
+    {
+        result = null;
+        foreach (var data in Data)
         {
-            GenericParameters[key] = value;
-        }
-    }
-
-    public ChatMessageContext(Dictionary<string, string> dictionary)
-    {
-        GenericParameters = dictionary;
-    }
-
-    public ChatMessageContext() : this(new Dictionary<string, string>())
-    {
-    }
-
-    public int Count => GenericParameters.Count;
-
-    public void Set(string key, bool value)
-    {
-        GenericParameters[key] = value.ToString();
-    }
-
-    public void Set(string key, float value)
-    {
-        GenericParameters[key] = value.ToString(CultureInfo.InvariantCulture);
-    }
-
-    public void Set(string key, string value)
-    {
-        GenericParameters[key] = value;
-    }
-
-    public void Set(string key, int value)
-    {
-        GenericParameters[key] = value.ToString();
-    }
-
-
-    public bool TryGetFloat(string key, [NotNullWhen(true)] out float? value)
-    {
-        if (GenericParameters.TryGetValue(key, out var val) && float.TryParse(val, out var result))
-        {
-            value = result;
-            return true;
+            if (data is T casted)
+            {
+                result = casted;
+                return true;
+            }
         }
 
-        value = null;
         return false;
     }
 
-    public bool TryGetInt(string key, [NotNullWhen(true)] out int? value)
-    {
-        if (GenericParameters.TryGetValue(key, out var val) && int.TryParse(val, out var result))
-        {
-            value = result;
-            return true;
-        }
-
-        value = null;
-        return false;
-    }
-
-    public bool TryGetBool(string key, [NotNullWhen(true)] out bool? value)
-    {
-        if (GenericParameters.TryGetValue(key, out var val) && bool.TryParse(val, out var result))
-        {
-            value = result;
-            return true;
-        }
-
-        value = null;
-        return false;
-    }
-
-    public bool TryGetString(string key, [NotNullWhen(true)] out string? value)
-    {
-        if (GenericParameters.TryGetValue(key, out var val))
-        {
-            value = val;
-            return true;
-        }
-
-        value = null;
-        return false;
-    }
 }
 
 public static class MessageParts

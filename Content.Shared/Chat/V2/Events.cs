@@ -5,18 +5,18 @@ using Robust.Shared.Utility;
 namespace Content.Shared.Chat.V2;
 
 [Serializable, NetSerializable]
-public sealed class SendChatMessageEvent(
+public sealed class ProduceChatMessageEvent(
     ProtoId<CommunicationChannelPrototype> communicationChannel,
     NetEntity sender,
     FormattedMessage message,
     ChatMessageContext? context = null,
-    SendChatMessageEvent? parent = null,
+    ProduceChatMessageEvent? parent = null,
     NetEntity? target = null
 ) : EntityEventArgs
 {
     public readonly ProtoId<CommunicationChannelPrototype> CommunicationChannel = communicationChannel;
 
-    public readonly SendChatMessageEvent? Parent = parent;
+    public readonly ProduceChatMessageEvent? Parent = parent;
 
     public readonly NetEntity Sender = sender;
 
@@ -55,7 +55,7 @@ public struct GetPotentialRecipientsChatMessageEvent(
 }
 
 [Serializable, NetSerializable]
-public sealed partial class ReceiveChatMessage(
+public sealed partial class ReceiveChatMessageNetworkMessage(
     NetEntity sender,
     FormattedMessage message,
     ChatMessageContext context,
@@ -69,20 +69,25 @@ public sealed partial class ReceiveChatMessage(
 }
 
 [ByRefEvent]
-public struct ReceiveChatMessageEvent(EntityUid? sender, FormattedMessage message, ChatMessageContext messageContext, CommunicationChannelPrototype communicationChannel)
-{
-    public readonly EntityUid? Sender = sender;
-    public readonly FormattedMessage Message = message;
-    public readonly ChatMessageContext MessageContext = messageContext;
-    public readonly CommunicationChannelPrototype CommunicationChannel = communicationChannel;
-}
+public record struct PrepareReceivedChatMessageEvent(
+    EntityUid? Sender,
+    FormattedMessage Message,
+    ChatMessageContext MessageContext,
+    CommunicationChannelPrototype CommunicationChannel
+);
 
 [ByRefEvent]
-public struct AttemptReceiveChatMessageEvent(EntityUid? sender, ChatMessageContext messageContext, FormattedMessage message)
-{
-    public readonly EntityUid? Sender = sender;
-    public readonly FormattedMessage Message = message;
-    public readonly ChatMessageContext MessageContext = messageContext;
-    public readonly bool Cancelled;
-}
+public record struct ReceiveChatMessageEvent(
+    EntityUid? Sender,
+    FormattedMessage Message,
+    ChatMessageContext MessageContext,
+    CommunicationChannelPrototype CommunicationChannel
+);
 
+[ByRefEvent]
+public record struct AttemptReceiveChatMessageEvent(
+    EntityUid? Sender,
+    ChatMessageContext MessageContext,
+    FormattedMessage Message,
+    bool Cancelled = false
+);

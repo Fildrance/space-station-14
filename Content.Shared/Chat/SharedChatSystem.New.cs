@@ -13,10 +13,10 @@ public abstract partial class SharedChatSystem
 
     private void InitializeNew()
     {
-        SubscribeAllEvent<SendChatMessageEvent>(OnSendChat);
+        SubscribeAllEvent<ProduceChatMessageEvent>(OnSendChat);
     }
 
-    private void OnSendChat(SendChatMessageEvent args)
+    private void OnSendChat(ProduceChatMessageEvent args)
     {
         if (!Timing.IsFirstTimePredicted)
             return;
@@ -79,7 +79,7 @@ public abstract partial class SharedChatSystem
         AlsoSendTo(args, context, targetChannel.AlwaysRelayedToChannels, sender);
     }
 
-    private static bool IsRecursive(SendChatMessageEvent args)
+    private static bool IsRecursive(ProduceChatMessageEvent args)
     {
         // block if message was already sent by same entity and into same channel.
         var currentMessage = args;
@@ -115,8 +115,12 @@ public abstract partial class SharedChatSystem
 
         var nameEv = new TransformSpeakerNameEvent(sender, metaData.EntityName);
         RaiseLocalEvent(sender, nameEv);
-        context.Set(MessageParts.EntityName, nameEv.VoiceName);
-
+        context.EntityName = nameEv.VoiceName;
+        context.Set(new AudialCommunicationContextData
+        {
+            Color = "asdasda fqergvhqervqe",
+            
+        });
         // get owner accents?
         // hook into other stuff?
     }
@@ -127,7 +131,7 @@ public abstract partial class SharedChatSystem
     }
 
     private void AlsoSendTo(
-        SendChatMessageEvent @event,
+        ProduceChatMessageEvent @event,
         ChatMessageContext messageContext,
         IEnumerable<ProtoId<CommunicationChannelPrototype>> otherChannels,
         EntityUid sender
@@ -135,7 +139,7 @@ public abstract partial class SharedChatSystem
     {
         foreach (var childChannel in otherChannels)
         {
-            var newMessage = new SendChatMessageEvent(childChannel, @event.Sender, @event.Message, messageContext, @event);
+            var newMessage = new ProduceChatMessageEvent(childChannel, @event.Sender, @event.Message, messageContext, @event);
             RaiseLocalEvent(sender, newMessage);
         }
     }
@@ -151,8 +155,8 @@ public abstract partial class SharedChatSystem
         // Include a random seed based on the message's hashcode.
         // Since the message has yet to be formatted by anything, any child channels should get the same random seed.
         var messageContext = new ChatMessageContext(
-            channelPrototype.ChannelParameters,
-            context
+            //channelPrototype.ChannelParameters,
+            //context
         );
 
         return messageContext;
