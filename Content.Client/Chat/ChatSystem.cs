@@ -4,6 +4,7 @@ using Content.Shared.Chat.V2;
 using Robust.Client.Player;
 using Robust.Client.UserInterface;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Random;
 using Robust.Shared.Utility;
 
 namespace Content.Client.Chat;
@@ -52,7 +53,12 @@ public sealed class ChatSystem : SharedChatSystem
             formattedMessage.AddMarkupPermissive(color);
         }
 
-        var message = Loc.GetString(templateId, ("entityName", entityName), ("verb", "lmao"), ("sourceMessage", formattedMessage.ToMarkup()));
+        var verbPrototype = GetSpeechVerb(sender, formattedMessage.ToString());
+        var verbs = verbPrototype.SpeechVerbStrings;
+        var random = new Random(context.Seed);
+        var verb = Loc.GetString(random.Pick(verbs));
+
+        var message = Loc.GetString(templateId, ("entityName", entityName), ("verb", verb), ("sourceMessage", formattedMessage.ToMarkup()));
         var markup = FormattedMessage.FromMarkupPermissive(message);
 
         var chatMessage = new ChatMessage(

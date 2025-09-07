@@ -27,6 +27,9 @@ public sealed partial class ChatMessageContext
     [DataField]
     public string? EntityName;
 
+    [DataField]
+    public required int Seed;
+
     public void Set(CommunicationContextData data)
     {
         Data.Add(data);

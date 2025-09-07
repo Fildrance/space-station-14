@@ -25,14 +25,13 @@ public abstract partial class SharedChatSystem
         var formattedMessage = args.Message;
         var sender = GetEntity(args.Sender);
 
-        var seed = SharedRandomExtensions.HashCodeCombine(new() { (int)GetNetEntity(sender), (int)Timing.CurTick.Value, targetChannel.ID.GetHashCode(), args.Message.GetHashCode() });
-
         // This section handles setting up the parameters and any other business that should happen before validation starts.
 
         if (IsRecursive(args))
             return;
 
-        var context = PrepareContext(sender, args.Context, targetChannel);
+
+        var context = PrepareContext(sender, args.Context, targetChannel, formattedMessage);
 
         // This section handles validating the publisher based on ChatConditions, and passing on the message should the validation fail.
 
@@ -144,20 +143,24 @@ public abstract partial class SharedChatSystem
         }
     }
 
-    private static ChatMessageContext PrepareContext(
+    private ChatMessageContext PrepareContext(
         EntityUid sender,
         ChatMessageContext? context,
-        CommunicationChannelPrototype channelPrototype
+        CommunicationChannelPrototype channelPrototype,
+        FormattedMessage formattedMessage
     )
     {
         // Set the channel parameters, and supply any custom ones if necessary.
 
         // Include a random seed based on the message's hashcode.
         // Since the message has yet to be formatted by anything, any child channels should get the same random seed.
-        var messageContext = new ChatMessageContext(
-            //channelPrototype.ChannelParameters,
-            //context
-        );
+
+        var seed = SharedRandomExtensions.HashCodeCombine(new() { (int)GetNetEntity(sender), (int)Timing.CurTick.Value, channelPrototype.ID.GetHashCode(), formattedMessage.GetHashCode() });
+
+        var messageContext = new ChatMessageContext
+        {
+            Seed = seed
+        };
 
         return messageContext;
     }
