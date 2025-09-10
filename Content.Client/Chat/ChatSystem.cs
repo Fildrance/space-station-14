@@ -23,6 +23,22 @@ public sealed class ChatSystem : SharedChatSystem
         _chatController = _interfaceManager.GetUIController<ChatUIController>();
 
         SubscribeNetworkEvent<ReceiveChatMessageNetworkMessage>(OnReceiveChatMessage);
+        SubscribeLocalEvent<PrepareReceivedChatMessageEvent>(OnPrepReceivedChatMessage);
+    }
+
+    public void SendMessage(ProtoId<CommunicationChannelPrototype> channelProtoId, EntityUid? entity, string str)
+    {
+        if (!entity.HasValue)
+            return;
+
+        var netEntity = GetNetEntity(entity);
+        if (!netEntity.HasValue)
+            return;
+
+        var markup = FormattedMessage.FromMarkupPermissive(str);
+        var sender = GetNetEntity(entity.Value);
+        var @event = new ProduceChatMessageEvent(channelProtoId, sender, markup);
+        RaisePredictiveEvent(@event);
     }
 
     private void OnReceiveChatMessage(ReceiveChatMessageNetworkMessage msg, EntitySessionEventArgs args)
@@ -47,11 +63,8 @@ public sealed class ChatSystem : SharedChatSystem
 
         string entityName = context.EntityName ?? "";
 
-        if (context.TryGet<AudialCommunicationContextData>(out var audialContextData))
-        {
-            var color = audialContextData.Color;
-            formattedMessage.AddMarkupPermissive(color);
-        }
+        var color = context.TextColor;
+        formattedMessage.AddMarkupPermissive(color);
 
         var verbPrototype = GetSpeechVerb(sender, formattedMessage.ToString());
         var verbs = verbPrototype.SpeechVerbStrings;
@@ -73,18 +86,29 @@ public sealed class ChatSystem : SharedChatSystem
         _chatController.AddMessage(chatMessage);
     }
 
-    public void SendMessage(ProtoId<CommunicationChannelPrototype> channelProtoId, EntityUid? entity, string str)
+    private void OnPrepReceivedChatMessage(ref PrepareReceivedChatMessageEvent ev)
     {
-        if (!entity.HasValue)
+        if(!ev.MessageContext.TryGet<AudialCommunicationContextData>(out var data))
             return;
 
-        var netEntity = GetNetEntity(entity);
-        if (!netEntity.HasValue)
-            return;
+        if (data.IsWhispering)
+        {
+            ev.Message.InsertAroundMessage(new MarkupNode("italic"));
+        }
 
-        var markup = FormattedMessage.FromMarkupPermissive(str);
-        var sender = GetNetEntity(entity.Value);
-        var @event = new ProduceChatMessageEvent(channelProtoId, sender, markup);
-        RaisePredictiveEvent(@event);
+        if (data.IsExclaiming)
+        {
+            ev.Message.InsertAroundMessage(new MarkupNode("bold"));
+        }
     }
 }
+
+
+[ByRefEvent]
+public record struct PrepareReceivedChatMessageEvent(
+    EntityUid? Sender,
+    FormattedMessage Message,
+    ChatMessageContext MessageContext,
+    CommunicationChannelPrototype CommunicationChannel
+);
+

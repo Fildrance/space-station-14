@@ -14,8 +14,6 @@ public sealed partial class AudialCommunicationContextData : CommunicationContex
 {
     [DataField]
     public bool IsWhispering = false;
-
-    public string Color { get; set; }
 }
 
 [NetSerializable, Serializable]
@@ -30,6 +28,9 @@ public sealed partial class ChatMessageContext
     [DataField]
     public required int Seed;
 
+    [DataField]
+    public string TextColor { get; set; }
+    
     public void Set(CommunicationContextData data)
     {
         Data.Add(data);

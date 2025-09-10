@@ -69,14 +69,6 @@ public sealed partial class ReceiveChatMessageNetworkMessage(
 }
 
 [ByRefEvent]
-public record struct PrepareReceivedChatMessageEvent(
-    EntityUid? Sender,
-    FormattedMessage Message,
-    ChatMessageContext MessageContext,
-    CommunicationChannelPrototype CommunicationChannel
-);
-
-[ByRefEvent]
 public record struct ReceiveChatMessageEvent(
     EntityUid? Sender,
     FormattedMessage Message,
