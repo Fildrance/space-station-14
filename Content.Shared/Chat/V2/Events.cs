@@ -9,7 +9,7 @@ public sealed class ProduceChatMessageEvent(
     ProtoId<CommunicationChannelPrototype> communicationChannel,
     NetEntity sender,
     FormattedMessage message,
-    ChatMessageContext? context = null,
+    List<CommunicationContextData>? additionalData = null,
     ProduceChatMessageEvent? parent = null,
     NetEntity? target = null
 ) : EntityEventArgs
@@ -24,7 +24,7 @@ public sealed class ProduceChatMessageEvent(
 
     public readonly FormattedMessage Message = message;
 
-    public readonly ChatMessageContext? Context = context;
+    public readonly List<CommunicationContextData> AdditionalData = additionalData ?? new();
 }
 
 [ByRefEvent]
@@ -48,7 +48,7 @@ public struct GetPotentialRecipientsChatMessageEvent(
     FormattedMessage message
 )
 {
-    public readonly List<EntityUid> Recipients = new();
+    public readonly Dictionary<EntityUid, float?> DistanceByRecipient = new();
     public readonly ChatMessageContext MessageContext = messageContext;
     public readonly CommunicationChannelPrototype CommunicationChannel = communicationChannel;
     public readonly FormattedMessage Message = message;
@@ -59,13 +59,13 @@ public sealed partial class ReceiveChatMessageNetworkMessage(
     NetEntity sender,
     FormattedMessage message,
     ChatMessageContext context,
-    CommunicationChannelPrototype communicationChannel
+    ProtoId<CommunicationChannelPrototype> communicationChannel
 ) : EntityEventArgs
 {
     public readonly NetEntity Sender = sender;
     public readonly FormattedMessage Message = message;
     public readonly ChatMessageContext Context = context;
-    public readonly CommunicationChannelPrototype CommunicationChannel = communicationChannel;
+    public readonly ProtoId<CommunicationChannelPrototype> CommunicationChannel = communicationChannel;
 }
 
 [ByRefEvent]

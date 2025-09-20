@@ -18,7 +18,6 @@ internal sealed class ChatManager : IChatManager
     [Dependency] private readonly IPlayerManager _playerManager= default!;
 
     private static readonly ProtoId<CommunicationChannelPrototype> SpeechChannel = "ICSpeech";
-    private static readonly ProtoId<CommunicationChannelPrototype> WhisperChannel = "ICWhisper";
 
     private ISawmill _sawmill = default!;
 
@@ -40,17 +39,18 @@ internal sealed class ChatManager : IChatManager
 
     public void SendMessage(string text, ChatSelectChannel channel)
     {
-        ProtoId<CommunicationChannelPrototype>? communicationChannel = channel switch
+        if (channel is ChatSelectChannel.Whisper or ChatSelectChannel.Local)
         {
-            ChatSelectChannel.Whisper => WhisperChannel,
-            ChatSelectChannel.Local => SpeechChannel,
-            _ => (ProtoId<CommunicationChannelPrototype>?)null,
-        };
-
-        if (communicationChannel.HasValue)
-        {
+            List<CommunicationContextData>? data = null;
+            if (channel == ChatSelectChannel.Whisper)
+            {
+                data = new List<CommunicationContextData>
+                {
+                    new AudialCommunicationContextData { IsWhispering = true }
+                };
+            }
             _systems.GetEntitySystem<ChatSystem>()
-                    .SendMessage(communicationChannel.Value, _playerManager.LocalEntity, text);
+                    .SendMessage(SpeechChannel, _playerManager.LocalEntity, text, data);
             return;
         }
 

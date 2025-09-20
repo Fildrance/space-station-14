@@ -51,14 +51,8 @@ public sealed partial class CommunicationChannelPrototype : IPrototype, IInherit
     [DataField]
     public bool HideChat = false;
 
-    /// <summary>
-    /// Used as input for certain conditions and node suppliers, for when they need more customizability than what is defined in the channel prototype.
-    /// An example of this would be overriding ColorFulltextMarkupChatModifier's color key when doing communication console alert levels, or defining radio channels.
-    /// The parameters are *not* communicated between server and client, but may be shared via the prototype.
-    /// </summary>
     [DataField]
-    [AlwaysPushInheritance]
-    public Dictionary<string, string> ChannelParameters = new();
+    public List<CommunicationContextData> ContextData = new();
 }
 
 [Serializable]

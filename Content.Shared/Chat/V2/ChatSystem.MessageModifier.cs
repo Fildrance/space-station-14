@@ -25,18 +25,6 @@
 //    //    return message;
 //    //}
 
-//    //public string DefaultColorKey = "Base";
-
-//    //public FormattedMessage ColorFulltextChatModifier(FormattedMessage message, ChatMessageContext chatMessageContext)
-//    //{
-//    //    var colorKey = DefaultColorKey;
-//    //    if (chatMessageContext.TryGetString(MessageParts.ColorFulltext, out var color))
-//    //        colorKey = color;
-
-//    //    message.InsertAroundMessage(new MarkupNode("ColorValue", new MarkupParameter(colorKey), null, false));
-//    //    return message;
-//    //}
-
 //    //#region CLIENT SHIT
 
 //    //private static readonly ProtoId<ColorPalettePrototype> ChatNamePalette = "ChatNames";

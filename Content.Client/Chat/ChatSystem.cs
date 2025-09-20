@@ -1,8 +1,11 @@
 using Content.Client.UserInterface.Systems.Chat;
+using Content.Shared.CCVar;
 using Content.Shared.Chat;
 using Content.Shared.Chat.V2;
+using Content.Shared.Decals;
 using Robust.Client.Player;
 using Robust.Client.UserInterface;
+using Robust.Shared.Configuration;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 using Robust.Shared.Utility;
@@ -13,6 +16,7 @@ public sealed class ChatSystem : SharedChatSystem
 {
     [Dependency] private readonly IUserInterfaceManager _interfaceManager = default!;
     [Dependency] private readonly IPlayerManager _playerManager = default!;
+    [Dependency] private readonly IConfigurationManager _config = default!;
 
     private ChatUIController _chatController = default!;
 
@@ -23,10 +27,15 @@ public sealed class ChatSystem : SharedChatSystem
         _chatController = _interfaceManager.GetUIController<ChatUIController>();
 
         SubscribeNetworkEvent<ReceiveChatMessageNetworkMessage>(OnReceiveChatMessage);
-        SubscribeLocalEvent<PrepareReceivedChatMessageEvent>(OnPrepReceivedChatMessage);
+        SubscribeLocalEvent<PrepareReceivedChatMessageEvent>(OnPrepareReceivedChatMessage);
     }
 
-    public void SendMessage(ProtoId<CommunicationChannelPrototype> channelProtoId, EntityUid? entity, string str)
+    public void SendMessage(
+        ProtoId<CommunicationChannelPrototype> channelProtoId,
+        EntityUid? entity,
+        string str,
+        List<CommunicationContextData>? additionalData = null
+    )
     {
         if (!entity.HasValue)
             return;
@@ -37,7 +46,7 @@ public sealed class ChatSystem : SharedChatSystem
 
         var markup = FormattedMessage.FromMarkupPermissive(str);
         var sender = GetNetEntity(entity.Value);
-        var @event = new ProduceChatMessageEvent(channelProtoId, sender, markup);
+        var @event = new ProduceChatMessageEvent(channelProtoId, sender, markup, additionalData);
         RaisePredictiveEvent(@event);
     }
 
@@ -48,23 +57,16 @@ public sealed class ChatSystem : SharedChatSystem
 
         var formattedMessage = msg.Message;
         var context = msg.Context;
-        var targetChannel = msg.CommunicationChannel;
+        var targetChannel = Prototype.Index(msg.CommunicationChannel);
         var sender = GetEntity(msg.Sender);
 
-        var prepareEvent = new PrepareReceivedChatMessageEvent(sender, formattedMessage, context, targetChannel);
-        RaiseLocalEvent(_playerManager.LocalEntity.Value, ref prepareEvent);
-
-        if (!formattedMessage.TryGetMessageInsideTag("BubbleContent", out var text))
-        {
-            text = FormattedMessage.Empty;
-        }
+        var renderSettings = new ChatMessageRenderSettings();
+        var prepareEvent = new PrepareReceivedChatMessageEvent(sender, formattedMessage, renderSettings, context, targetChannel);
+        RaiseLocalEvent(ref prepareEvent);
 
         var templateId = targetChannel.MessageFormatLayout;
 
-        string entityName = context.EntityName ?? "";
-
-        var color = context.TextColor;
-        formattedMessage.AddMarkupPermissive(color);
+        var entityName = context.EntityName ?? string.Empty;
 
         var verbPrototype = GetSpeechVerb(sender, formattedMessage.ToString());
         var verbs = verbPrototype.SpeechVerbStrings;
@@ -74,9 +76,18 @@ public sealed class ChatSystem : SharedChatSystem
         var message = Loc.GetString(templateId, ("entityName", entityName), ("verb", verb), ("sourceMessage", formattedMessage.ToMarkup()));
         var markup = FormattedMessage.FromMarkupPermissive(message);
 
+        Apply(markup, renderSettings.Content, ChatConstants.BubbleBodyTagName);
+        Apply(markup, renderSettings.Header, ChatConstants.BubbleHeaderTagName);
+        Apply(markup, renderSettings.All);
+
+        if (!formattedMessage.TryGetMessageInsideTag(ChatConstants.BubbleBodyTagName, out var body) || string.IsNullOrWhiteSpace(body.ToString()))
+        {
+            body = FormattedMessage.Empty;
+        }
+
         var chatMessage = new ChatMessage(
             ChatChannel.Local,
-            text.ToString(),
+            body.ToString(),
             markup.ToMarkup(),
             msg.Sender,
             null,
@@ -86,29 +97,136 @@ public sealed class ChatSystem : SharedChatSystem
         _chatController.AddMessage(chatMessage);
     }
 
-    private void OnPrepReceivedChatMessage(ref PrepareReceivedChatMessageEvent ev)
+    private static void Apply(FormattedMessage formattedMessage, ChatTextRenderSettings settings, string? intoTag = null)
     {
-        if(!ev.MessageContext.TryGet<AudialCommunicationContextData>(out var data))
+        if (settings.IsBold)
+        {
+            var markupNode = new MarkupNode("bold", null, null);
+            InsertTag(formattedMessage, markupNode, intoTag);
+        }
+
+        if (settings.IsItalic)
+        {
+            var markupNode = new MarkupNode("italic", null, null);
+            InsertTag(formattedMessage, markupNode, intoTag);
+        }
+
+        if (settings.Color.HasValue)
+        {
+            var markupNode = new MarkupNode("color", new MarkupParameter(settings.Color), null);
+            InsertTag(formattedMessage, markupNode, intoTag);
+        }
+
+        if (settings.FontSize.HasValue || settings.FontName != null)
+        {
+            Dictionary<string, MarkupParameter>? markupParameters = null;
+            if (settings.FontSize.HasValue)
+            {
+                markupParameters = new Dictionary<string, MarkupParameter> { ["size"] = new MarkupParameter(settings.FontSize) };
+            }
+
+            MarkupParameter? markupNode = null;
+            if (settings.FontName != null)
+            {
+                markupNode = new MarkupParameter(settings.Color);
+            }
+
+            InsertTag(formattedMessage, new MarkupNode("font", markupNode, markupParameters), intoTag);
+        }
+    }
+
+    private static void InsertTag(FormattedMessage formattedMessage, MarkupNode markupNode, string? intoTag)
+    {
+        if (intoTag == null)
+        {
+            formattedMessage.InsertAroundMessage(markupNode);
+        }
+        else
+        {
+            formattedMessage.InsertInsideTag(markupNode, intoTag);
+        }
+    }
+
+    private void OnPrepareReceivedChatMessage(ref PrepareReceivedChatMessageEvent ev)
+    {
+        if (ev.MessageContext.EntityName != null && _config.GetCVar(CCVars.ChatEnableColorName))
+        {
+            ev.RenderSettings.Header.Color = GetNameColor(ev.MessageContext.EntityName);
+        }
+
+        if (!ev.MessageContext.TryGet<AudialCommunicationContextData>(out var data))
             return;
 
         if (data.IsWhispering)
         {
-            ev.Message.InsertAroundMessage(new MarkupNode("italic"));
+            ev.RenderSettings.All.IsItalic = true;
+            ev.RenderSettings.Content.IsItalic = true;
         }
 
         if (data.IsExclaiming)
         {
-            ev.Message.InsertAroundMessage(new MarkupNode("bold"));
+            ev.RenderSettings.All.IsBold= true;
+            ev.RenderSettings.Content.IsBold= true;
         }
     }
-}
 
+    private static readonly ProtoId<ColorPalettePrototype> ChatNamePalette = "ChatNames";
+
+    private Color GetNameColor(string name)
+    {
+        var nameColors = Prototype.Index(ChatNamePalette).Colors.Values;
+        var colorIdx = Math.Abs(name.GetHashCode() % nameColors.Count);
+        var i = 0;
+        foreach (var nameColor in nameColors)
+        {
+            if (i == colorIdx)
+                return nameColor;
+
+            i++;
+        }
+
+        return default;
+    }
+}
 
 [ByRefEvent]
 public record struct PrepareReceivedChatMessageEvent(
     EntityUid? Sender,
     FormattedMessage Message,
+    ChatMessageRenderSettings RenderSettings,
     ChatMessageContext MessageContext,
     CommunicationChannelPrototype CommunicationChannel
 );
+
+public sealed class ChatMessageRenderSettings
+{
+    public ChatTextRenderSettings Header = new();
+    public ChatTextRenderSettings Content = new();
+    public ChatTextRenderSettings All = new();
+}
+
+public sealed class ChatTextRenderSettings
+{
+    public int? FontSize;
+    public bool IsBold;
+    public bool IsItalic;
+    public Color? Color;
+    public string? FontName;
+}
+
+/// <summary>
+/// Constants, used by chat systems.
+/// </summary>
+public static class ChatConstants
+{
+    /// <summary>
+    /// Tag name for speech bubble header tag.
+    /// </summary>
+    public const string BubbleHeaderTagName = "BubbleHeader";
+
+    /// <summary>
+    /// Tag name for speech bubble body tag.
+    /// </summary>
+    public const string BubbleBodyTagName = "BubbleMessage";
+}
 

@@ -33,9 +33,11 @@ public sealed class SpeechSystem : EntitySystem
         if (args.CommunicationChannel.ChatMedium != SpeechMedium)
             return;
 
-        // var isWhispering = args.MessageContext.TryGetBool(MessageParts.IsWhispering, out var result) && result.Value;
+        var data = args.MessageContext.Ensure<AudialCommunicationContextData>();
+        var isWhispering = data.IsWhispering;
+        var exclamationsCount = CountExclamation(args.Message);
+        data.ExclamationCount = exclamationsCount;
 
-        var rangeByRecipient = new Dictionary<EntityUid, float>();
         var query = EntityQueryEnumerator<SpeechReceiverComponent>();
         while (query.MoveNext(out var uid, out var comp))
         {
@@ -53,21 +55,18 @@ public sealed class SpeechSystem : EntitySystem
             if (!sourceTransform.Coordinates.TryDistance(EntityManager, targetCoordinates, out var distance))
                 continue;
 
-            var range = true
+            var range = isWhispering
                 ? ent.Comp.WhisperRange
-                : GetRange(ent.Comp, args.Message);
+                : GetRange(ent.Comp, exclamationsCount);
 
             var inRange = distance <= range + comp.RangeChange;
             if (inRange)
-                rangeByRecipient.Add(uid, distance);
+                args.DistanceByRecipient.Add(uid, distance);
         }
-
-        args.Recipients.AddRange(rangeByRecipient.Keys);
     }
 
-    private static float GetRange(SpeechComponent component, FormattedMessage message)
+    private static float GetRange(SpeechComponent component, int exclamationCount)
     {
-        var exclamationCount = CountExclamation(message);
         var additionalRange = component.YellingAdditionalRange * exclamationCount;
         return component.Range + additionalRange;
     }

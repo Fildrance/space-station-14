@@ -10,6 +10,7 @@ namespace Content.Shared.Chat;
 public abstract partial class SharedChatSystem
 {
     [Dependency] protected readonly IGameTiming Timing = default!;
+    [Dependency] private readonly IDynamicTypeFactory _dtf = default!;
 
     private void InitializeNew()
     {
@@ -31,7 +32,7 @@ public abstract partial class SharedChatSystem
             return;
 
 
-        var context = PrepareContext(sender, args.Context, targetChannel, formattedMessage);
+        var context = PrepareContext(sender, args.AdditionalData, targetChannel, formattedMessage);
 
         // This section handles validating the publisher based on ChatConditions, and passing on the message should the validation fail.
 
@@ -56,14 +57,16 @@ public abstract partial class SharedChatSystem
         var getRecipientsEvent = new GetPotentialRecipientsChatMessageEvent(context, targetChannel, formattedMessage);
         RaiseLocalEvent(sender, ref getRecipientsEvent);
 
-        var targets = getRecipientsEvent.Recipients;
+        var targets = getRecipientsEvent.DistanceByRecipient;
         if (targets.Count == 0)
             return;
 
         RefineContext(formattedMessage, targetChannel, context, sender);
 
-        foreach (var target in targets)
+        foreach (var (target, distance) in targets)
         {
+            context.Distance = distance;
+
             var attemptReceiveEvent = new AttemptReceiveChatMessageEvent(sender, context, formattedMessage);
             RaiseLocalEvent(target, ref attemptReceiveEvent);
 
@@ -117,7 +120,6 @@ public abstract partial class SharedChatSystem
         context.EntityName = nameEv.VoiceName;
         context.Set(new AudialCommunicationContextData
         {
-            Color = "asdasda fqergvhqervqe",
             
         });
         // get owner accents?
@@ -138,14 +140,14 @@ public abstract partial class SharedChatSystem
     {
         foreach (var childChannel in otherChannels)
         {
-            var newMessage = new ProduceChatMessageEvent(childChannel, @event.Sender, @event.Message, messageContext, @event);
+            var newMessage = new ProduceChatMessageEvent(childChannel, @event.Sender, @event.Message, messageContext.Data, @event);
             RaiseLocalEvent(sender, newMessage);
         }
     }
 
     private ChatMessageContext PrepareContext(
         EntityUid sender,
-        ChatMessageContext? context,
+        List<CommunicationContextData>? additionalData,
         CommunicationChannelPrototype channelPrototype,
         FormattedMessage formattedMessage
     )
@@ -157,10 +159,7 @@ public abstract partial class SharedChatSystem
 
         var seed = SharedRandomExtensions.HashCodeCombine(new() { (int)GetNetEntity(sender), (int)Timing.CurTick.Value, channelPrototype.ID.GetHashCode(), formattedMessage.GetHashCode() });
 
-        var messageContext = new ChatMessageContext
-        {
-            Seed = seed
-        };
+        var messageContext = new ChatMessageContext(_dtf, seed, additionalData);
 
         return messageContext;
     }

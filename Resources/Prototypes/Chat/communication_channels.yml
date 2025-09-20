@@ -25,12 +25,6 @@
   fallbackChannels:
   - Dead #If dead, this should attempt the Dead channel
 
-- type: communicationChannel
-  id: ICWhisper
-  parent: ICSpeech
-  messageFormatLayout: communication-channel-template-ic-whisper
-  channelParameters:
-    IsWhispering: True
 
 - type: communicationChannel
   id: Emote
@@ -65,80 +59,93 @@
 - type: communicationChannel
   parent: RadioBase
   id: RadioCommon
-  channelParameters:
-    RadioChannel: Common
+  data:
+  - !type:RadioCommunicationContextData
+    radioChannel: Common
 
 - type: communicationChannel
   parent: RadioBase
   id: RadioCentCom
-  channelParameters:
-    RadioChannel: CentCom
+  data:
+  - !type:RadioCommunicationContextData
+    radioChannel: CentCom
 
 - type: communicationChannel
   parent: RadioBase
   id: RadioCommand
-  channelParameters:
-    RadioChannel: Command
+  data:
+  - !type:RadioCommunicationContextData
+    radioChannel: Command
 
 - type: communicationChannel
   parent: RadioBase
   id: RadioEngineering
-  channelParameters:
-    RadioChannel: Engineering
+  data:
+  - !type:RadioCommunicationContextData
+    radioChannel: Engineering
 
 - type: communicationChannel
   parent: RadioBase
   id: RadioMedical
-  channelParameters:
-    RadioChannel: Medical
+  data:
+  - !type:RadioCommunicationContextData
+    radioChannel: Medical
 
 - type: communicationChannel
   parent: RadioBase
   id: RadioScience
-  channelParameters:
-    RadioChannel: Science
+  data:
+  - !type:RadioCommunicationContextData
+    radioChannel: Science
 
 - type: communicationChannel
   parent: RadioBase
   id: RadioSecurity
-  channelParameters:
-    RadioChannel: Security
+  data:
+  - !type:RadioCommunicationContextData
+    radioChannel: Security
 
 - type: communicationChannel
   parent: RadioBase
   id: RadioService
-  channelParameters:
-    RadioChannel: Service
+  data:
+  - !type:RadioCommunicationContextData
+    radioChannel: Service
 
 - type: communicationChannel
   parent: RadioBase
   id: RadioSupply
-  channelParameters:
-    RadioChannel: Supply
+  data:
+  - !type:RadioCommunicationContextData
+    radioChannel: Supply
 
 - type: communicationChannel
   parent: RadioBase
   id: RadioSyndicate
-  channelParameters:
-    RadioChannel: Syndicate
+  data:
+  - !type:RadioCommunicationContextData
+    radioChannel: Syndicate
 
 - type: communicationChannel
   parent: RadioBase
   id: RadioHandheld
-  channelParameters:
-    RadioChannel: Handheld
+  data:
+  - !type:RadioCommunicationContextData
+    radioChannel: Handheld
 
 - type: communicationChannel
   parent: RadioBase
   id: RadioBinary
-  channelParameters:
-    RadioChannel: Binary
+  data:
+  - !type:RadioCommunicationContextData
+    radioChannel: Binary
 
 - type: communicationChannel
   parent: RadioBase
   id: RadioFreelance
-  channelParameters:
-    RadioChannel: Freelance
+  data:
+  - !type:RadioCommunicationContextData
+    radioChannel: Freelance
 
 # End of Radios
 
