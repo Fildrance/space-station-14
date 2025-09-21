@@ -1,6 +1,7 @@
 using Content.Shared.Chat.V2;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
+using Robust.Shared.Random;
 
 namespace Content.Shared.Speech;
 
@@ -13,6 +14,7 @@ public sealed class SpeechSystem : EntitySystem
         base.Initialize();
 
         SubscribeLocalEvent<SpeakAttemptEvent>(OnSpeakAttempt);
+        SubscribeLocalEvent<SpeechReceiverComponent, AttemptReceiveChatMessageEvent>(OnAttemptReceive);
         SubscribeLocalEvent<SpeechComponent, GetPotentialRecipientsChatMessageEvent>(OnGetPotentialRecipients);
         SubscribeLocalEvent<SpeechComponent, AttemptSendChatMessageEvent>(OnAttemptSendChatMessage);
     }
@@ -112,5 +114,69 @@ public sealed class SpeechSystem : EntitySystem
     {
         if (!TryComp(args.Uid, out SpeechComponent? speech) || !speech.Enabled)
             args.Cancel();
+    }
+
+    private void OnAttemptReceive(Entity<SpeechReceiverComponent> ent, ref AttemptReceiveChatMessageEvent args)
+    {
+        if(args.Sender == ent.Owner)
+            return;
+
+        if(!args.MessageContext.TryGet<AudialCommunicationContextData>(out var data) || !data.IsWhispering)
+            return;
+
+        // chance for part of text to be obfuscated starts at WhisperClearlyRange and grows as log
+        float distanceMod = 1;
+        var distance = args.MessageContext.Distance;
+        if (distance.HasValue && TryComp<SpeechComponent>(args.Sender, out var speech))
+        {
+            distanceMod = distance < ent.Comp.WhisperClearlyRange
+                ? 0
+                : MathF.Log10(distance.Value / (ent.Comp.RangeChange + speech.WhisperRange)) + 1;
+        }
+
+        var obfuscationChance = ent.Comp.WhisperObfuscationMaxChance * distanceMod;
+        if (obfuscationChance > 0.05)
+        {
+            var obfuscated = ProcessChatModifier(obfuscationChance, args.Message, args.MessageContext);
+            args = new AttemptReceiveChatMessageEvent(args.Sender, args.MessageContext, obfuscated);
+        }
+    }
+
+    private static FormattedMessage ProcessChatModifier(float obfuscationChance, FormattedMessage message, ChatMessageContext chatMessageContext)
+    {
+        var newMessage = new FormattedMessage(message);
+
+        var random = new System.Random(chatMessageContext.Seed);
+
+        for (int i = 0; i < newMessage.Count; i++)
+        {
+            var node = newMessage.Nodes[i];
+            if (node.Name == null && node.Value.TryGetString(out var text))
+            {
+                var obfuscated = ObfuscateMessageReadability(random, text, obfuscationChance);
+                newMessage.ReplaceTextNode(node, new MarkupNode(obfuscated));
+            }
+        }
+
+        return newMessage;
+    }
+
+    private static string ObfuscateMessageReadability(System.Random random, string message, float chance)
+    {
+        var charArray = message.ToCharArray();
+        for (var i = 0; i < charArray.Length; i++)
+        {
+            if (char.IsWhiteSpace((charArray[i])))
+            {
+                continue;
+            }
+
+            if (random.Prob(chance))
+            {
+                charArray[i] = '~';
+            }
+        }
+
+        return new string(charArray);
     }
 }

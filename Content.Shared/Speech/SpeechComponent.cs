@@ -90,4 +90,10 @@ public sealed partial class SpeechReceiverComponent : Component
     /// </summary>
     [DataField]
     public float RangeChange = 0;
+
+    [DataField]
+    public float WhisperObfuscationMaxChance = 0.8f;
+
+    [DataField]
+    public float WhisperClearlyRange = 1.5f;
 }

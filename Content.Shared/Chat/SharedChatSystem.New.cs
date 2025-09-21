@@ -1,6 +1,5 @@
 using Content.Shared.Chat.V2;
 using Content.Shared.Random.Helpers;
-using Content.Shared.Speech;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 using Robust.Shared.Utility;
@@ -70,10 +69,13 @@ public abstract partial class SharedChatSystem
             var attemptReceiveEvent = new AttemptReceiveChatMessageEvent(sender, context, formattedMessage);
             RaiseLocalEvent(target, ref attemptReceiveEvent);
 
+            var receiverSpecifiedMessage = attemptReceiveEvent.Message;
+            var receiverSpecifiedContext = attemptReceiveEvent.MessageContext;
+
             if (attemptReceiveEvent.Cancelled)
                 continue;
 
-            var receiveEvent = new ReceiveChatMessageEvent(sender, formattedMessage, context, targetChannel);
+            var receiveEvent = new ReceiveChatMessageEvent(sender, receiverSpecifiedMessage, receiverSpecifiedContext, targetChannel);
             RaiseLocalEvent(target, ref receiveEvent);
         }
 
@@ -126,11 +128,6 @@ public abstract partial class SharedChatSystem
         // hook into other stuff?
     }
 
-    public enum MessageData
-    {
-        SpeechBubbleType
-    }
-
     private void AlsoSendTo(
         ProduceChatMessageEvent @event,
         ChatMessageContext messageContext,
@@ -162,36 +159,5 @@ public abstract partial class SharedChatSystem
         var messageContext = new ChatMessageContext(seed, additionalData);
 
         return messageContext;
-    }
-
-    private SpeechVerbPrototype GetSpeechVerbProto(FormattedMessage message, ProtoId<SpeechVerbPrototype>? speechVerb, EntityUid sender)
-    {
-        // This if/else tree can probably be cleaned up at some point
-        if (speechVerb != null && Prototype.TryIndex(speechVerb, out var eventProto))
-        {
-            return eventProto;
-        }
-
-        if (!TryComp<SpeechComponent>(sender, out var speech))
-        {
-            return Prototype.Index(DefaultSpeechVerb);
-        }
-
-        SpeechVerbPrototype? current = null;
-        // check for a suffix-applicable speech verb
-        foreach (var (str, id) in speech.SuffixSpeechVerbs)
-        {
-            var proto = Prototype.Index(id);
-            if (message.ToString().EndsWith(Loc.GetString(str)) &&
-                proto.Priority >= (current?.Priority ?? 0))
-            {
-                current = proto;
-            }
-        }
-
-        // if no applicable suffix verb return the normal one used by the entity
-        current ??= Prototype.Index(speech.SpeechVerb);
-
-        return current;
     }
 }
