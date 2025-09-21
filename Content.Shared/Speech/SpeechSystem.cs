@@ -33,7 +33,7 @@ public sealed class SpeechSystem : EntitySystem
         if (args.CommunicationChannel.ChatMedium != SpeechMedium)
             return;
 
-        var data = args.MessageContext.Ensure<AudialCommunicationContextData>();
+        var data = args.MessageContext.Ensure<AudialCommunicationContextData>(() => new());
         var isWhispering = data.IsWhispering;
         var exclamationsCount = CountExclamation(args.Message);
         data.ExclamationCount = exclamationsCount;

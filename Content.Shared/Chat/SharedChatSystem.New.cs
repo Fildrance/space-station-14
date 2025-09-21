@@ -159,7 +159,7 @@ public abstract partial class SharedChatSystem
 
         var seed = SharedRandomExtensions.HashCodeCombine(new() { (int)GetNetEntity(sender), (int)Timing.CurTick.Value, channelPrototype.ID.GetHashCode(), formattedMessage.GetHashCode() });
 
-        var messageContext = new ChatMessageContext(_dtf, seed, additionalData);
+        var messageContext = new ChatMessageContext(seed, additionalData);
 
         return messageContext;
     }

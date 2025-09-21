@@ -33,16 +33,13 @@ public sealed partial class RadioCommunicationContextData : CommunicationContext
 [NetSerializable, Serializable]
 public sealed partial class ChatMessageContext
 {
-    private readonly IDynamicTypeFactory _dtf;
-
-    public ChatMessageContext(IDynamicTypeFactory dtf, int seed) : this(dtf, seed, null)
+    public ChatMessageContext(int seed) : this(seed, null)
     {
 
     }
 
-    public ChatMessageContext(IDynamicTypeFactory dtf, int seed, IReadOnlyCollection<CommunicationContextData>? additionalData = null)
+    public ChatMessageContext(int seed, IReadOnlyCollection<CommunicationContextData>? additionalData = null)
     {
-        _dtf = dtf;
         Seed = seed;
         Data = additionalData == null
             ? new()
@@ -66,17 +63,18 @@ public sealed partial class ChatMessageContext
         Data.Add(data);
     }
 
-    public T Ensure<T>() where T : CommunicationContextData, new()
+    public T Ensure<T>(Func<T> factory) where T : CommunicationContextData, new()
     {
         if (TryGet<T>(out var value))
         {
             return value;
         }
 
-        var communicationContextData = _dtf.CreateInstance<T>();
+        var communicationContextData = factory();
         Set(communicationContextData);
         return communicationContextData;
     }
+
     public bool TryGet<T>([NotNullWhen(true)]out T? result) where T : CommunicationContextData
     {
         result = null;
