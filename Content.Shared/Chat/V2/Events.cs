@@ -67,6 +67,19 @@ public struct AttemptSendChatMessageEvent(
     public readonly FormattedMessage Message = message;
 }
 
+
+[ByRefEvent]
+public struct GetRefinedProducedChatMessageEvent(
+    ChatMessageContext messageContext,
+    CommunicationChannelPrototype communicationChannel,
+    FormattedMessage message
+)
+{
+    public readonly ChatMessageContext MessageContext = messageContext;
+    public readonly CommunicationChannelPrototype CommunicationChannel = communicationChannel;
+    public readonly FormattedMessage Message = message;
+}
+
 [ByRefEvent]
 public struct GetPotentialRecipientsChatMessageEvent(
     ChatMessageContext messageContext,
@@ -107,5 +120,13 @@ public record struct AttemptReceiveChatMessageEvent(
     EntityUid? Sender,
     ChatMessageContext MessageContext,
     FormattedMessage Message,
+    bool CanHandle = true,
     bool Cancelled = false
+);
+
+[ByRefEvent]
+public record struct GetRefinedReceiverChatMessageEvent(
+    EntityUid? Sender,
+    ChatMessageContext MessageContext,
+    FormattedMessage Message
 );

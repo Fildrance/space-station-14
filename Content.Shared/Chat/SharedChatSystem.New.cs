@@ -70,6 +70,12 @@ public abstract partial class SharedChatSystem
             return;
         }
 
+        var getRefined = new GetRefinedProducedChatMessageEvent(context, targetChannel, formattedMessage);
+        RaiseLocalEvent(sender, ref getRefined);
+
+        formattedMessage = getRefined.Message;
+        context = getRefined.MessageContext;
+
         // This section handles sending out the message to consumers, whether that be sessions or entities.
         // This is done via consume conditions. Conditional modifiers may also be applied here for a subset of consumers.
 
@@ -90,12 +96,15 @@ public abstract partial class SharedChatSystem
             var attemptReceiveEvent = new AttemptReceiveChatMessageEvent(sender, context, formattedMessage);
             RaiseLocalEvent(target, ref attemptReceiveEvent);
 
-            var receiverSpecifiedMessage = attemptReceiveEvent.Message;
-            var receiverSpecifiedContext = attemptReceiveEvent.MessageContext;
-
-            if (attemptReceiveEvent.Cancelled)
+            if (!attemptReceiveEvent.CanHandle || attemptReceiveEvent.Cancelled)
                 continue;
 
+            var getRefinedReceiverMsg = new GetRefinedReceiverChatMessageEvent(sender, context, formattedMessage);
+            RaiseLocalEvent(target, ref getRefinedReceiverMsg);
+
+            var receiverSpecifiedMessage = getRefinedReceiverMsg.Message;
+            var receiverSpecifiedContext = getRefinedReceiverMsg.MessageContext;
+            
             var receiveEvent = new ReceiveChatMessageEvent(sender, receiverSpecifiedMessage, receiverSpecifiedContext, targetChannel);
             RaiseLocalEvent(target, ref receiveEvent);
         }

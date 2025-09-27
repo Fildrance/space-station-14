@@ -14,7 +14,7 @@ public sealed class SpeechSystem : EntitySystem
         base.Initialize();
 
         SubscribeLocalEvent<SpeakAttemptEvent>(OnSpeakAttempt);
-        SubscribeLocalEvent<SpeechReceiverComponent, AttemptReceiveChatMessageEvent>(OnAttemptReceive);
+        SubscribeLocalEvent<SpeechReceiverComponent, GetRefinedReceiverChatMessageEvent>(OnRefineChatMessage);
         SubscribeLocalEvent<SpeechComponent, GetPotentialRecipientsChatMessageEvent>(OnGetPotentialRecipients);
         SubscribeLocalEvent<SpeechComponent, AttemptSendChatMessageEvent>(OnAttemptSendChatMessage);
     }
@@ -116,7 +116,7 @@ public sealed class SpeechSystem : EntitySystem
             args.Cancel();
     }
 
-    private void OnAttemptReceive(Entity<SpeechReceiverComponent> ent, ref AttemptReceiveChatMessageEvent args)
+    private void OnRefineChatMessage(Entity<SpeechReceiverComponent> ent, ref GetRefinedReceiverChatMessageEvent args)
     {
         if(args.Sender == ent.Owner)
             return;
@@ -138,7 +138,7 @@ public sealed class SpeechSystem : EntitySystem
         if (obfuscationChance > 0.05)
         {
             var obfuscated = ProcessChatModifier(obfuscationChance, args.Message, args.MessageContext);
-            args = new AttemptReceiveChatMessageEvent(args.Sender, args.MessageContext, obfuscated);
+            args = new GetRefinedReceiverChatMessageEvent(args.Sender, args.MessageContext, obfuscated);
         }
     }
 
