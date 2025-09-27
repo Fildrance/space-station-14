@@ -9,29 +9,50 @@ namespace Content.Shared.Chat;
 public abstract partial class SharedChatSystem
 {
     [Dependency] protected readonly IGameTiming Timing = default!;
-    [Dependency] private readonly IDynamicTypeFactory _dtf = default!;
+    [Dependency] protected readonly ISharedChatManager _chatManager = default!;
 
     private void InitializeNew()
     {
-        SubscribeAllEvent<ProduceChatMessageEvent>(OnSendChat);
+        SubscribeAllEvent<ProducePlayerChatMessageEvent>(OnPlayerSendChat);
+        SubscribeLocalEvent<ProduceEntityChatMessageEvent>(OnEntitySendChat);
     }
 
-    private void OnSendChat(ProduceChatMessageEvent args)
+    private void OnPlayerSendChat(ProducePlayerChatMessageEvent msgEvent, EntitySessionEventArgs args)
+    {
+        var sender = GetEntity(msgEvent.Sender);
+
+        if (args.SenderSession.AttachedEntity != sender)
+            return; // log error? we have been violated! >:(
+
+        if (!_chatManager.TryProcessChatMessage(msgEvent, args))
+            return;
+
+        var evt = new ProduceEntityChatMessageEvent(
+            msgEvent.PlayerMessageId,
+            msgEvent.CommunicationChannel,
+            sender,
+            msgEvent.Message,
+            msgEvent.AdditionalData,
+            target: GetEntity(msgEvent.Target)
+        );
+        RaiseLocalEvent(ref evt);
+    }
+
+    private void OnEntitySendChat(ref ProduceEntityChatMessageEvent msgEvent)
     {
         if (!Timing.IsFirstTimePredicted)
             return;
 
-        var targetChannel = Prototype.Index(args.CommunicationChannel);
-        var formattedMessage = args.Message;
-        var sender = GetEntity(args.Sender);
+        var sender = msgEvent.Sender;
+        var targetChannel = Prototype.Index(msgEvent.CommunicationChannel);
+        var formattedMessage = msgEvent.Message;
 
         // This section handles setting up the parameters and any other business that should happen before validation starts.
 
-        if (IsRecursive(args))
+        if (IsRecursive(msgEvent))
             return;
 
-
-        var context = PrepareContext(sender, args.AdditionalData, targetChannel, formattedMessage);
+        var context = PrepareContext(sender, msgEvent.AdditionalData, targetChannel, formattedMessage);
 
         // This section handles validating the publisher based on ChatConditions, and passing on the message should the validation fail.
 
@@ -43,7 +64,7 @@ public abstract partial class SharedChatSystem
         // Useful for e.g. making ghosts trying to send LOOC messages fall back to Deadchat instead.
         if (!attemptEvent.CanHandle || attemptEvent.Cancelled)
         {
-            AlsoSendTo(args, context, targetChannel.FallbackChannels, sender);
+            AlsoSendTo(msgEvent, context, targetChannel.FallbackChannels, sender);
 
             // we failed publishing, no reason to proceed.
             return;
@@ -80,10 +101,10 @@ public abstract partial class SharedChatSystem
         }
 
         // We also pass it on to any child channels that should be included.
-        AlsoSendTo(args, context, targetChannel.AlwaysRelayedToChannels, sender);
+        AlsoSendTo(msgEvent, context, targetChannel.AlwaysRelayedToChannels, sender);
     }
 
-    private static bool IsRecursive(ProduceChatMessageEvent args)
+    private static bool IsRecursive(ProduceEntityChatMessageEvent args)
     {
         // block if message was already sent by same entity and into same channel.
         var currentMessage = args;
@@ -101,18 +122,6 @@ public abstract partial class SharedChatSystem
         return false;
     }
 
-    protected virtual void SendChatMessageReceivedCommand(
-        EntityUid sender,
-        EntityUid target,
-        FormattedMessage formattedMessage,
-        ChatMessageContext context,
-        CommunicationChannelPrototype targetChannel
-    )
-    {
-        // no-op
-    }
-
-
     private void RefineContext(FormattedMessage input, CommunicationChannelPrototype channel, ChatMessageContext context, EntityUid sender)
     {
         var metaData = MetaData(sender);
@@ -129,7 +138,7 @@ public abstract partial class SharedChatSystem
     }
 
     private void AlsoSendTo(
-        ProduceChatMessageEvent @event,
+        ProduceEntityChatMessageEvent @event,
         ChatMessageContext messageContext,
         IEnumerable<ProtoId<CommunicationChannelPrototype>> otherChannels,
         EntityUid sender
@@ -137,8 +146,8 @@ public abstract partial class SharedChatSystem
     {
         foreach (var childChannel in otherChannels)
         {
-            var newMessage = new ProduceChatMessageEvent(childChannel, @event.Sender, @event.Message, messageContext.Data, @event);
-            RaiseLocalEvent(sender, newMessage);
+            var newMessage = new ProduceEntityChatMessageEvent(@event.OriginalPlayerMessageId, childChannel, @event.Sender, @event.Message, messageContext.Data, @event);
+            RaiseLocalEvent(sender, ref newMessage);
         }
     }
 

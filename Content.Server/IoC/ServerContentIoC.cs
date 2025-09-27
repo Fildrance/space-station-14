@@ -4,6 +4,8 @@ using Content.Server.Administration.Managers;
 using Content.Server.Administration.Notes;
 using Content.Server.Afk;
 using Content.Server.Chat.Managers;
+using Content.Shared.Chat.V2.Moderation;
+using Content.Server.Chat.V2.Repository;
 using Content.Server.Connection;
 using Content.Server.Database;
 using Content.Server.Discord;
@@ -36,6 +38,8 @@ namespace Content.Server.IoC
     {
         public static void Register()
         {
+            IoCManager.Register<IChatRepositoryManager, ChatRepositoryManager>();
+            IoCManager.Register<ICensorManager, CensorManager>();
             IoCManager.Register<IChatManager, ChatManager>();
             IoCManager.Register<ISharedChatManager, ChatManager>();
             IoCManager.Register<IChatSanitizationManager, ChatSanitizationManager>();

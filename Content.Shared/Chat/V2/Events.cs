@@ -5,22 +5,48 @@ using Robust.Shared.Utility;
 namespace Content.Shared.Chat.V2;
 
 [Serializable, NetSerializable]
-public sealed class ProduceChatMessageEvent(
+public sealed class ProducePlayerChatMessageEvent(
+    string playerMessageId,
     ProtoId<CommunicationChannelPrototype> communicationChannel,
     NetEntity sender,
     FormattedMessage message,
     List<CommunicationContextData>? additionalData = null,
-    ProduceChatMessageEvent? parent = null,
     NetEntity? target = null
 ) : EntityEventArgs
 {
-    public readonly ProtoId<CommunicationChannelPrototype> CommunicationChannel = communicationChannel;
+    public readonly string PlayerMessageId = playerMessageId;
 
-    public readonly ProduceChatMessageEvent? Parent = parent;
+    public readonly ProtoId<CommunicationChannelPrototype> CommunicationChannel = communicationChannel;
 
     public readonly NetEntity Sender = sender;
 
     public readonly NetEntity? Target = target;
+
+    public FormattedMessage Message = message;
+
+    public readonly List<CommunicationContextData> AdditionalData = additionalData ?? new();
+}
+
+[ByRefEvent]
+public sealed class ProduceEntityChatMessageEvent(
+    string? originalPlayerMessageId,
+    ProtoId<CommunicationChannelPrototype> communicationChannel,
+    EntityUid sender,
+    FormattedMessage message,
+    List<CommunicationContextData>? additionalData = null,
+    ProduceEntityChatMessageEvent? parent = null,
+    EntityUid? target = null
+)
+{
+    public readonly string? OriginalPlayerMessageId = originalPlayerMessageId;
+
+    public readonly ProtoId<CommunicationChannelPrototype> CommunicationChannel = communicationChannel;
+
+    public readonly ProduceEntityChatMessageEvent? Parent = parent;
+
+    public readonly EntityUid Sender = sender;
+
+    public readonly EntityUid? Target = target;
 
     public readonly FormattedMessage Message = message;
 

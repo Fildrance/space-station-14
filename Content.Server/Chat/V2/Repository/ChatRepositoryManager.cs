@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Runtime.InteropServices;
 using Content.Shared.Chat.V2;
 using Content.Shared.Chat.V2.Repository;
@@ -13,17 +12,17 @@ namespace Content.Server.Chat.V2.Repository;
 /// Stores <see cref="IChatEvent"/>, gives them UIDs, and issues <see cref="MessageCreatedEvent"/>.
 /// Allows for deletion of messages.
 /// </summary>
-public sealed class ChatRepositorySystem : EntitySystem
+public sealed class ChatRepositoryManager : IChatRepositoryManager
 {
     [Dependency] private readonly IReplayRecordingManager _replay = default!;
     [Dependency] private readonly IPlayerManager _player = default!;
+    [Dependency] private readonly IEntityManager _entityManager= default!;
 
     // Clocks should start at 1, as 0 indicates "clock not set" or "clock forgotten to be set by bad programmer".
-    private uint _nextMessageId = 1;
-    private Dictionary<uint, ChatRecord> _messages = new();
-    private Dictionary<NetUserId, List<uint>> _playerMessages = new();
+    private Dictionary<string, ChatRecord> _messages = new();
+    private Dictionary<NetUserId, List<string>> _playerMessages = new();
 
-    public override void Initialize()
+    public void Initialize()
     {
         Refresh();
 
@@ -39,44 +38,35 @@ public sealed class ChatRepositorySystem : EntitySystem
     /// </summary>
     /// <param name="ev">The event to store and raise</param>
     /// <returns>If storing and raising succeeded.</returns>
-    public bool Add(IChatEvent ev)
+    public bool TryAdd(ProducePlayerChatMessageEvent ev)
     {
-        if (!_player.TryGetSessionByEntity(ev.Sender, out var session))
+        var sender = _entityManager.GetEntity(ev.Sender);
+        if (!_player.TryGetSessionByEntity(sender, out var session))
         {
             return false;
         }
 
-        var messageId = _nextMessageId;
+        var id = ev.PlayerMessageId;
 
-        _nextMessageId++;
-
-        ev.Id = messageId;
+        if (_messages.ContainsKey(id))
+        {
+            return false;
+        }
 
         var storedEv = new ChatRecord
         {
             UserName = session.Name,
             UserId = session.UserId,
-            EntityName = Name(ev.Sender),
-            StoredEvent = ev
+            OriginalMessage = ev.Message.ToMarkup(),
+            CommunicationChannel = ev.CommunicationChannel
         };
 
-        _messages[messageId] = storedEv;
+        _messages[id] = storedEv;
 
-        CollectionsMarshal.GetValueRefOrAddDefault(_playerMessages, storedEv.UserId, out _)?.Add(messageId);
-
-        RaiseLocalEvent(ev.Sender, new MessageCreatedEvent(ev), true);
+        CollectionsMarshal.GetValueRefOrAddDefault(_playerMessages, storedEv.UserId, out _)
+                          ?.Add(id);
 
         return true;
-    }
-
-    /// <summary>
-    /// Returns the event associated with a UID, if it exists.
-    /// </summary>
-    /// <param name="id">The UID of a event.</param>
-    /// <returns>The event, if it exists.</returns>
-    public IChatEvent? GetEventFor(uint id)
-    {
-        return _messages.TryGetValue(id, out var record) ? record.StoredEvent : null;
     }
 
     /// <summary>
@@ -87,16 +77,16 @@ public sealed class ChatRepositorySystem : EntitySystem
     /// <param name="message">The new message to send</param>
     /// <returns>If patching did anything did anything</returns>
     /// <remarks>Should be used for admining and admemeing only.</remarks>
-    public bool Patch(uint id, string message)
+    public bool Patch(string id, string message)
     {
-        if (!_messages.TryGetValue(id, out var ev))
+        if (!_messages.TryGetValue(id, out var record))
         {
             return false;
         }
 
-        ev.StoredEvent.Message = message;
+        record.OriginalMessage = message;
 
-        RaiseLocalEvent(new MessagePatchedEvent(id, message));
+        _entityManager.EventBus.RaiseEvent(EventSource.Local, new MessagePatchedEvent(id, message));
 
         return true;
     }
@@ -108,21 +98,19 @@ public sealed class ChatRepositorySystem : EntitySystem
     /// <param name="id">The ID to delete</param>
     /// <returns>If deletion did anything</returns>
     /// <remarks>Should only be used for adminning</remarks>
-    public bool Delete(uint id)
+    public bool Delete(string id)
     {
-        if (!_messages.TryGetValue(id, out var ev))
+        if (!_messages.Remove(id, out var ev))
         {
             return false;
         }
-
-        _messages.Remove(id);
 
         if (_playerMessages.TryGetValue(ev.UserId, out var set))
         {
             set.Remove(id);
         }
 
-        RaiseLocalEvent(new MessageDeletedEvent(id));
+        _entityManager.EventBus.RaiseEvent(EventSource.Local, new MessageDeletedEvent(id));
 
         return true;
     }
@@ -177,7 +165,7 @@ public sealed class ChatRepositorySystem : EntitySystem
 
         CollectionsMarshal.GetValueRefOrAddDefault(_playerMessages, userId, out _)?.Clear();
 
-        RaiseLocalEvent(ev);
+        _entityManager.EventBus.RaiseEvent(EventSource.Local, ev);
 
         reason = null;
 
@@ -189,7 +177,6 @@ public sealed class ChatRepositorySystem : EntitySystem
     /// </summary>
     public void Refresh()
     {
-        _nextMessageId = 1;
         _messages.Clear();
         _playerMessages.Clear();
     }

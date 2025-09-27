@@ -10,7 +10,7 @@ using Robust.Shared.Utility;
 
 namespace Content.Client.Chat.Managers;
 
-internal sealed class ChatManager : IChatManager
+internal sealed class ChatManager : SharedChatManager, IChatManager
 {
     [Dependency] private readonly IClientConsoleHost _consoleHost = default!;
     [Dependency] private readonly IClientAdminManager _adminMgr = default!;
@@ -21,18 +21,30 @@ internal sealed class ChatManager : IChatManager
 
     private ISawmill _sawmill = default!;
 
-    public void Initialize()
+    public override void Initialize()
     {
         _sawmill = Logger.GetSawmill("chat");
         _sawmill.Level = LogLevel.Info;
     }
 
-    public void SendAdminAlert(string message)
+    /// <inheritdoc />
+    protected override bool TryAddToRepository(ProducePlayerChatMessageEvent ev)
+    {
+        return true;
+    }
+
+    /// <inheritdoc />
+    protected override bool IsFittingRateLimit(ProducePlayerChatMessageEvent ev, EntitySessionEventArgs args)
+    {
+        return true; // TODO: duplicate rate limiting code to stop client from spam pre-emptively?
+    }
+
+    public override void SendAdminAlert(string message)
     {
         // See server-side manager. This just exists for shared code.
     }
 
-    public void SendAdminAlert(EntityUid player, string message)
+    public override void SendAdminAlert(EntityUid player, string message)
     {
         // See server-side manager. This just exists for shared code.
     }
