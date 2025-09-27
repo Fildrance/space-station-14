@@ -18,6 +18,7 @@ using Content.Client.UserInterface.Systems.Gameplay;
 using Content.Shared.Administration;
 using Content.Shared.CCVar;
 using Content.Shared.Chat;
+using Content.Shared.Chat.V2;
 using Content.Shared.Damage.ForceSay;
 using Content.Shared.Decals;
 using Content.Shared.Input;
@@ -40,6 +41,7 @@ using Robust.Shared.Prototypes;
 using Robust.Shared.Replays;
 using Robust.Shared.Timing;
 using Robust.Shared.Utility;
+using static Content.Client.Chat.UI.SpeechBubble;
 
 
 namespace Content.Client.UserInterface.Systems.Chat;
@@ -961,5 +963,56 @@ public sealed partial class ChatUIController : UIController
         public float TimeLeft { get; set; }
 
         public Queue<SpeechBubbleData> MessageQueue { get; } = new();
+    }
+
+    // todo: remove code duplication - extract common stuff
+    public void AddMessage(ChatMessage msg)
+    {
+        // Log all incoming chat to repopulate when filter is un-toggled
+        if (!msg.HideChat)
+        {
+            History.Add((_timing.CurTick, msg));
+            MessageAdded?.Invoke(msg);
+
+            if (!msg.Read)
+            {
+                _sawmill.Debug($"Message filtered: {msg.Channel}: {msg.Message}");
+                var count = _unreadMessages.GetValueOrDefault(msg.Channel, 0);
+
+                count += 1;
+                _unreadMessages[msg.Channel] = count;
+                UnreadMessageCountsUpdated?.Invoke(msg.Channel, count);
+            }
+        }
+
+
+        if ((msg.Channel & ChatChannel.AdminRelated) == 0 ||
+            _config.GetCVar(CCVars.ReplayRecordAdminChat))
+        {
+            _replayRecording.RecordClientMessage(msg);
+        }
+
+        // Local messages that have an entity attached get a speech bubble.
+        if (msg.SenderEntity == default)
+            return;
+
+        if (msg.Channel == ChatChannel.Dead && _ghost is not { IsGhost: true })
+            return;
+
+        if (msg.Channel == ChatChannel.LOOC && !_config.GetCVar(CCVars.LoocAboveHeadShow))
+            return;
+
+        SpeechBubble.SpeechType? speechType = msg.Channel switch
+        {
+            ChatChannel.Local or ChatChannel.Emotes  or ChatChannel.Dead => SpeechBubble.SpeechType.Say,
+            ChatChannel.Whisper => SpeechBubble.SpeechType.Whisper,
+            ChatChannel.LOOC => SpeechBubble.SpeechType.Looc,
+            _ => null
+        };
+
+        if(!speechType.HasValue)
+            return;
+
+        AddSpeechBubble(msg, speechType.Value);
     }
 }

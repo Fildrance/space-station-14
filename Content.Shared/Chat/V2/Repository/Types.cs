@@ -1,6 +1,6 @@
-﻿using System.Linq;
 using System.Runtime.InteropServices;
 using Robust.Shared.Network;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization;
 
 namespace Content.Shared.Chat.V2.Repository;
@@ -8,12 +8,17 @@ namespace Content.Shared.Chat.V2.Repository;
 /// <summary>
 /// The record associated with a specific chat event.
 /// </summary>
-public struct ChatRecord(string userName, NetUserId userId, IChatEvent storedEvent, string entityName)
+public struct ChatRecord(
+    string userName,
+    NetUserId userId,
+    string originalMessage,
+    ProtoId<CommunicationChannelPrototype> communicationChannel
+)
 {
     public string UserName = userName;
     public NetUserId UserId = userId;
-    public string EntityName = entityName;
-    public IChatEvent StoredEvent = storedEvent;
+    public string OriginalMessage = originalMessage;
+    public ProtoId<CommunicationChannelPrototype> CommunicationChannel = communicationChannel;
 }
 
 /// <summary>
@@ -32,9 +37,9 @@ public sealed class MessageCreatedEvent(IChatEvent ev) : EntityEventArgs
 /// <param name="id"></param>
 /// <param name="newMessage"></param>
 [Serializable, NetSerializable]
-public sealed class MessagePatchedEvent(uint id, string newMessage) : EntityEventArgs
+public sealed class MessagePatchedEvent(string id, string newMessage) : EntityEventArgs
 {
-    public uint MessageId = id;
+    public string MessageId = id;
     public string NewMessage = newMessage;
 }
 
@@ -43,9 +48,9 @@ public sealed class MessagePatchedEvent(uint id, string newMessage) : EntityEven
 /// </summary>
 /// <param name="id"></param>
 [Serializable, NetSerializable]
-public sealed class MessageDeletedEvent(uint id) : EntityEventArgs
+public sealed class MessageDeletedEvent(string id) : EntityEventArgs
 {
-    public uint MessageId = id;
+    public string MessageId = id;
 }
 
 /// <summary>
@@ -53,8 +58,8 @@ public sealed class MessageDeletedEvent(uint id) : EntityEventArgs
 /// </summary>
 /// <param name="set"></param>
 [Serializable, NetSerializable]
-public sealed class MessagesNukedEvent(List<uint> set) : EntityEventArgs
+public sealed class MessagesNukedEvent(List<string> set) : EntityEventArgs
 {
-    public uint[] MessageIds = CollectionsMarshal.AsSpan(set).ToArray();
+    public string[] MessageIds = CollectionsMarshal.AsSpan(set).ToArray();
 }
 

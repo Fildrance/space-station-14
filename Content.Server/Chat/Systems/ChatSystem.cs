@@ -69,6 +69,7 @@ public sealed partial class ChatSystem : SharedChatSystem
     {
         base.Initialize();
         CacheEmotes();
+        InitializeSendMessage();
         Subs.CVar(_configurationManager, CCVars.LoocEnabled, OnLoocEnabledChanged, true);
         Subs.CVar(_configurationManager, CCVars.DeadLoocEnabled, OnDeadLoocEnabledChanged, true);
         Subs.CVar(_configurationManager, CCVars.CritLoocEnabled, OnCritLoocEnabledChanged, true);
