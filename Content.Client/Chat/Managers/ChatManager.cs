@@ -10,12 +10,12 @@ using Robust.Shared.Utility;
 
 namespace Content.Client.Chat.Managers;
 
-internal sealed class ChatManager : SharedChatManager, IChatManager
+internal sealed partial class ChatManager : SharedChatManager, IChatManager
 {
-    [Dependency] private readonly IClientConsoleHost _consoleHost = default!;
-    [Dependency] private readonly IClientAdminManager _adminMgr = default!;
-    [Dependency] private readonly IEntitySystemManager _systems = default!;
-    [Dependency] private readonly IPlayerManager _playerManager= default!;
+    [Dependency] private IClientConsoleHost _consoleHost = default!;
+    [Dependency] private IClientAdminManager _adminMgr = default!;
+    [Dependency] private IEntitySystemManager _systems = default!;
+    [Dependency] private IPlayerManager _playerManager = default!;
 
     private static readonly ProtoId<CommunicationChannelPrototype> SpeechChannel = "ICSpeech";
 
@@ -45,6 +45,11 @@ internal sealed class ChatManager : SharedChatManager, IChatManager
     }
 
     public override void SendAdminAlert(EntityUid player, string message)
+    {
+        // See server-side manager. This just exists for shared code.
+    }
+
+    public void SendAdminAlertNoFormatOrEscape(string message)
     {
         // See server-side manager. This just exists for shared code.
     }

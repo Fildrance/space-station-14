@@ -14,9 +14,9 @@ namespace Content.Server.Chat.V2.Repository;
 /// </summary>
 public sealed class ChatRepositoryManager : IChatRepositoryManager
 {
-    [Dependency] private readonly IReplayRecordingManager _replay = default!;
-    [Dependency] private readonly IPlayerManager _player = default!;
-    [Dependency] private readonly IEntityManager _entityManager= default!;
+    [Dependency] private IReplayRecordingManager _replay = default!;
+    [Dependency] private IPlayerManager _player = default!;
+    [Dependency] private IEntityManager _entityManager= default!;
 
     // Clocks should start at 1, as 0 indicates "clock not set" or "clock forgotten to be set by bad programmer".
     private Dictionary<string, ChatRecord> _messages = new();
