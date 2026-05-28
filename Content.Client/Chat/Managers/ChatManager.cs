@@ -49,7 +49,7 @@ internal sealed partial class ChatManager : SharedChatManager, IChatManager
         // See server-side manager. This just exists for shared code.
     }
 
-    public void SendAdminAlertNoFormatOrEscape(string message)
+    public override void SendAdminAlertNoFormatOrEscape(string message)
     {
         // See server-side manager. This just exists for shared code.
     }

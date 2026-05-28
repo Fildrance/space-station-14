@@ -57,8 +57,10 @@ namespace Content.Server.Entry
         [Dependency] private IAdminLogManager _adminLog = default!;
         [Dependency] private IAfkManager _afk = default!;
         [Dependency] private IBanManager _ban = default!;
-        [Dependency] private IChatManager _chatSan = default!;
-        [Dependency] private IChatSanitizationManager _chat = default!;
+        [Dependency] private IChatManager _chat = default!;
+        [Dependency] private IChatSanitizationManager _chatSan = default!;
+        [Dependency] private IChatRepositoryManager _chatRepo = default!;
+        [Dependency] private ICensorManager _censor = default!;
         [Dependency] private IComponentFactory _factory = default!;
         [Dependency] private IConfigurationManager _cfg = default!;
         [Dependency] private IConnectionManager _connection = default!;
@@ -145,10 +147,8 @@ namespace Content.Server.Entry
         {
             base.PostInit();
 
-            IoCManager.Resolve<IChatSanitizationManager>().Initialize();
-            IoCManager.Resolve<IChatManager>().Initialize();
-            IoCManager.Resolve<ICensorManager>().Initialize();
-            IoCManager.Resolve<IChatRepositoryManager>().Initialize();
+            _chatRepo.Initialize();
+            _censor.Initialize();
             _chatSan.Initialize();
             _chat.Initialize();
             var dest = _cfg.GetCVar(CCVars.DestinationFile);

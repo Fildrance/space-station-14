@@ -6,8 +6,11 @@ namespace Content.Shared.Chat;
 
 public abstract class SharedChatManager : ISharedChatManager
 {
-    [Dependency] protected readonly ICensorManager Censor = default!;
-    
+    [Dependency] protected ICensorManager Censor = default!;
+
+    /// <inheritdoc />
+    public abstract void SendAdminAlertNoFormatOrEscape(string message);
+
     public bool TryProcessChatMessage(ProducePlayerChatMessageEvent ev, EntitySessionEventArgs args)
     {
         var formattedMessage = ev.Message;

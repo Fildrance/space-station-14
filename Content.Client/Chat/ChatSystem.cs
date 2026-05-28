@@ -14,9 +14,9 @@ namespace Content.Client.Chat;
 
 public sealed class ChatSystem : SharedChatSystem
 {
-    [Dependency] private readonly IUserInterfaceManager _interfaceManager = default!;
-    [Dependency] private readonly IPlayerManager _playerManager = default!;
-    [Dependency] private readonly IConfigurationManager _config = default!;
+    [Dependency] private IUserInterfaceManager _interfaceManager = default!;
+    [Dependency] private IPlayerManager _playerManager = default!;
+    [Dependency] private IConfigurationManager _config = default!;
 
     private ChatUIController _chatController = default!;
 
@@ -58,7 +58,7 @@ public sealed class ChatSystem : SharedChatSystem
 
         var formattedMessage = msg.Message;
         var context = msg.Context;
-        var targetChannel = Prototype.Index(msg.CommunicationChannel);
+        var targetChannel = _prototype.Index(msg.CommunicationChannel);
         var sender = GetEntity(msg.Sender);
 
         var renderSettings = new ChatMessageRenderSettings();
@@ -175,7 +175,7 @@ public sealed class ChatSystem : SharedChatSystem
 
     private Color GetNameColor(string name)
     {
-        var nameColors = Prototype.Index(ChatNamePalette).Colors.Values;
+        var nameColors = _prototype.Index(ChatNamePalette).Colors.Values;
         var colorIdx = Math.Abs(name.GetHashCode() % nameColors.Count);
         var i = 0;
         foreach (var nameColor in nameColors)

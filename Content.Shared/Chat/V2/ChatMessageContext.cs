@@ -5,31 +5,6 @@ using Robust.Shared.Serialization;
 
 namespace Content.Shared.Chat.V2;
 
-[ImplicitDataDefinitionForInheritors, Serializable, NetSerializable]
-public abstract partial class CommunicationContextData
-{
-
-}
-
-[ImplicitDataDefinitionForInheritors, Serializable, NetSerializable]
-public sealed partial class AudialCommunicationContextData : CommunicationContextData
-{
-    [DataField]
-    public bool IsWhispering = false;
-
-    [DataField]
-    public int ExclamationCount;
-
-    public bool IsExclaiming => ExclamationCount > 0;
-}
-
-[ImplicitDataDefinitionForInheritors, Serializable, NetSerializable]
-public sealed partial class RadioCommunicationContextData : CommunicationContextData
-{
-    [DataField]
-    public ProtoId<RadioChannelPrototype> RadioChannel;
-}
-
 [NetSerializable, Serializable]
 public sealed partial class ChatMessageContext
 {
@@ -90,4 +65,29 @@ public sealed partial class ChatMessageContext
         return false;
     }
 
+}
+
+[ImplicitDataDefinitionForInheritors, Serializable, NetSerializable]
+public abstract partial class CommunicationContextData
+{
+
+}
+
+[ImplicitDataDefinitionForInheritors, Serializable, NetSerializable]
+public sealed partial class AudialCommunicationContextData : CommunicationContextData
+{
+    [DataField]
+    public bool IsWhispering = false;
+
+    [DataField]
+    public int ExclamationCount;
+
+    public bool IsExclaiming => ExclamationCount > 0;
+}
+
+[ImplicitDataDefinitionForInheritors, Serializable, NetSerializable]
+public sealed partial class RadioCommunicationContextData : CommunicationContextData
+{
+    [DataField]
+    public ProtoId<RadioChannelPrototype> RadioChannel;
 }

@@ -8,17 +8,17 @@ namespace Content.Shared.Chat.V2;
 public sealed partial class CommunicationChannelPrototype : IPrototype, IInheritingPrototype
 {
     [IdDataField]
-    public string ID { get; } = default!;
+    public string ID { get; set;  } = default!;
 
     /// <summary>
     /// The prototype we inherit from.
     /// </summary>
     [ParentDataField(typeof(AbstractPrototypeIdArraySerializer<CommunicationChannelPrototype>))]
-    public string[]? Parents { get; }
+    public string[]? Parents { get; set; }
 
     [NeverPushInheritance]
     [AbstractDataField]
-    public bool Abstract { get; }
+    public bool Abstract { get; set; }
 
     [DataField(required: true)]
     public LocId MessageFormatLayout;
@@ -60,5 +60,5 @@ public sealed partial class CommunicationChannelPrototype : IPrototype, IInherit
 public partial class CommunicationMediumPrototype : IPrototype
 {
     [IdDataField]
-    public string ID { get; } = default!;
+    public string ID { get; set; } = default!;
 }

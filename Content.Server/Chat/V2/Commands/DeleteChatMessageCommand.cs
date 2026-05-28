@@ -11,7 +11,7 @@ namespace Content.Server.Chat.V2.Commands;
 [ToolshedCommand, AdminCommand(AdminFlags.Admin)]
 public sealed partial class DeleteChatMessageCommand : ToolshedCommand
 {
-    [Dependency] private readonly IChatRepositoryManager _chatRepository= default!;
+    [Dependency] private IChatRepositoryManager _chatRepository= default!;
 
     [CommandImplementation("id")]
     public void DeleteChatMessage(IInvocationContext ctx, string messageId)

@@ -44,7 +44,7 @@ public abstract partial class SharedChatSystem : EntitySystem
     public static readonly string DefaultChannelPrefix = $"{RadioChannelPrefix}{DefaultChannelKey}";
     public static readonly ProtoId<SpeechVerbPrototype> DefaultSpeechVerb = "Default";
 
-    [Dependency] private IPrototypeManager _prototypeManager = default!;
+    [Dependency] protected IPrototypeManager _prototype = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private EntityWhitelistSystem _whitelist = default!;
     [Dependency] private ActionBlockerSystem _actionBlocker = default!;
@@ -61,7 +61,7 @@ public abstract partial class SharedChatSystem : EntitySystem
     {
         base.Initialize();
 
-        DebugTools.Assert(_prototypeManager.HasIndex(CommonChannel));
+        DebugTools.Assert(_prototype.HasIndex(CommonChannel));
 
         SubscribeLocalEvent<PrototypesReloadedEventArgs>(OnPrototypeReload);
         CacheRadios();
@@ -80,8 +80,8 @@ public abstract partial class SharedChatSystem : EntitySystem
 
     private void CacheRadios()
     {
-        _keyCodes = Prototype.EnumeratePrototypes<RadioChannelPrototype>()
-            .ToFrozenDictionary(x => x.KeyCode);
+        _keyCodes = _prototype.EnumeratePrototypes<RadioChannelPrototype>()
+                              .ToFrozenDictionary(x => x.KeyCode);
     }
 
     /// <summary>
@@ -91,13 +91,13 @@ public abstract partial class SharedChatSystem : EntitySystem
     public SpeechVerbPrototype GetSpeechVerb(EntityUid source, string message, SpeechComponent? speech = null)
     {
         if (!Resolve(source, ref speech, false))
-            return Prototype.Index(DefaultSpeechVerb);
+            return _prototype.Index(DefaultSpeechVerb);
 
         // check for a suffix-applicable speech verb
         SpeechVerbPrototype? current = null;
         foreach (var (str, id) in speech.SuffixSpeechVerbs)
         {
-            var proto = Prototype.Index(id);
+            var proto = _prototype.Index(id);
             if (message.EndsWith(Loc.GetString(str)) && proto.Priority >= (current?.Priority ?? 0))
             {
                 current = proto;
@@ -105,7 +105,7 @@ public abstract partial class SharedChatSystem : EntitySystem
         }
 
         // if no applicable suffix verb return the normal one used by the entity
-        return current ?? Prototype.Index(speech.SpeechVerb);
+        return current ?? _prototype.Index(speech.SpeechVerb);
     }
 
     /// <summary>
@@ -163,7 +163,7 @@ public abstract partial class SharedChatSystem : EntitySystem
         if (input.StartsWith(RadioCommonPrefix))
         {
             output = SanitizeMessageCapital(input[1..].TrimStart());
-            channel = Prototype.Index<RadioChannelPrototype>(CommonChannel);
+            channel = _prototype.Index<RadioChannelPrototype>(CommonChannel);
             return true;
         }
 
@@ -188,7 +188,7 @@ public abstract partial class SharedChatSystem : EntitySystem
             RaiseLocalEvent(source, ev);
 
             if (ev.Channel != null)
-                Prototype.TryIndex(ev.Channel, out channel);
+                _prototype.TryIndex(ev.Channel, out channel);
             return true;
         }
 

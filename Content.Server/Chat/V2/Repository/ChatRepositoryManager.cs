@@ -53,13 +53,12 @@ public sealed class ChatRepositoryManager : IChatRepositoryManager
             return false;
         }
 
-        var storedEv = new ChatRecord
-        {
-            UserName = session.Name,
-            UserId = session.UserId,
-            OriginalMessage = ev.Message.ToMarkup(),
-            CommunicationChannel = ev.CommunicationChannel
-        };
+        var storedEv = new ChatRecord(
+            session.Name,
+            session.UserId,
+            ev.Message.ToMarkup(),
+            ev.CommunicationChannel
+        );
 
         _messages[id] = storedEv;
 

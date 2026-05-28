@@ -8,7 +8,7 @@ namespace Content.Shared.Chat.V2.Repository;
 /// <summary>
 /// The record associated with a specific chat event.
 /// </summary>
-public struct ChatRecord(
+public class ChatRecord(
     string userName,
     NetUserId userId,
     string originalMessage,
@@ -19,16 +19,6 @@ public struct ChatRecord(
     public NetUserId UserId = userId;
     public string OriginalMessage = originalMessage;
     public ProtoId<CommunicationChannelPrototype> CommunicationChannel = communicationChannel;
-}
-
-/// <summary>
-/// Notifies that a chat message has been created.
-/// </summary>
-/// <param name="ev"></param>
-[Serializable, NetSerializable]
-public sealed class MessageCreatedEvent(IChatEvent ev) : EntityEventArgs
-{
-    public IChatEvent Event = ev;
 }
 
 /// <summary>

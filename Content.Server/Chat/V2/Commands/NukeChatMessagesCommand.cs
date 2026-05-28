@@ -11,7 +11,7 @@ namespace Content.Server.Chat.V2.Commands;
 [ToolshedCommand, AdminCommand(AdminFlags.Admin)]
 public sealed partial class NukeChatMessagesCommand : ToolshedCommand
 {
-    [Dependency] private readonly IChatRepositoryManager _chatRepository = default!;
+    [Dependency] private IChatRepositoryManager _chatRepository = default!;
 
     [CommandImplementation("usernames")]
     public void Command(IInvocationContext ctx, string usernamesCsv)

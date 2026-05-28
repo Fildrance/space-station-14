@@ -52,7 +52,7 @@ public sealed partial class InjectorComponent : Component
     /// The possible <see cref="InjectorModePrototype"/> that it can switch between.
     /// </summary>
     [DataField(required: true)]
-    public List<ProtoId<InjectorModePrototype>> AllowedModes;
+    public List<ProtoId<InjectorModePrototype>> AllowedModes = new();
 
     /// <summary>
     /// Whether the injector is able to draw from or inject from mobs.

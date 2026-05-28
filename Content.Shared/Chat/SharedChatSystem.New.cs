@@ -44,7 +44,7 @@ public abstract partial class SharedChatSystem
             return;
 
         var sender = msgEvent.Sender;
-        var targetChannel = Prototype.Index(msgEvent.CommunicationChannel);
+        var targetChannel = _prototype.Index(msgEvent.CommunicationChannel);
         var formattedMessage = msgEvent.Message;
 
         // This section handles setting up the parameters and any other business that should happen before validation starts.
@@ -172,7 +172,7 @@ public abstract partial class SharedChatSystem
         // Include a random seed based on the message's hashcode.
         // Since the message has yet to be formatted by anything, any child channels should get the same random seed.
 
-        var seed = SharedRandomExtensions.HashCodeCombine(new() { (int)GetNetEntity(sender), (int)Timing.CurTick.Value, channelPrototype.ID.GetHashCode(), formattedMessage.GetHashCode() });
+        var seed = SharedRandomExtensions.HashCodeCombine((int)GetNetEntity(sender), (int)Timing.CurTick.Value, channelPrototype.ID.GetHashCode(), formattedMessage.GetHashCode());
 
         var messageContext = new ChatMessageContext(seed, additionalData);
 

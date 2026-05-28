@@ -187,7 +187,7 @@ internal sealed partial class ChatManager : SharedChatManager, IChatManager
         SendAdminAlertNoFormatOrEscape(wrappedMessage);
     }
 
-    public void SendAdminAlertNoFormatOrEscape(string message)
+    public override void SendAdminAlertNoFormatOrEscape(string message)
     {
         var clients = _adminManager.ActiveAdmins.Select(p => p.Channel);
 
