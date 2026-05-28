@@ -1,0 +1,11 @@
+- type: communicationMedium
+  id: Auditory
+
+- type: communicationMedium
+  id: Visual
+
+- type: communicationMedium
+  id: OOC
+
+- type: communicationMedium
+  id: Server
