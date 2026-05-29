@@ -1,7 +1,8 @@
+using Content.Shared.Chat;
 using Content.Shared.Chat.V2;
 using Robust.Shared.Prototypes;
-using Robust.Shared.Utility;
 using Robust.Shared.Random;
+using Robust.Shared.Utility;
 
 namespace Content.Shared.Speech;
 
@@ -14,9 +15,22 @@ public sealed class AuditoryCommunicationSystem : EntitySystem
     {
         base.Initialize();
 
-        SubscribeLocalEvent<AuditoryReceiverComponent, GetRefinedReceiverChatMessageEvent>(OnRefineChatMessage);
+        SubscribeLocalEvent<AuditoryReceiverComponent, GetRefinedReceiverChatMessageEvent>(OnRefineReceiverChatMessage);
+        SubscribeLocalEvent<AuditoryReceiverComponent, GetRefinedProducedChatMessageEvent>(OnRefineProducedChatMessage);
         SubscribeLocalEvent<SpeechComponent, GetPotentialRecipientsChatMessageEvent>(OnGetPotentialRecipients);
         SubscribeLocalEvent<SpeechComponent, AttemptSendChatMessageEvent>(OnAttemptSendChatMessage);
+    }
+
+    private void OnRefineProducedChatMessage(Entity<AuditoryReceiverComponent> ent, ref GetRefinedProducedChatMessageEvent args)
+    {
+        if (args.CommunicationChannel != SpeechChannel)
+            return;
+
+        var nameEv = new TransformSpeakerNameEvent(ent, MetaData(ent).EntityName);
+        RaiseLocalEvent(ent, nameEv);
+        args.MessageContext.EntityName = nameEv.VoiceName;
+        // get owner accents?
+        // hook into other stuff?
     }
 
     private void OnAttemptSendChatMessage(Entity<SpeechComponent> ent, ref AttemptSendChatMessageEvent args)
@@ -113,7 +127,7 @@ public sealed class AuditoryCommunicationSystem : EntitySystem
         Dirty(uid, component);
     }
 
-    private void OnRefineChatMessage(Entity<AuditoryReceiverComponent> ent, ref GetRefinedReceiverChatMessageEvent args)
+    private void OnRefineReceiverChatMessage(Entity<AuditoryReceiverComponent> ent, ref GetRefinedReceiverChatMessageEvent args)
     {
         if (args.Sender == ent.Owner)
             return;

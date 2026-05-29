@@ -64,7 +64,7 @@ public abstract partial class SharedChatSystem
         // Useful for e.g. making ghosts trying to send LOOC messages fall back to Deadchat instead.
         if (!attemptEvent.CanHandle || attemptEvent.Cancelled)
         {
-            AlsoSendTo(msgEvent, context, targetChannel.FallbackChannels, sender);
+            AlsoSendTo(msgEvent, context, targetChannel.FallbackChannels);
 
             // we failed publishing, no reason to proceed.
             return;
@@ -85,9 +85,6 @@ public abstract partial class SharedChatSystem
         var targets = getRecipientsEvent.Recipients;
         if (targets.Count == 0)
             return;
-
-        RefineContext(formattedMessage, targetChannel, context, sender);
-
         foreach (var target in targets)
         {
             var attemptReceiveEvent = new AttemptReceiveChatMessageEvent(sender, context, formattedMessage);
@@ -107,7 +104,7 @@ public abstract partial class SharedChatSystem
         }
 
         // We also pass it on to any child channels that should be included.
-        AlsoSendTo(msgEvent, context, targetChannel.AlwaysRelayedToChannels, sender);
+        AlsoSendTo(msgEvent, context, targetChannel.AlwaysRelayedToChannels);
     }
 
     private static bool IsRecursive(ProduceEntityChatMessageEvent args)
@@ -128,32 +125,16 @@ public abstract partial class SharedChatSystem
         return false;
     }
 
-    private void RefineContext(FormattedMessage input, CommunicationChannelPrototype channel, ChatMessageContext context, EntityUid sender)
-    {
-        var metaData = MetaData(sender);
-
-        var nameEv = new TransformSpeakerNameEvent(sender, metaData.EntityName);
-        RaiseLocalEvent(sender, nameEv);
-        context.EntityName = nameEv.VoiceName;
-        context.Set(new AudialCommunicationContextData
-        {
-            
-        });
-        // get owner accents?
-        // hook into other stuff?
-    }
-
     private void AlsoSendTo(
         ProduceEntityChatMessageEvent @event,
         ChatMessageContext messageContext,
-        IEnumerable<ProtoId<CommunicationChannelPrototype>> otherChannels,
-        EntityUid sender
+        IEnumerable<ProtoId<CommunicationChannelPrototype>> otherChannels
     )
     {
         foreach (var childChannel in otherChannels)
         {
             var newMessage = new ProduceEntityChatMessageEvent(@event.OriginalPlayerMessageId, childChannel, @event.Sender, @event.Message, messageContext.Data, @event);
-            RaiseLocalEvent(sender, ref newMessage);
+            RaiseLocalEvent(@event.Sender, ref newMessage);
         }
     }
 

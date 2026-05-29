@@ -54,43 +54,43 @@ public sealed class ProduceEntityChatMessageEvent(
 }
 
 [ByRefEvent]
-public struct AttemptSendChatMessageEvent(
-    ChatMessageContext messageContext,
-    CommunicationChannelPrototype communicationChannel,
-    FormattedMessage message
+public record struct AttemptSendChatMessageEvent(
+    ChatMessageContext MessageContext,
+    CommunicationChannelPrototype CommunicationChannel,
+    FormattedMessage Message
 )
 {
     public bool CanHandle;
     public bool Cancelled;
-    public readonly ChatMessageContext MessageContext = messageContext;
-    public readonly CommunicationChannelPrototype CommunicationChannel = communicationChannel;
-    public readonly FormattedMessage Message = message;
+    public readonly ChatMessageContext MessageContext = MessageContext;
+    public readonly CommunicationChannelPrototype CommunicationChannel = CommunicationChannel;
+    public readonly FormattedMessage Message = Message;
 }
 
 
 [ByRefEvent]
-public struct GetRefinedProducedChatMessageEvent(
-    ChatMessageContext messageContext,
-    CommunicationChannelPrototype communicationChannel,
-    FormattedMessage message
+public record struct GetRefinedProducedChatMessageEvent(
+    ChatMessageContext MessageContext,
+    CommunicationChannelPrototype CommunicationChannel,
+    FormattedMessage Message
 )
 {
-    public readonly ChatMessageContext MessageContext = messageContext;
-    public readonly CommunicationChannelPrototype CommunicationChannel = communicationChannel;
-    public readonly FormattedMessage Message = message;
+    public readonly ChatMessageContext MessageContext = MessageContext;
+    public readonly CommunicationChannelPrototype CommunicationChannel = CommunicationChannel;
+    public readonly FormattedMessage Message = Message;
 }
 
 [ByRefEvent]
-public struct GetPotentialRecipientsChatMessageEvent(
-    ChatMessageContext messageContext,
-    CommunicationChannelPrototype communicationChannel,
-    FormattedMessage message
+public record struct GetPotentialRecipientsChatMessageEvent(
+    ChatMessageContext MessageContext,
+    CommunicationChannelPrototype CommunicationChannel,
+    FormattedMessage Message
 )
 {
     public readonly List<EntityUid> Recipients = new();
-    public readonly ChatMessageContext MessageContext = messageContext;
-    public readonly CommunicationChannelPrototype CommunicationChannel = communicationChannel;
-    public readonly FormattedMessage Message = message;
+    public readonly ChatMessageContext MessageContext = MessageContext;
+    public readonly CommunicationChannelPrototype CommunicationChannel = CommunicationChannel;
+    public readonly FormattedMessage Message = Message;
 }
 
 [Serializable, NetSerializable]
