@@ -63,8 +63,6 @@ internal sealed partial class ChatManager : SharedChatManager, IChatManager
 
     public void SendMessage(string text, ChatSelectChannel channel)
     {
-
-
         if (_isEventBasedChatEnabled)
         {
             if (TryHandleEventBased(text, channel))
@@ -96,7 +94,7 @@ internal sealed partial class ChatManager : SharedChatManager, IChatManager
 
             case ChatSelectChannel.Dead:
                 if (_systems.GetEntitySystemOrNull<GhostSystem>() is {IsGhost: true})
-                    goto case ChatSelectChannel.Radio;
+                    goto case ChatSelectChannel.Local;
 
                 if (_adminMgr.HasFlag(AdminFlags.Admin))
                     _consoleHost.ExecuteCommand($"dsay \"{CommandParsing.Escape(text)}\"");
@@ -106,8 +104,6 @@ internal sealed partial class ChatManager : SharedChatManager, IChatManager
 
             // TODO sepearate radio and say into separate commands.
             case ChatSelectChannel.Radio:
-                _consoleHost.ExecuteCommand($"say \"{CommandParsing.Escape(text)}\"");
-                break;
             case ChatSelectChannel.Local:
                 _consoleHost.ExecuteCommand($"say \"{CommandParsing.Escape(text)}\"");
                 break;
