@@ -1,10 +1,12 @@
 using Content.Client.Administration.Managers;
 using Content.Client.Ghost;
 using Content.Shared.Administration;
+using Content.Shared.CCVar;
 using Content.Shared.Chat;
 using Content.Shared.Chat.V2;
 using Robust.Client.Console;
 using Robust.Client.Player;
+using Robust.Shared.Configuration;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
 
@@ -16,15 +18,20 @@ internal sealed partial class ChatManager : SharedChatManager, IChatManager
     [Dependency] private IClientAdminManager _adminMgr = default!;
     [Dependency] private IEntitySystemManager _systems = default!;
     [Dependency] private IPlayerManager _playerManager = default!;
+    [Dependency] private IConfigurationManager _configuration= default!;
 
     private static readonly ProtoId<CommunicationChannelPrototype> SpeechChannel = "ICSpeech";
 
     private ISawmill _sawmill = default!;
 
+    private bool _isEventBasedChatEnabled = false;
+
     public override void Initialize()
     {
         _sawmill = Logger.GetSawmill("chat");
         _sawmill.Level = LogLevel.Info;
+
+        _configuration.OnValueChanged(CCVars.IsEventBasedChatEnabled, show => _isEventBasedChatEnabled= show, true);
     }
 
     /// <inheritdoc />
@@ -56,19 +63,12 @@ internal sealed partial class ChatManager : SharedChatManager, IChatManager
 
     public void SendMessage(string text, ChatSelectChannel channel)
     {
-        if (channel is ChatSelectChannel.Whisper or ChatSelectChannel.Local)
+
+
+        if (_isEventBasedChatEnabled)
         {
-            List<CommunicationContextData>? data = null;
-            if (channel == ChatSelectChannel.Whisper)
-            {
-                data = new List<CommunicationContextData>
-                {
-                    new AudialCommunicationContextData { IsWhispering = true }
-                };
-            }
-            _systems.GetEntitySystem<ChatSystem>()
-                    .SendMessage(SpeechChannel, _playerManager.LocalEntity, text, data);
-            return;
+            if (TryHandleEventBased(text, channel))
+                return;
         }
 
         switch (channel)
@@ -108,9 +108,37 @@ internal sealed partial class ChatManager : SharedChatManager, IChatManager
             case ChatSelectChannel.Radio:
                 _consoleHost.ExecuteCommand($"say \"{CommandParsing.Escape(text)}\"");
                 break;
+            case ChatSelectChannel.Local:
+                _consoleHost.ExecuteCommand($"say \"{CommandParsing.Escape(text)}\"");
+                break;
+
+            case ChatSelectChannel.Whisper:
+                _consoleHost.ExecuteCommand($"whisper \"{CommandParsing.Escape(text)}\"");
+                break;
 
             default:
                 throw new ArgumentOutOfRangeException(nameof(channel), channel, null);
         }
+    }
+
+    private bool TryHandleEventBased(string text, ChatSelectChannel channel)
+    {
+        switch (channel)
+        {
+            case ChatSelectChannel.Local or ChatSelectChannel.Whisper:
+                List<CommunicationContextData>? data = null;
+                if (channel == ChatSelectChannel.Whisper)
+                {
+                    data = new List<CommunicationContextData>
+                    {
+                        new AudialCommunicationContextData { IsWhispering = true }
+                    };
+                }
+                _systems.GetEntitySystem<ChatSystem>()
+                        .SendMessage(SpeechChannel, _playerManager.LocalEntity, text, data);
+                return true;
+        }
+
+        return false;
     }
 }

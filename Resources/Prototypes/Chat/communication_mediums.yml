@@ -8,4 +8,7 @@
   id: OOC
 
 - type: communicationMedium
-  id: Server
+  id: Network
+
+- type: communicationMedium
+  id: Global

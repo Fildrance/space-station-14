@@ -63,7 +63,10 @@ public sealed class AuditoryCommunicationSystem : EntitySystem
 
             var inRange = distance <= range + comp.RangeChange;
             if (inRange)
+            {
+                args.Recipients.Add(uid);
                 data.DistanceByRecipient.Add(GetNetEntity(uid), distance);
+            }
         }
     }
 
