@@ -83,7 +83,7 @@ public sealed partial class SpeechComponent : Component
 }
 
 [RegisterComponent, NetworkedComponent]
-public sealed partial class SpeechReceiverComponent : Component
+public sealed partial class AuditoryReceiverComponent : Component
 {
     /// <summary>
     /// Additional change to speech range of speak event producer.

@@ -54,7 +54,7 @@ public abstract partial class SharedChatSystem
 
         var context = PrepareContext(sender, msgEvent.AdditionalData, targetChannel, formattedMessage);
 
-        // This section handles validating the publisher based on ChatConditions, and passing on the message should the validation fail.
+        // This section handles validating the publisher and passing on the message should the validation fail.
 
 
         var attemptEvent = new AttemptSendChatMessageEvent(context, targetChannel, formattedMessage);
@@ -76,23 +76,20 @@ public abstract partial class SharedChatSystem
         formattedMessage = getRefined.Message;
         context = getRefined.MessageContext;
 
-        // This section handles sending out the message to consumers, whether that be sessions or entities.
-        // This is done via consume conditions. Conditional modifiers may also be applied here for a subset of consumers.
+        // This section handles sending out the message to consumers
 
         // Evaluate what clients should consume this message.
         var getRecipientsEvent = new GetPotentialRecipientsChatMessageEvent(context, targetChannel, formattedMessage);
         RaiseLocalEvent(sender, ref getRecipientsEvent);
 
-        var targets = getRecipientsEvent.DistanceByRecipient;
+        var targets = getRecipientsEvent.Recipients;
         if (targets.Count == 0)
             return;
 
         RefineContext(formattedMessage, targetChannel, context, sender);
 
-        foreach (var (target, distance) in targets)
+        foreach (var target in targets)
         {
-            context.Distance = distance;
-
             var attemptReceiveEvent = new AttemptReceiveChatMessageEvent(sender, context, formattedMessage);
             RaiseLocalEvent(target, ref attemptReceiveEvent);
 

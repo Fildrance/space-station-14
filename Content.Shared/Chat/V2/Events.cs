@@ -87,7 +87,7 @@ public struct GetPotentialRecipientsChatMessageEvent(
     FormattedMessage message
 )
 {
-    public readonly Dictionary<EntityUid, float?> DistanceByRecipient = new();
+    public readonly List<EntityUid> Recipients = new();
     public readonly ChatMessageContext MessageContext = messageContext;
     public readonly CommunicationChannelPrototype CommunicationChannel = communicationChannel;
     public readonly FormattedMessage Message = message;
@@ -129,4 +129,10 @@ public record struct GetRefinedReceiverChatMessageEvent(
     EntityUid? Sender,
     ChatMessageContext MessageContext,
     FormattedMessage Message
-);
+)
+{
+    public GetRefinedReceiverChatMessageEvent(GetRefinedReceiverChatMessageEvent ev, FormattedMessage message):this(ev.Sender, ev.MessageContext, message)
+    {
+
+    }
+}

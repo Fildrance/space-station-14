@@ -83,6 +83,8 @@ public sealed partial class AudialCommunicationContextData : CommunicationContex
     public int ExclamationCount;
 
     public bool IsExclaiming => ExclamationCount > 0;
+
+    public Dictionary<NetEntity, float> DistanceByRecipient = new();
 }
 
 [ImplicitDataDefinitionForInheritors, Serializable, NetSerializable]
