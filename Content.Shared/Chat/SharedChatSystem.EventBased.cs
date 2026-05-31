@@ -19,9 +19,7 @@ public abstract partial class SharedChatSystem
 
     private void OnPlayerSendChat(ProducePlayerChatMessageEvent msgEvent, EntitySessionEventArgs args)
     {
-        var sender = GetEntity(msgEvent.Sender);
-
-        if (args.SenderSession.AttachedEntity != sender)
+        if (!args.SenderSession.AttachedEntity.HasValue)
             return; // log error? we have been violated! >:(
 
         if (!_chatManager.TryProcessChatMessage(msgEvent, args))
@@ -30,10 +28,9 @@ public abstract partial class SharedChatSystem
         var evt = new ProduceEntityChatMessageEvent(
             msgEvent.PlayerMessageId,
             msgEvent.CommunicationChannel,
-            sender,
+            args.SenderSession.AttachedEntity.Value,
             msgEvent.Message,
-            msgEvent.AdditionalData,
-            target: GetEntity(msgEvent.Target)
+            msgEvent.AdditionalData
         );
         RaiseLocalEvent(ref evt);
     }

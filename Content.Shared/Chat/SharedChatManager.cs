@@ -1,5 +1,6 @@
 using Content.Shared.Chat.V2;
 using Content.Shared.Chat.V2.Moderation;
+using Robust.Shared.Player;
 using Robust.Shared.Utility;
 
 namespace Content.Shared.Chat;
@@ -19,7 +20,7 @@ public abstract class SharedChatManager : ISharedChatManager
             return false;
 
         // check message-rate
-        if(!TryAddToRepository(ev))
+        if(!TryAddToRepository(ev, args.SenderSession))
             return false;
 
         var asMarkup = formattedMessage.ToMarkup();
@@ -32,7 +33,7 @@ public abstract class SharedChatManager : ISharedChatManager
         return true;
     }
 
-    protected abstract bool TryAddToRepository(ProducePlayerChatMessageEvent ev);
+    protected abstract bool TryAddToRepository(ProducePlayerChatMessageEvent ev, ICommonSession senderSession);
 
     protected abstract bool IsFittingRateLimit(ProducePlayerChatMessageEvent ev, EntitySessionEventArgs args);
 

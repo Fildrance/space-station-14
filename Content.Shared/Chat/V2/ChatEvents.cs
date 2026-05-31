@@ -8,19 +8,13 @@ namespace Content.Shared.Chat.V2;
 public sealed class ProducePlayerChatMessageEvent(
     string playerMessageId,
     ProtoId<CommunicationChannelPrototype> communicationChannel,
-    NetEntity sender,
     FormattedMessage message,
-    List<CommunicationContextData>? additionalData = null,
-    NetEntity? target = null
+    List<CommunicationContextData>? additionalData = null
 ) : EntityEventArgs
 {
     public readonly string PlayerMessageId = playerMessageId;
 
     public readonly ProtoId<CommunicationChannelPrototype> CommunicationChannel = communicationChannel;
-
-    public readonly NetEntity Sender = sender;
-
-    public readonly NetEntity? Target = target;
 
     public FormattedMessage Message = message;
 
@@ -34,8 +28,7 @@ public sealed class ProduceEntityChatMessageEvent(
     EntityUid sender,
     FormattedMessage message,
     List<CommunicationContextData>? additionalData = null,
-    ProduceEntityChatMessageEvent? parent = null,
-    EntityUid? target = null
+    ProduceEntityChatMessageEvent? parent = null
 )
 {
     public readonly string? OriginalPlayerMessageId = originalPlayerMessageId;
@@ -45,8 +38,6 @@ public sealed class ProduceEntityChatMessageEvent(
     public readonly ProduceEntityChatMessageEvent? Parent = parent;
 
     public readonly EntityUid Sender = sender;
-
-    public readonly EntityUid? Target = target;
 
     public readonly FormattedMessage Message = message;
 

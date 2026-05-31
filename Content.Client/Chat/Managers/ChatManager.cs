@@ -7,6 +7,7 @@ using Content.Shared.Chat.V2;
 using Robust.Client.Console;
 using Robust.Client.Player;
 using Robust.Shared.Configuration;
+using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
 
@@ -35,7 +36,7 @@ internal sealed partial class ChatManager : SharedChatManager, IChatManager
     }
 
     /// <inheritdoc />
-    protected override bool TryAddToRepository(ProducePlayerChatMessageEvent ev)
+    protected override bool TryAddToRepository(ProducePlayerChatMessageEvent ev, ICommonSession senderSession)
     {
         return true;
     }

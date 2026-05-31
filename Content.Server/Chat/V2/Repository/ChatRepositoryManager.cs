@@ -4,6 +4,7 @@ using Content.Shared.Chat.V2;
 using Content.Shared.Chat.V2.Repository;
 using Robust.Server.Player;
 using Robust.Shared.Network;
+using Robust.Shared.Player;
 using Robust.Shared.Replays;
 
 namespace Content.Server.Chat.V2.Repository;
@@ -33,19 +34,9 @@ public sealed class ChatRepositoryManager : IChatRepositoryManager
         };
     }
 
-    /// <summary>
-    /// Adds an <see cref="IChatEvent"/> to the repo and raises it with a UID for consumption elsewhere.
-    /// </summary>
-    /// <param name="ev">The event to store and raise</param>
-    /// <returns>If storing and raising succeeded.</returns>
-    public bool TryAdd(ProducePlayerChatMessageEvent ev)
+    /// <inheritdoc />
+    public bool TryAdd(ProducePlayerChatMessageEvent ev, ICommonSession senderSession)
     {
-        var sender = _entityManager.GetEntity(ev.Sender);
-        if (!_player.TryGetSessionByEntity(sender, out var session))
-        {
-            return false;
-        }
-
         var id = ev.PlayerMessageId;
 
         if (_messages.ContainsKey(id))
@@ -54,8 +45,8 @@ public sealed class ChatRepositoryManager : IChatRepositoryManager
         }
 
         var storedEv = new ChatRecord(
-            session.Name,
-            session.UserId,
+            senderSession.Name,
+            senderSession.UserId,
             ev.Message.ToMarkup(),
             ev.CommunicationChannel
         );

@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using Content.Shared.Chat.V2;
 using Content.Shared.Chat.V2.Repository;
 using Robust.Shared.Network;
+using Robust.Shared.Player;
 
 namespace Content.Server.Chat.V2.Repository;
 
@@ -10,11 +11,12 @@ public interface IChatRepositoryManager
     void Initialize();
 
     /// <summary>
-    /// Adds an <see cref="IChatEvent"/> to the repo and raises it with a UID for consumption elsewhere.
+    /// Adds a record of player-produced chat message to the repo and raises it with a UID for consumption elsewhere.
     /// </summary>
     /// <param name="ev">The event to store and raise</param>
+    /// <param name="senderSession">Session which initiated chat produce event.</param>
     /// <returns>If storing and raising succeeded.</returns>
-    bool TryAdd(ProducePlayerChatMessageEvent ev);
+    bool TryAdd(ProducePlayerChatMessageEvent ev, ICommonSession senderSession);
 
     /// <summary>
     /// Edits a specific message and issues a <see cref="MessagePatchedEvent"/> that says this happened both locally and

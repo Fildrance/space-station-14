@@ -45,9 +45,8 @@ public sealed class ChatSystem : SharedChatSystem
             return;
 
         var markup = FormattedMessage.FromMarkupPermissive(str);
-        var sender = GetNetEntity(entity.Value);
         var messageId = Guid.NewGuid().ToString();
-        var @event = new ProducePlayerChatMessageEvent(messageId, channelProtoId, sender, markup, additionalData);
+        var @event = new ProducePlayerChatMessageEvent(messageId, channelProtoId, markup, additionalData);
         RaisePredictiveEvent(@event);
     }
 

@@ -76,9 +76,9 @@ internal sealed partial class ChatManager : SharedChatManager, IChatManager
     }
 
     /// <inheritdoc />
-    protected override bool TryAddToRepository(ProducePlayerChatMessageEvent ev)
+    protected override bool TryAddToRepository(ProducePlayerChatMessageEvent ev, ICommonSession senderSession)
     {
-        return _chatRepository.TryAdd(ev);
+        return _chatRepository.TryAdd(ev, senderSession);
     }
 
     /// <inheritdoc />

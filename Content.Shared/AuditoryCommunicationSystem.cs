@@ -1,10 +1,11 @@
 using Content.Shared.Chat;
 using Content.Shared.Chat.V2;
+using Content.Shared.Speech;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 using Robust.Shared.Utility;
 
-namespace Content.Shared.Speech;
+namespace Content.Shared;
 
 public sealed class AuditoryCommunicationSystem : EntitySystem
 {
@@ -100,7 +101,8 @@ public sealed class AuditoryCommunicationSystem : EntitySystem
 
             foreach (var text in node.Value.StringValue)
             {
-                if (text != '!')
+                const char exclamationChar = '!';
+                if (text != exclamationChar)
                     continue;
 
                 exclamationCount++;
@@ -110,21 +112,6 @@ public sealed class AuditoryCommunicationSystem : EntitySystem
         }
 
         return exclamationCount;
-    }
-
-    public void SetSpeech(EntityUid uid, bool value, SpeechComponent? component = null)
-    {
-        if (value && !Resolve(uid, ref component))
-            return;
-
-        component = EnsureComp<SpeechComponent>(uid);
-
-        if (component.Enabled == value)
-            return;
-
-        component.Enabled = value;
-
-        Dirty(uid, component);
     }
 
     private void OnRefineReceiverChatMessage(Entity<AuditoryReceiverComponent> ent, ref GetRefinedReceiverChatMessageEvent args)
