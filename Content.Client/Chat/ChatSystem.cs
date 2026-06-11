@@ -6,6 +6,7 @@ using Content.Shared.Decals;
 using Robust.Client.Player;
 using Robust.Client.UserInterface;
 using Robust.Shared.Configuration;
+using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 using Robust.Shared.Utility;
@@ -28,6 +29,19 @@ public sealed class ChatSystem : SharedChatSystem
 
         SubscribeNetworkEvent<ReceiveChatMessageNetworkMessage>(OnReceiveChatMessage);
         SubscribeLocalEvent<PrepareReceivedChatMessageEvent>(OnPrepareReceivedChatMessage);
+        SubscribeLocalEvent<ActorComponent, ReceiveChatMessageEvent>(Handler);
+    }
+    private void Handler(Entity<ActorComponent> ent, ref ReceiveChatMessageEvent args)
+    {
+        if (_playerManager.LocalSession == null)
+            return;
+
+        var senderNetEntity = GetNetEntity(args.Sender);
+        if (!senderNetEntity.HasValue)
+            return;
+
+        var chatMessageWrapper = new ReceiveChatMessageNetworkMessage(senderNetEntity.Value, args.Message, args.MessageContext, args.CommunicationChannel);
+        OnReceiveChatMessage(chatMessageWrapper, new (_playerManager.LocalSession));
     }
 
     public void SendMessage(
@@ -70,7 +84,8 @@ public sealed class ChatSystem : SharedChatSystem
 
         var verbPrototype = GetSpeechVerb(sender, formattedMessage.ToString());
         var verbs = verbPrototype.SpeechVerbStrings;
-        var random = new Random(context.Seed);
+        var random = new RobustRandom();
+        random.SetSeed(context.Seed);
         var verb = Loc.GetString(random.Pick(verbs));
 
         var message = Loc.GetString(templateId, ("entityName", entityName), ("verb", verb), ("sourceMessage", formattedMessage.ToMarkup()));
@@ -91,10 +106,24 @@ public sealed class ChatSystem : SharedChatSystem
             markup.ToMarkup(),
             msg.Sender,
             null,
-            targetChannel.HideChat
+            targetChannel.HideChat,
+            id : Generate(msg.Context.Seed)
         );
 
         _chatController.AddMessage(chatMessage);
+    }
+
+    private static Guid Generate(int seed)
+    {
+        var random = new Random(seed);
+        var bytes = new byte[16];
+        random.NextBytes(bytes); //
+
+        // Enforce Valid RFC 4122 Version 4 (Random) GUID bits
+        bytes[7] = (byte)((bytes[7] & 0x0F) | 0x40); // Set Version to 4
+        bytes[8] = (byte)((bytes[8] & 0x3F) | 0x80); // Set Variant to RFC 4122
+
+        return new Guid(bytes);
     }
 
     private static void Apply(FormattedMessage formattedMessage, ChatTextRenderSettings settings, string? intoTag = null)
@@ -195,7 +224,7 @@ public record struct PrepareReceivedChatMessageEvent(
     FormattedMessage Message,
     ChatMessageRenderSettings RenderSettings,
     ChatMessageContext MessageContext,
-    CommunicationChannelPrototype CommunicationChannel
+    ProtoId<CommunicationChannelPrototype> CommunicationChannel
 );
 
 public sealed class ChatMessageRenderSettings

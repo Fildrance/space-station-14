@@ -24,6 +24,7 @@ public partial class ChatBox : UIWidget
 
     private readonly ISawmill _sawmill;
     private readonly ChatUIController _controller;
+    private readonly Dictionary<Guid, Index> _chatBoxMessageIdByMessageId = new();
 
     public bool Main { get; set; }
 
@@ -44,6 +45,7 @@ public partial class ChatBox : UIWidget
         ChatInput.FilterButton.Popup.OnNewHighlights += OnNewHighlights;
         _controller = UserInterfaceManager.GetUIController<ChatUIController>();
         _controller.MessageAdded += OnMessageAdded;
+        _controller.MessageRemoved += OnMessageRemoved;
         _controller.HighlightsUpdated += OnHighlightsUpdated;
         _controller.RegisterChat(this);
     }
@@ -57,18 +59,18 @@ public partial class ChatBox : UIWidget
     {
         _sawmill.Debug($"{msg.Channel}: {msg.Message}");
         if (!ChatInput.FilterButton.Popup.IsActive(msg.Channel))
-        {
             return;
-        }
 
-        if (msg is { Read: false, AudioPath: { } })
-            _entManager.System<AudioSystem>().PlayGlobal(msg.AudioPath, Filter.Local(), false, AudioParams.Default.WithVolume(msg.AudioVolume));
+        if (msg is { Read: false, AudioPath: not null })
+            _entManager.System<AudioSystem>()
+                .PlayGlobal(msg.AudioPath, Filter.Local(), false, AudioParams.Default.WithVolume(msg.AudioVolume));
 
         msg.Read = true;
 
         var color = msg.MessageColorOverride ?? msg.Channel.TextColor();
 
-        AddLine(msg.WrappedMessage, color);
+        var index = AddLine(msg.WrappedMessage, color);
+        _chatBoxMessageIdByMessageId[msg.Id] = index.Value;
     }
 
     private void OnHighlightsUpdated(string highlights)
@@ -84,6 +86,7 @@ public partial class ChatBox : UIWidget
     public void Repopulate()
     {
         Contents.Clear();
+        _chatBoxMessageIdByMessageId.Clear();
 
         foreach (var message in _controller.History)
         {
@@ -94,6 +97,7 @@ public partial class ChatBox : UIWidget
     private void OnChannelFilter(ChatChannel channel, bool active)
     {
         Contents.Clear();
+        _chatBoxMessageIdByMessageId.Clear();
 
         foreach (var message in _controller.History)
         {
@@ -111,13 +115,19 @@ public partial class ChatBox : UIWidget
         _controller.UpdateHighlights(highlighs);
     }
 
-    public void AddLine(string message, Color color)
+    private void OnMessageRemoved(Guid messageId)
+    {
+        if(_chatBoxMessageIdByMessageId.TryGetValue(messageId, out var index))
+            Contents.RemoveEntry(index);
+    }
+
+    public Index AddLine(string message, Color color)
     {
         var formatted = new FormattedMessage(3);
         formatted.PushColor(color);
         formatted.AddMarkupOrThrow(message);
         formatted.Pop();
-        Contents.AddMessage(formatted, tagsAllowed: null);
+        return Contents.AddMessage(formatted, tagsAllowed: null);
     }
 
     public void Focus(ChatSelectChannel? channel = null)

@@ -12,6 +12,9 @@ public sealed partial class ChatSystem
 
     private void Handler(Entity<ActorComponent> ent, ref ReceiveChatMessageEvent args)
     {
+        if(ent.Owner == args.Sender)
+            return;
+
         var senderNetEntity = GetNetEntity(args.Sender);
         if(!senderNetEntity.HasValue)
             return;

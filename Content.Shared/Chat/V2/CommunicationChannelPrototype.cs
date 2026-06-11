@@ -3,8 +3,7 @@ using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototy
 
 namespace Content.Shared.Chat.V2;
 
-[Serializable]
-[Prototype("communicationChannel")]
+[Prototype]
 public sealed partial class CommunicationChannelPrototype : IPrototype, IInheritingPrototype
 {
     [IdDataField]
@@ -55,9 +54,8 @@ public sealed partial class CommunicationChannelPrototype : IPrototype, IInherit
     public List<CommunicationContextData> ContextData = new();
 }
 
-[Serializable]
-[Prototype("communicationMedium")]
-public partial class CommunicationMediumPrototype : IPrototype
+[Prototype]
+public sealed partial class CommunicationMediumPrototype : IPrototype
 {
     [IdDataField]
     public string ID { get; set; } = default!;

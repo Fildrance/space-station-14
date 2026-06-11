@@ -47,14 +47,14 @@ public sealed class ProduceEntityChatMessageEvent(
 [ByRefEvent]
 public record struct AttemptSendChatMessageEvent(
     ChatMessageContext MessageContext,
-    CommunicationChannelPrototype CommunicationChannel,
+    ProtoId<CommunicationChannelPrototype> CommunicationChannel,
     FormattedMessage Message
 )
 {
     public bool CanHandle;
     public bool Cancelled;
     public readonly ChatMessageContext MessageContext = MessageContext;
-    public readonly CommunicationChannelPrototype CommunicationChannel = CommunicationChannel;
+    public readonly ProtoId<CommunicationChannelPrototype> CommunicationChannel = CommunicationChannel;
     public readonly FormattedMessage Message = Message;
 }
 

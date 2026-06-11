@@ -174,6 +174,7 @@ public sealed partial class ChatUIController : UIController
     public event Action<ChatSelectChannel>? SelectableChannelsChanged;
     public event Action<ChatChannel, int?>? UnreadMessageCountsUpdated;
     public event Action<ChatMessage>? MessageAdded;
+    public event Action<Guid>? MessageRemoved;
 
     public override void Initialize()
     {
@@ -840,13 +841,13 @@ public sealed partial class ChatUIController : UIController
         if (_player.LocalUser != null && _mindSystem != null && _roleCodewordSystem != null)
         {
             if (_mindSystem.TryGetMind(_player.LocalUser.Value, out var mindId) && _ent.TryGetComponent(mindId, out RoleCodewordComponent? codewordComp))
+        {
+            foreach (var (_, codewordData) in codewordComp.RoleCodewords)
             {
-                foreach (var (_, codewordData) in codewordComp.RoleCodewords)
-                {
-                    foreach (string codeword in codewordData.Codewords)
-                        msg.WrappedMessage = SharedChatSystem.InjectTagAroundString(msg, codeword, "color", codewordData.Color.ToHex());
-                }
+                foreach (string codeword in codewordData.Codewords)
+                    msg.WrappedMessage = SharedChatSystem.InjectTagAroundString(msg, codeword, "color", codewordData.Color.ToHex());
             }
+        }
         }
 
         // Log all incoming chat to repopulate when filter is un-toggled
@@ -986,27 +987,24 @@ public sealed partial class ChatUIController : UIController
         }
 
 
-        if ((msg.Channel & ChatChannel.AdminRelated) == 0 ||
-            _config.GetCVar(CCVars.ReplayRecordAdminChat))
+        if ((msg.Channel & ChatChannel.AdminRelated) == 0
+            || _config.GetCVar(CCVars.ReplayRecordAdminChat))
         {
             _replayRecording.RecordClientMessage(msg);
         }
 
         // Local messages that have an entity attached get a speech bubble.
-        if (msg.SenderEntity == default)
+        if (msg.SenderEntity == default
+            || msg.Channel == ChatChannel.Dead && _ghost is not { IsGhost: true }
+            || msg.Channel == ChatChannel.LOOC && !_config.GetCVar(CCVars.LoocAboveHeadShow)
+        )
             return;
 
-        if (msg.Channel == ChatChannel.Dead && _ghost is not { IsGhost: true })
-            return;
-
-        if (msg.Channel == ChatChannel.LOOC && !_config.GetCVar(CCVars.LoocAboveHeadShow))
-            return;
-
-        SpeechBubble.SpeechType? speechType = msg.Channel switch
+        SpeechType? speechType = msg.Channel switch
         {
-            ChatChannel.Local or ChatChannel.Emotes  or ChatChannel.Dead => SpeechBubble.SpeechType.Say,
-            ChatChannel.Whisper => SpeechBubble.SpeechType.Whisper,
-            ChatChannel.LOOC => SpeechBubble.SpeechType.Looc,
+            ChatChannel.Local or ChatChannel.Emotes  or ChatChannel.Dead => SpeechType.Say,
+            ChatChannel.Whisper => SpeechType.Whisper,
+            ChatChannel.LOOC => SpeechType.Looc,
             _ => null
         };
 

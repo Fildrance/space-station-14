@@ -41,8 +41,11 @@ namespace Content.Shared.Chat
         [NonSerialized]
         public bool Read;
 
-        public ChatMessage(ChatChannel channel, string message, string wrappedMessage, NetEntity source, int? senderKey, bool hideChat = false, Color? colorOverride = null, string? audioPath = null, float audioVolume = 0)
+        public Guid Id;
+
+        public ChatMessage(ChatChannel channel, string message, string wrappedMessage, NetEntity source, int? senderKey, bool hideChat = false, Color? colorOverride = null, string? audioPath = null, float audioVolume = 0, Guid? id =  null)
         {
+            Id = id ?? Guid.NewGuid();
             Channel = channel;
             Message = message;
             WrappedMessage = wrappedMessage;
