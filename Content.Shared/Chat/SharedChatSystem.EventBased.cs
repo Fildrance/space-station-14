@@ -189,8 +189,7 @@ public abstract partial class SharedChatSystem
         // Include a random seed based on the message's hashcode.
         // Since the message has yet to be formatted by anything, any child channels should get the same random seed.
 
-        var seed = SharedRandomExtensions.HashCodeCombine((int)GetNetEntity(sender), (int)Timing.CurTick.Value, channelPrototype.ID.GetHashCode(), formattedMessage.GetHashCode());
-
+        var seed = SharedRandomExtensions.HashCodeCombine((int)GetNetEntity(sender), (int)Timing.CurTick.Value, GetDeterministicHashCode(channelPrototype.ID), GetDeterministicHashCode(formattedMessage.ToString()));
         var messageContext = new ChatMessageContext(seed, additionalData);
 
         return messageContext;
@@ -259,5 +258,24 @@ public abstract partial class SharedChatSystem
         ChatExchangerEntitiesByUserNetId.Add(session.UserId, exchangerId);
 
         return (exchangerId, exchanger);
+    }
+
+    private static int GetDeterministicHashCode(string str)
+    {
+        unchecked
+        {
+            int hash1 = (5381 << 16) + 5381;
+            int hash2 = hash1;
+
+            for (int i = 0; i < str.Length; i += 2)
+            {
+                hash1 = ((hash1 << 5) + hash1) ^ str[i];
+                if (i + 1 == str.Length)
+                    break;
+                hash2 = ((hash2 << 5) + hash2) ^ str[i + 1];
+            }
+
+            return hash1 + (hash2 * 1566083941);
+        }
     }
 }

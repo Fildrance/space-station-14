@@ -124,8 +124,7 @@ public partial class ChatBox : UIWidget
     private void OnMessageModified(Guid messageId, ChatMessage msg)
     {
         if (!_chatBoxMessageIdByMessageId.TryGetValue(messageId, out var index))
-            return;
-            //OnMessageAdded(msg);
+            OnMessageAdded(msg);
 
         var formatted = new FormattedMessage(3);
         // formatted.PushColor(color);
