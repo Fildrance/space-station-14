@@ -37,7 +37,13 @@ namespace Content.Server.GameTicking
                 }
             }
 
+            if (_chatSystem.TryGetExchanger(session.UserId, out var exchanger, out _) && args.NewStatus != SessionStatus.Disconnected)
+            {
+                _pvsOverride.AddSessionOverride(exchanger.Value, session);
+            }
+
             DebugTools.Assert(session.GetMind() == mindId);
+            DebugTools.Assert(session.GetMessageExchanger() == exchanger);
 
             switch (args.NewStatus)
             {
@@ -50,6 +56,8 @@ namespace Content.Server.GameTicking
                     {
                         var data = new ContentPlayerData(session.UserId, args.Session.Name);
                         data.Mind = mindId;
+                        var exchangerEnt = _chatSystem.EnsureExchangerFor(session);
+                        data.MessageExchanger = exchangerEnt;
                         session.Data.ContentDataUncast = data;
                     }
 

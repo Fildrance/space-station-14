@@ -6,6 +6,7 @@ using Content.Shared.Decals;
 using Robust.Client.Player;
 using Robust.Client.UserInterface;
 using Robust.Shared.Configuration;
+using Robust.Shared.GameStates;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
@@ -19,6 +20,7 @@ public sealed class ChatSystem : SharedChatSystem
     [Dependency] private IPlayerManager _playerManager = default!;
     [Dependency] private IConfigurationManager _config = default!;
 
+    private readonly List<Guid> _removedMessages = new();
     private ChatUIController _chatController = default!;
 
     public override void Initialize()
@@ -27,21 +29,59 @@ public sealed class ChatSystem : SharedChatSystem
 
         _chatController = _interfaceManager.GetUIController<ChatUIController>();
 
-        SubscribeNetworkEvent<ReceiveChatMessageNetworkMessage>(OnReceiveChatMessage);
         SubscribeLocalEvent<PrepareReceivedChatMessageEvent>(OnPrepareReceivedChatMessage);
-        SubscribeLocalEvent<ActorComponent, ReceiveChatMessageEvent>(Handler);
+        SubscribeLocalEvent<ChatMessageExchangerComponent, ComponentHandleState>(OnHandleState);
     }
-    private void Handler(Entity<ActorComponent> ent, ref ReceiveChatMessageEvent args)
+
+    private void OnHandleState(EntityUid gridUid, ChatMessageExchangerComponent exchangerComp, ref ComponentHandleState args)
     {
-        if (_playerManager.LocalSession == null)
-            return;
+        _removedMessages.Clear();
+        Dictionary<Guid, (ProtoId<CommunicationChannelPrototype> channel, FormattedMessage message, ChatMessageContext context, NetEntity? sender)> modifiedMessages;
 
-        var senderNetEntity = GetNetEntity(args.Sender);
-        if (!senderNetEntity.HasValue)
-            return;
+        switch (args.Current)
+        {
+            case ChatMessageExchangerComponent.ChatMessageExchangerDeltaState delta:
+            {
+                modifiedMessages = delta.ModifiedMessages;
+                foreach (var key in exchangerComp.Messages.Keys)
+                {
+                    if (!delta.AllChunks.Contains(key))
+                        _removedMessages.Add(key);
+                }
 
-        var chatMessageWrapper = new ReceiveChatMessageNetworkMessage(senderNetEntity.Value, args.Message, args.MessageContext, args.CommunicationChannel);
-        OnReceiveChatMessage(chatMessageWrapper, new (_playerManager.LocalSession));
+                break;
+            }
+            case ChatMessageExchangerComponent.ChatMessageExchangerState state:
+            {
+                modifiedMessages = state.Messages;
+                foreach (var key in exchangerComp.Messages.Keys)
+                {
+                    if (!state.Messages.ContainsKey(key))
+                        _removedMessages.Add(key);
+                }
+
+                break;
+            }
+            default:
+                return;
+        }
+
+        if (_removedMessages.Count > 0)
+            RemoveMessages(exchangerComp);
+
+        if (modifiedMessages.Count > 0)
+            ModifyMessages(exchangerComp, modifiedMessages);
+    }
+
+    protected override void OnChatMessageReceive(Entity<ActorComponent> ent, ref ReceiveChatMessageEvent args)
+    {
+        base.OnChatMessageReceive(ent, ref args);
+
+        var localSession = _playerManager.LocalSession;
+        if (ent.Owner == localSession?.AttachedEntity)
+        {
+            OnReceiveChatMessage(localSession.AttachedEntity.Value, args);
+        }
     }
 
     public void SendMessage(
@@ -64,16 +104,23 @@ public sealed class ChatSystem : SharedChatSystem
         RaisePredictiveEvent(@event);
     }
 
-    private void OnReceiveChatMessage(ReceiveChatMessageNetworkMessage msg, EntitySessionEventArgs args)
+    private void OnReceiveChatMessage(EntityUid target, ReceiveChatMessageEvent msg)
     {
-        if (_playerManager.LocalEntity == null || args.SenderSession.AttachedEntity != _playerManager.LocalEntity)
+        if (_playerManager.LocalEntity == null || target != _playerManager.LocalEntity)
             return;
 
-        var formattedMessage = msg.Message;
-        var context = msg.Context;
-        var targetChannel = _prototype.Index(msg.CommunicationChannel);
-        var sender = GetEntity(msg.Sender);
+        var chatMessage = PrepareMessage(msg.Message, msg.MessageContext, msg.CommunicationChannel, msg.Sender);
 
+        _chatController.AddMessage(chatMessage);
+    }
+
+    private ChatMessage PrepareMessage(
+        FormattedMessage formattedMessage,
+        ChatMessageContext context,
+        CommunicationChannelPrototype targetChannel,
+        EntityUid sender
+    )
+    {
         var renderSettings = new ChatMessageRenderSettings();
         var prepareEvent = new PrepareReceivedChatMessageEvent(sender, formattedMessage, renderSettings, context, targetChannel);
         RaiseLocalEvent(ref prepareEvent);
@@ -101,31 +148,26 @@ public sealed class ChatSystem : SharedChatSystem
         }
 
         var chatMessage = new ChatMessage(
-            ChatChannel.Local,
+            Map(targetChannel),
             body.ToString(),
             markup.ToMarkup(),
-            msg.Sender,
+            GetNetEntity(sender),
             null,
             targetChannel.HideChat,
-            id : Generate(msg.Context.Seed)
+            id : Generate(context.Seed)
         );
-
-        _chatController.AddMessage(chatMessage);
+        return chatMessage;
     }
 
-    private static Guid Generate(int seed)
+    private static ChatChannel Map(ProtoId<CommunicationChannelPrototype> communicationChannel)
     {
-        var random = new Random(seed);
-        var bytes = new byte[16];
-        random.NextBytes(bytes); //
-
-        // Enforce Valid RFC 4122 Version 4 (Random) GUID bits
-        bytes[7] = (byte)((bytes[7] & 0x0F) | 0x40); // Set Version to 4
-        bytes[8] = (byte)((bytes[8] & 0x3F) | 0x80); // Set Variant to RFC 4122
-
-        return new Guid(bytes);
+        return communicationChannel.Id switch
+        {
+            "ICSpeech" => ChatChannel.Local,
+            _ => ChatChannel.Local
+        };
     }
-
+    
     private static void Apply(FormattedMessage formattedMessage, ChatTextRenderSettings settings, string? intoTag = null)
     {
         if (settings.IsBold)
@@ -216,6 +258,28 @@ public sealed class ChatSystem : SharedChatSystem
 
         return default;
     }
+
+    private void ModifyMessages(ChatMessageExchangerComponent exchanger, Dictionary<Guid, (ProtoId<CommunicationChannelPrototype> channel, FormattedMessage message, ChatMessageContext context, NetEntity? sender)> modifiedMessages)
+    {
+        foreach (var (key, value) in modifiedMessages)
+        {
+            exchanger.Messages[key] = value;
+            if(value.sender == null)
+                return;
+
+            var data = PrepareMessage(value.message, value.context, _prototype.Index(value.channel), GetEntity(value.sender.Value));
+            _chatController.ModifyMessage(key, data);
+        }
+    }
+
+    private void RemoveMessages(ChatMessageExchangerComponent exchanger)
+    {
+        foreach (var removedMessage in _removedMessages)
+        {
+            exchanger.Messages.Remove(removedMessage);
+            _chatController.RemoveMessage(removedMessage);
+        }
+    }
 }
 
 [ByRefEvent]
@@ -258,4 +322,3 @@ public static class ChatConstants
     /// </summary>
     public const string BubbleBodyTagName = "BubbleMessage";
 }
-

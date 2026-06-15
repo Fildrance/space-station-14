@@ -1,4 +1,5 @@
-﻿using Content.Shared.Administration;
+using Content.Shared.Administration;
+using Content.Shared.Chat;
 using Content.Shared.GameTicking;
 using Content.Shared.Mind;
 using Robust.Shared.Network;
@@ -31,6 +32,9 @@ public sealed class ContentPlayerData
     /// </summary>
     [ViewVariables, Access(typeof(SharedMindSystem), typeof(SharedGameTicker))]
     public EntityUid? Mind { get; set; }
+
+    [ViewVariables, Access(typeof(SharedChatSystem), typeof(SharedGameTicker))]
+    public EntityUid? MessageExchanger { get; set; }
 
     /// <summary>
     /// If true, the admin will not show up in adminwho except to admins with the <see cref="AdminFlags.Stealth"/> flag.

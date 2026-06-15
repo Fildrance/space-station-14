@@ -1,0 +1,10 @@
+- type: entity
+  id: ChatMessageExchangerBase
+  name: message holder
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: ChatMessageExchanger
+  - type: ContainerContainer
+    containers:
+      mind_roles: !type:Container
+        ents: []

@@ -84,23 +84,9 @@ public record struct GetPotentialRecipientsChatMessageEvent(
     public readonly FormattedMessage Message = Message;
 }
 
-[Serializable, NetSerializable]
-public sealed partial class ReceiveChatMessageNetworkMessage(
-    NetEntity sender,
-    FormattedMessage message,
-    ChatMessageContext context,
-    ProtoId<CommunicationChannelPrototype> communicationChannel
-) : EntityEventArgs
-{
-    public readonly NetEntity Sender = sender;
-    public readonly FormattedMessage Message = message;
-    public readonly ChatMessageContext Context = context;
-    public readonly ProtoId<CommunicationChannelPrototype> CommunicationChannel = communicationChannel;
-}
-
 [ByRefEvent]
 public record struct ReceiveChatMessageEvent(
-    EntityUid? Sender,
+    EntityUid Sender,
     FormattedMessage Message,
     ChatMessageContext MessageContext,
     CommunicationChannelPrototype CommunicationChannel

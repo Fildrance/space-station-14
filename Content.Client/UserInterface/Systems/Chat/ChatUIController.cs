@@ -175,6 +175,7 @@ public sealed partial class ChatUIController : UIController
     public event Action<ChatChannel, int?>? UnreadMessageCountsUpdated;
     public event Action<ChatMessage>? MessageAdded;
     public event Action<Guid>? MessageRemoved;
+    public event Action<Guid, ChatMessage>? MessageModified;
 
     public override void Initialize()
     {
@@ -966,6 +967,16 @@ public sealed partial class ChatUIController : UIController
         public Queue<SpeechBubbleData> MessageQueue { get; } = new();
     }
 
+    public void RemoveMessage(Guid messageId)
+    {
+        MessageRemoved?.Invoke(messageId);
+    }
+
+    public void ModifyMessage(Guid key, ChatMessage value)
+    {
+        MessageModified?.Invoke(key, value);
+    }
+
     // todo: remove code duplication - extract common stuff
     public void AddMessage(ChatMessage msg)
     {
@@ -1013,4 +1024,5 @@ public sealed partial class ChatUIController : UIController
 
         AddSpeechBubble(msg, speechType.Value);
     }
+
 }
