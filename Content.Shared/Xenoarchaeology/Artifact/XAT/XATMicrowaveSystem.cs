@@ -5,11 +5,10 @@ using Content.Shared.Xenoarchaeology.Artifact.XAT.Components;
 namespace Content.Shared.Xenoarchaeology.Artifact.XAT;
 
 /// <summary>
-/// System for checking if microwaved xenoartifact should be triggered.
+/// System for checking if microwaved XenoArtifact should be triggered.
 /// </summary>
 public sealed class XATMicrowaveSystem : BaseXATSystem<XATMicrowaveComponent>
 {
-
     /// <inheritdoc/>
     public override void Initialize()
     {
