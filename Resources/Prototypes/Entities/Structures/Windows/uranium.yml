@@ -1,28 +1,22 @@
 - type: entity
+  parent: [BaseDeltaPressurePlasma, BaseWindowStructure, BaseRCDResistant]
   id: UraniumWindow
   name: uranium window
-  parent: WindowRCDResistant
   components:
   - type: Sprite
-    drawdepth: WallTops
     sprite: Structures/Windows/uranium_window.rsi
   - type: Icon
     sprite: Structures/Windows/uranium_window.rsi
     state: full
   - type: Damageable
-    damageContainer: StructuralInorganic
     damageModifierSet: Glass
+  - type: Injurable
+    damageContainer: StructuralInorganic
   - type: Destructible
     thresholds:
     - trigger:
         !type:DamageTrigger
-        damage: 150
-      behaviors:
-      - !type:DoActsBehavior
-        acts: [ "Destruction" ]
-    - trigger:
-        !type:DamageTrigger
-        damage: 75
+        damage: 100
       behaviors:
       - !type:PlaySoundBehavior
         sound:
@@ -52,14 +46,9 @@
     resistance: 3
 
 - type: entity
+  parent: [BaseDeltaPressurePlasmaQuarter, BaseWindowStructureDirectional, BaseRCDResistant]
   id: UraniumWindowDirectional
-  parent: WindowDirectional
   name: directional uranium window
-  description: Don't smudge up the glass down there.
-  placement:
-    mode: SnapgridCenter
-    snap:
-    - Window
   components:
   - type: Sprite
     sprite: Structures/Windows/directional.rsi
@@ -77,17 +66,15 @@
     trackAllDamage: true
     damageOverlay:
       sprite: Structures/Windows/cracks_directional.rsi
+  - type: Damageable
+    damageModifierSet: Glass
+  - type: Injurable
+    damageContainer: StructuralInorganic
   - type: Destructible
     thresholds:
     - trigger:
         !type:DamageTrigger
-        damage: 75
-      behaviors:
-      - !type:DoActsBehavior
-        acts: [ "Destruction" ]
-    - trigger:
-        !type:DamageTrigger
-        damage: 37
+        damage: 50
       behaviors:
       - !type:PlaySoundBehavior
         sound:
@@ -120,6 +107,7 @@
   - type: Tag
     tags:
     - Diagonal
+    - Window
   - type: IconSmooth
     mode: Diagonal
     key: windows

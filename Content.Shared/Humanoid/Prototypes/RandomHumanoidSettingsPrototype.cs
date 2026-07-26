@@ -11,7 +11,7 @@ public sealed partial class RandomHumanoidSettingsPrototype : IPrototype, IInher
 {
     [IdDataField] public string ID { get; private set; } = default!;
 
-    [ParentDataField(typeof(PrototypeIdArraySerializer<RandomHumanoidSettingsPrototype>))]
+    [ParentDataField(typeof(AbstractPrototypeIdArraySerializer<RandomHumanoidSettingsPrototype>))]
     public string[]? Parents { get; private set; }
 
     [AbstractDataField]
@@ -21,7 +21,7 @@ public sealed partial class RandomHumanoidSettingsPrototype : IPrototype, IInher
     /// <summary>
     ///     Whether the humanoid's name should take from the randomized profile or not.
     /// </summary>
-    [DataField("randomizeName")]
+    [DataField]
     public bool RandomizeName { get; private set; } = true;
 
     /// <summary>

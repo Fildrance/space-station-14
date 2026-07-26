@@ -8,11 +8,11 @@ const highp float invpi = 1.0 / pi;
 uniform highp float innerRadius;
 uniform highp float outerRadius;
 
-uniform highp vec4[64] sectorColors;
-uniform highp vec4[64] borderColors;
+uniform highp vec4[32] sectorColors;
+uniform highp vec4[32] borderColors;
 
-uniform highp float[64] separatorAngles;
-uniform highp float[64] sectorMedianAngles;
+uniform highp float[32] separatorAngles;
+uniform highp float[32] sectorMedianAngles;
 uniform highp int childCount;
 uniform highp vec2 centerPos;
 
