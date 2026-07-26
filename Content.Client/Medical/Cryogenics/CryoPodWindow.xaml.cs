@@ -17,8 +17,8 @@ namespace Content.Client.Medical.Cryogenics;
 [GenerateTypedNameReferences]
 public sealed partial class CryoPodWindow : FancyWindow
 {
-    [Dependency] private readonly IEntityManager _entityManager = default!;
-    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
+    [Dependency] private IEntityManager _entityManager = default!;
+    [Dependency] private IPrototypeManager _prototypeManager = default!;
     private readonly SharedAtmosphereSystem _atmosphere = default!;
 
     public event Action? OnEjectPatientPressed;
@@ -181,7 +181,7 @@ public sealed partial class CryoPodWindow : FancyWindow
         }
 
         // Status checklist
-        const float fallbackTemperatureRequirement = 213;
+        const float fallbackTemperatureRequirement = Atmospherics.T0C;
         var hasTemperatureCheck = (hasGas && hasCorrectTemperature
                 && (lowestTempRequirement != null || msg.GasMix.Temperature < fallbackTemperatureRequirement));
         var hasChemicals = (hasBeaker && !isBeakerEmpty);
