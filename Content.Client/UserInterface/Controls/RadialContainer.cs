@@ -13,10 +13,10 @@ public class RadialContainer : LayoutContainer
     [Dependency] private readonly IClyde _clyde= default!;
     private readonly ShaderInstance _shader;
 
-    private readonly float[] _angles = new float[32];
-    private readonly float[] _sectorMedians = new float[32];
-    private readonly Color[] _sectorColors = new Color[32];
-    private readonly Color[] _borderColors = new Color[32];
+    private readonly float[] _angles = new float[16];
+    private readonly float[] _sectorMedians = new float[16];
+    private readonly Color[] _sectorColors = new Color[16];
+    private readonly Color[] _borderColors = new Color[16];
 
     /// <summary>
     /// Increment of radius per child element to be rendered.

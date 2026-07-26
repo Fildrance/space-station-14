@@ -8,11 +8,11 @@ const highp float invpi = 1.0 / pi;
 uniform highp float innerRadius;
 uniform highp float outerRadius;
 
-uniform highp vec4[32] sectorColors;
-uniform highp vec4[32] borderColors;
+uniform highp vec4[16] sectorColors;
+uniform highp vec4[16] borderColors;
 
-uniform highp float[32] separatorAngles;
-uniform highp float[32] sectorMedianAngles;
+uniform highp float[16] separatorAngles;
+uniform highp float[16] sectorMedianAngles;
 uniform highp int childCount;
 uniform highp vec2 centerPos;
 
@@ -104,9 +104,8 @@ void fragment()
         highp float isInInnerRadius = float(r > innerRadius);
         highp float iAngle = twopi - separatorAngles[i];
         // button separators
-        highp float isCurrentZero = float(i > 0);
-        highp float sectorFromAngle = separatorAngles[i - 1] * isCurrentZero;
 
+        highp float sectorFromAngle = separatorAngles[max(0, i - 1)] * float(i > 0);
         col += isInInnerRadius
             * separator(d, r, outerRadius, sectorFromAngle, 0.5) * borderColor;
         col += isInInnerRadius
