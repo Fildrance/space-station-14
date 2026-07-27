@@ -245,7 +245,7 @@ public sealed class ChatSystem : SharedChatSystem
 
     private Color GetNameColor(string name)
     {
-        var nameColors = _prototype.Index(ChatNamePalette).Colors.Values;
+        var nameColors = ProtoMan.Index(ChatNamePalette).Colors.Values;
         var colorIdx = Math.Abs(name.GetHashCode() % nameColors.Count);
         var i = 0;
         foreach (var nameColor in nameColors)
@@ -267,7 +267,7 @@ public sealed class ChatSystem : SharedChatSystem
             if(value.Sender == null)
                 return;
 
-            var data = PrepareMessage(value.Message, value.Context, _prototype.Index(value.Channel), GetEntity(value.Sender.Value));
+            var data = PrepareMessage(value.Message, value.Context, ProtoMan.Index(value.Channel), GetEntity(value.Sender.Value));
             _chatController.ModifyMessage(key, data);
         }
     }

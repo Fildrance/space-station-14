@@ -83,7 +83,7 @@ public abstract partial class SharedChatSystem
             return;
 
         var sender = msgEvent.Sender;
-        var targetChannel = _prototype.Index(msgEvent.CommunicationChannel);
+        var targetChannel = ProtoMan.Index(msgEvent.CommunicationChannel);
         var formattedMessage = msgEvent.Message;
 
         // This section handles setting up the parameters and any other business that should happen before validation starts.

@@ -5,7 +5,7 @@ using Robust.Shared.Serialization;
 
 namespace Content.Shared.Chat.V2;
 
-[NetSerializable, Serializable]
+[NetSerializable, Serializable, DataDefinition]
 public sealed partial class ChatMessageContext
 {
     public ChatMessageContext(int seed) : this(seed, null)
@@ -28,7 +28,7 @@ public sealed partial class ChatMessageContext
     public string? EntityName;
 
     [DataField]
-    public readonly int Seed;
+    public int Seed;
 
     [DataField]
     public float? Distance;
