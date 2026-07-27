@@ -8,27 +8,43 @@ using Robust.Shared.Utility;
 
 namespace Content.Shared.Chat;
 
+[Serializable, NetSerializable]
+public sealed class ChatMessageDataForExchange(
+    ProtoId<CommunicationChannelPrototype> channel,
+    FormattedMessage message,
+    ChatMessageContext context,
+    NetEntity? sender,
+    GameTick pushedOnTick
+)
+{
+    public ProtoId<CommunicationChannelPrototype> Channel = channel;
+    public FormattedMessage Message = message;
+    public ChatMessageContext Context = context;
+    public NetEntity? Sender = sender;
+    public GameTick PushedOnTick = pushedOnTick;
+}
+
 [RegisterComponent]
 [Access(typeof(SharedChatSystem))]
 [NetworkedComponent]
 public sealed partial class ChatMessageExchangerComponent : Component
 {
-    public readonly Dictionary<Guid, (ProtoId<CommunicationChannelPrototype> channel, FormattedMessage message, ChatMessageContext context, NetEntity? sender)> Messages = new();
+    public readonly Dictionary<Guid, ChatMessageDataForExchange> Messages = new();
 
     public NetUserId UserId;
     public GameTick LastModified;
 
     [Serializable, NetSerializable]
-    public sealed class ChatMessageExchangerState(Dictionary<Guid, (ProtoId<CommunicationChannelPrototype> channel, FormattedMessage message, ChatMessageContext context, NetEntity? sender)> messages) : ComponentState
+    public sealed class ChatMessageExchangerState(Dictionary<Guid, ChatMessageDataForExchange> messages) : ComponentState
     {
-        public Dictionary<Guid, (ProtoId<CommunicationChannelPrototype> channel, FormattedMessage message, ChatMessageContext context, NetEntity? sender)> Messages = messages;
+        public Dictionary<Guid, ChatMessageDataForExchange> Messages = messages;
     }
 
     [Serializable, NetSerializable]
-    public sealed class ChatMessageExchangerDeltaState(Dictionary<Guid, (ProtoId<CommunicationChannelPrototype> channel, FormattedMessage message, ChatMessageContext context, NetEntity? sender)> modifiedMessages, HashSet<Guid> allChunks)
+    public sealed class ChatMessageExchangerDeltaState(Dictionary<Guid, ChatMessageDataForExchange> modifiedMessages, HashSet<Guid> allChunks)
         : ComponentState, IComponentDeltaState<ChatMessageExchangerState>
     {
-        public Dictionary<Guid, (ProtoId<CommunicationChannelPrototype> channel, FormattedMessage message, ChatMessageContext context, NetEntity? sender)> ModifiedMessages = modifiedMessages;
+        public Dictionary<Guid, ChatMessageDataForExchange> ModifiedMessages = modifiedMessages;
         public HashSet<Guid> AllChunks = allChunks;
 
         public void ApplyToFullState(ChatMessageExchangerState state)
@@ -47,7 +63,7 @@ public sealed partial class ChatMessageExchangerComponent : Component
 
         public ChatMessageExchangerState CreateNewFullState(ChatMessageExchangerState state)
         {
-            var chunks = new Dictionary<Guid, (ProtoId<CommunicationChannelPrototype> channel, FormattedMessage message, ChatMessageContext context, NetEntity? sender)>(state.Messages.Count);
+            var chunks = new Dictionary<Guid, ChatMessageDataForExchange>(state.Messages.Count);
 
             foreach (var (chunk, data) in ModifiedMessages)
             {

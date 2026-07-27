@@ -1,5 +1,6 @@
 using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization;
+using Robust.Shared.Timing;
 using Robust.Shared.Utility;
 
 namespace Content.Shared.Chat.V2;
@@ -89,7 +90,8 @@ public record struct ReceiveChatMessageEvent(
     EntityUid Sender,
     FormattedMessage Message,
     ChatMessageContext MessageContext,
-    CommunicationChannelPrototype CommunicationChannel
+    CommunicationChannelPrototype CommunicationChannel,
+    GameTick PublishedOnTick
 );
 
 [ByRefEvent]

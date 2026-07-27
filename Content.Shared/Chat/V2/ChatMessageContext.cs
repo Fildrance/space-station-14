@@ -74,6 +74,12 @@ public abstract partial class CommunicationContextData
 }
 
 [ImplicitDataDefinitionForInheritors, Serializable, NetSerializable]
+public sealed partial class LanguageCommunicationContextData:CommunicationContextData
+{
+    
+}
+
+[ImplicitDataDefinitionForInheritors, Serializable, NetSerializable]
 public sealed partial class AudialCommunicationContextData : CommunicationContextData
 {
     [DataField]

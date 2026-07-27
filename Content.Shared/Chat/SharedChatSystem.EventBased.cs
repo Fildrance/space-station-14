@@ -44,19 +44,19 @@ public abstract partial class SharedChatSystem
             return;
         }
 
-        var data = new Dictionary<Guid, (ProtoId<CommunicationChannelPrototype> channel, FormattedMessage message, ChatMessageContext context, NetEntity? sender)>();
-        if (component.LastModified >= args.FromTick)
-            foreach (var (index, chunk) in component.Messages)
-            {
-                data[index] = chunk;
-            }
+        var data = new Dictionary<Guid, ChatMessageDataForExchange>();
+        foreach (var (messageId, message) in component.Messages)
+        {
+            if (message.PushedOnTick >= args.FromTick)
+                data[messageId] = message;
+        }
 
         args.State = new ChatMessageExchangerComponent.ChatMessageExchangerDeltaState(data, new(component.Messages.Keys));
     }
 
     protected virtual void OnChatMessageReceive(Entity<ActorComponent> ent, ref ReceiveChatMessageEvent args)
     {
-        TryAddMessage(ent.Comp.PlayerSession.UserId, args.CommunicationChannel, args.Message, args.MessageContext, args.Sender);
+        TryAddMessage(ent.Comp.PlayerSession.UserId, args.CommunicationChannel, args.Message, args.MessageContext, args.Sender, args.PublishedOnTick);
     }
 
     private void OnPlayerSendChat(ProducePlayerChatMessageEvent msgEvent, EntitySessionEventArgs args)
@@ -124,6 +124,8 @@ public abstract partial class SharedChatSystem
         var targets = getRecipientsEvent.Recipients;
         if (targets.Count == 0)
             return;
+
+        var tick = Timing.CurTick;
         foreach (var target in targets)
         {
             var attemptReceiveEvent = new AttemptReceiveChatMessageEvent(sender, context, formattedMessage);
@@ -138,7 +140,7 @@ public abstract partial class SharedChatSystem
             var receiverSpecifiedMessage = getRefinedReceiverMsg.Message;
             var receiverSpecifiedContext = getRefinedReceiverMsg.MessageContext;
             
-            var receiveEvent = new ReceiveChatMessageEvent(sender, receiverSpecifiedMessage, receiverSpecifiedContext, targetChannel);
+            var receiveEvent = new ReceiveChatMessageEvent(sender, receiverSpecifiedMessage, receiverSpecifiedContext, targetChannel, tick);
             RaiseLocalEvent(target, ref receiveEvent);
         }
 
@@ -215,13 +217,14 @@ public abstract partial class SharedChatSystem
         CommunicationChannelPrototype channel,
         FormattedMessage message,
         ChatMessageContext context,
-        EntityUid? sender)
+        EntityUid? sender,
+        GameTick tick)
     {
         if (!TryGetExchanger(userId, out var exchangerEnt, out var exchanger))
             return false;
 
         var messageId = Generate(context.Seed);
-        if (exchanger.Messages.TryAdd(messageId, (channel, message, context, GetNetEntity(sender))))
+        if (exchanger.Messages.TryAdd(messageId, new(channel, message, context, GetNetEntity(sender), tick)))
         {
             exchanger.LastModified = Timing.CurTick;
             Dirty(exchangerEnt.Value, exchanger);

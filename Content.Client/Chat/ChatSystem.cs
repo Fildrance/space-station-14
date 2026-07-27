@@ -36,7 +36,7 @@ public sealed class ChatSystem : SharedChatSystem
     private void OnHandleState(EntityUid gridUid, ChatMessageExchangerComponent exchangerComp, ref ComponentHandleState args)
     {
         _removedMessages.Clear();
-        Dictionary<Guid, (ProtoId<CommunicationChannelPrototype> channel, FormattedMessage message, ChatMessageContext context, NetEntity? sender)> modifiedMessages;
+        Dictionary<Guid, ChatMessageDataForExchange> modifiedMessages;
 
         switch (args.Current)
         {
@@ -259,15 +259,15 @@ public sealed class ChatSystem : SharedChatSystem
         return default;
     }
 
-    private void ModifyMessages(ChatMessageExchangerComponent exchanger, Dictionary<Guid, (ProtoId<CommunicationChannelPrototype> channel, FormattedMessage message, ChatMessageContext context, NetEntity? sender)> modifiedMessages)
+    private void ModifyMessages(ChatMessageExchangerComponent exchanger, Dictionary<Guid, ChatMessageDataForExchange> modifiedMessages)
     {
         foreach (var (key, value) in modifiedMessages)
         {
             exchanger.Messages[key] = value;
-            if(value.sender == null)
+            if(value.Sender == null)
                 return;
 
-            var data = PrepareMessage(value.message, value.context, _prototype.Index(value.channel), GetEntity(value.sender.Value));
+            var data = PrepareMessage(value.Message, value.Context, _prototype.Index(value.Channel), GetEntity(value.Sender.Value));
             _chatController.ModifyMessage(key, data);
         }
     }
