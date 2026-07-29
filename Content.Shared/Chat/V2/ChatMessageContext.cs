@@ -8,21 +8,36 @@ namespace Content.Shared.Chat.V2;
 [NetSerializable, Serializable, DataDefinition]
 public sealed partial class ChatMessageContext
 {
-    public ChatMessageContext(int seed) : this(seed, null)
-    {
-
-    }
-
-    public ChatMessageContext(int seed, IReadOnlyCollection<CommunicationContextData>? additionalData = null)
+    public ChatMessageContext(int seed) 
     {
         Seed = seed;
-        Data = additionalData == null
-            ? new()
-            : new(additionalData);
+        Data = new();
+    }
+
+    public ChatMessageContext(int seed, Dictionary<string, CommunicationContextData>? additionalData = null) : this(seed)
+    {
+        if (additionalData == null)
+            return;
+
+        foreach (var data in additionalData)
+        {
+            Data.Add(data.Key, data.Value);
+        }
+    }
+
+    public ChatMessageContext(int seed, List<CommunicationContextData>? additionalData = null) : this(seed)
+    {
+        if (additionalData == null)
+            return;
+
+        foreach (var data in additionalData)
+        {
+            Data.Add(data.GetType().FullName!, data);
+        }
     }
 
     [DataField]
-    public List<CommunicationContextData> Data;
+    public Dictionary<string, CommunicationContextData> Data;
 
     [DataField]
     public string? EntityName;
@@ -33,16 +48,22 @@ public sealed partial class ChatMessageContext
     [DataField]
     public float? Distance;
 
+    public void Set<T>(T data) where T : CommunicationContextData
+    {
+        Data.Add(typeof(T).Name, data);
+    }
+
     public void Set(CommunicationContextData data)
     {
-        Data.Add(data);
+        Data.Add(data.GetType().FullName!, data);
     }
 
     public T Ensure<T>(Func<T> factory) where T : CommunicationContextData, new()
     {
-        if (TryGet<T>(out var value))
+        var key = typeof(T).FullName!;
+        if (Data.TryGetValue(key, out var val) && val is T casted)
         {
-            return value;
+            return casted;
         }
 
         var communicationContextData = factory();
@@ -53,30 +74,52 @@ public sealed partial class ChatMessageContext
     public bool TryGet<T>([NotNullWhen(true)]out T? result) where T : CommunicationContextData
     {
         result = null;
-        foreach (var data in Data)
+        var key = typeof(T).FullName!;
+        if (Data.TryGetValue(key, out var val) && val is T casted)
         {
-            if (data is T casted)
-            {
-                result = casted;
-                return true;
-            }
+            result = casted;
+            return true;
         }
 
         return false;
     }
 
+    public bool Contains<T>()
+    {
+        var key = typeof(T).FullName!;
+        if (Data.TryGetValue(key, out var val) && val is T)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    public List<CommunicationContextData> GetRetainedData(ProtoId<CommunicationChannelPrototype> forCommunicationChannel)
+    {
+        var list = new List<CommunicationContextData>();
+        foreach (var (_, value) in Data)
+        {
+            value.IsRetainedFor(forCommunicationChannel);
+        }
+
+        return list;
+    }
 }
 
 [ImplicitDataDefinitionForInheritors, Serializable, NetSerializable]
 public abstract partial class CommunicationContextData
 {
-
+    public abstract bool IsRetainedFor(ProtoId<CommunicationChannelPrototype> forCommunicationChannel);
 }
 
 [ImplicitDataDefinitionForInheritors, Serializable, NetSerializable]
 public sealed partial class LanguageCommunicationContextData:CommunicationContextData
 {
-    
+    public override bool IsRetainedFor(ProtoId<CommunicationChannelPrototype> forCommunicationChannel)
+    {
+        return true;
+    }
 }
 
 [ImplicitDataDefinitionForInheritors, Serializable, NetSerializable]
@@ -91,6 +134,11 @@ public sealed partial class AudialCommunicationContextData : CommunicationContex
     public bool IsExclaiming => ExclamationCount > 0;
 
     public Dictionary<NetEntity, float> DistanceByRecipient = new();
+
+    public override bool IsRetainedFor(ProtoId<CommunicationChannelPrototype> forCommunicationChannel)
+    {
+        return false;
+    }
 }
 
 [ImplicitDataDefinitionForInheritors, Serializable, NetSerializable]
@@ -98,4 +146,9 @@ public sealed partial class RadioCommunicationContextData : CommunicationContext
 {
     [DataField]
     public ProtoId<RadioChannelPrototype> RadioChannel;
+
+    public override bool IsRetainedFor(ProtoId<CommunicationChannelPrototype> forCommunicationChannel)
+    {
+        return false; // retain only for other radio com channel?
+    }
 }

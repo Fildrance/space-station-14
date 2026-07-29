@@ -173,9 +173,9 @@ public sealed partial class ChatUIController : UIController
     public event Action<ChatChannel>? FilterableChannelsChanged;
     public event Action<ChatSelectChannel>? SelectableChannelsChanged;
     public event Action<ChatChannel, int?>? UnreadMessageCountsUpdated;
-    public event Action<ChatMessage>? MessageAdded;
-    public event Action<Guid>? MessageRemoved;
-    public event Action<Guid, ChatMessage>? MessageModified;
+    public Action<ChatMessage>? MessageAdded;
+    public Action<Guid>? MessageRemoved;
+    public Action<Guid, ChatMessage>? MessageModified;
 
     public override void Initialize()
     {
@@ -842,13 +842,15 @@ public sealed partial class ChatUIController : UIController
         if (_player.LocalUser != null && _mindSystem != null && _roleCodewordSystem != null)
         {
             if (_mindSystem.TryGetMind(_player.LocalUser.Value, out var mindId) && _ent.TryGetComponent(mindId, out RoleCodewordComponent? codewordComp))
-        {
-            foreach (var (_, codewordData) in codewordComp.RoleCodewords)
             {
-                foreach (string codeword in codewordData.Codewords)
-                    msg.WrappedMessage = SharedChatSystem.InjectTagAroundString(msg, codeword, "color", codewordData.Color.ToHex());
+                foreach (var (_, codewordData) in codewordComp.RoleCodewords)
+                {
+                    foreach (string codeword in codewordData.Codewords)
+                    {
+                        msg.WrappedMessage = SharedChatSystem.InjectTagAroundString(msg, codeword, "color", codewordData.Color.ToHex());
+                    }
+                }
             }
-        }
         }
 
         // Log all incoming chat to repopulate when filter is un-toggled
@@ -997,6 +999,8 @@ public sealed partial class ChatUIController : UIController
             }
         }
 
+        if (!_timing.IsFirstTimePredicted)
+            return;
 
         if ((msg.Channel & ChatChannel.AdminRelated) == 0
             || _config.GetCVar(CCVars.ReplayRecordAdminChat))

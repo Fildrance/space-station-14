@@ -43,7 +43,9 @@ namespace Content.Shared.Chat
 
         public Guid Id;
 
-        public ChatMessage(ChatChannel channel, string message, string wrappedMessage, NetEntity source, int? senderKey, bool hideChat = false, Color? colorOverride = null, string? audioPath = null, float audioVolume = 0, Guid? id =  null)
+        public int? Seed;
+
+        public ChatMessage(ChatChannel channel, string message, string wrappedMessage, NetEntity source, int? senderKey, bool hideChat = false, Color? colorOverride = null, string? audioPath = null, float audioVolume = 0, Guid? id =  null, int? seed = null)
         {
             Id = id ?? Guid.NewGuid();
             Channel = channel;

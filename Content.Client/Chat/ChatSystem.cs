@@ -109,17 +109,17 @@ public sealed class ChatSystem : SharedChatSystem
         if (_playerManager.LocalEntity == null || target != _playerManager.LocalEntity)
             return;
 
-        var chatMessage = PrepareMessage(msg.Message, msg.MessageContext, msg.CommunicationChannel, msg.Sender);
+        var chatMessage = PrepareMessage(msg.OriginalUserMessageId, msg.Message, msg.MessageContext, msg.CommunicationChannel, msg.Sender);
 
         _chatController.AddMessage(chatMessage);
     }
 
     private ChatMessage PrepareMessage(
+        Guid msgId,
         FormattedMessage formattedMessage,
         ChatMessageContext context,
         CommunicationChannelPrototype targetChannel,
-        EntityUid sender
-    )
+        EntityUid sender)
     {
         var renderSettings = new ChatMessageRenderSettings();
         var prepareEvent = new PrepareReceivedChatMessageEvent(sender, formattedMessage, renderSettings, context, targetChannel);
@@ -146,7 +146,6 @@ public sealed class ChatSystem : SharedChatSystem
         {
             body = FormattedMessage.Empty;
         }
-
         var chatMessage = new ChatMessage(
             Map(targetChannel),
             body.ToString(),
@@ -154,7 +153,8 @@ public sealed class ChatSystem : SharedChatSystem
             GetNetEntity(sender),
             null,
             targetChannel.HideChat,
-            id : Generate(context.Seed)
+            id : msgId,
+            seed: context.Seed
         );
         return chatMessage;
     }
@@ -267,9 +267,10 @@ public sealed class ChatSystem : SharedChatSystem
             if(value.Sender == null)
                 return;
 
-            var data = PrepareMessage(value.Message, value.Context, ProtoMan.Index(value.Channel), GetEntity(value.Sender.Value));
+            var data = PrepareMessage(key, value.Message, value.Context, ProtoMan.Index(value.Channel), GetEntity(value.Sender.Value));
             _chatController.ModifyMessage(key, data);
         }
+        modifiedMessages.Clear();
     }
 
     private void RemoveMessages(ChatMessageExchangerComponent exchanger)
@@ -279,6 +280,7 @@ public sealed class ChatSystem : SharedChatSystem
             exchanger.Messages.Remove(removedMessage);
             _chatController.RemoveMessage(removedMessage);
         }
+        _removedMessages.Clear();
     }
 }
 

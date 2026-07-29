@@ -8,7 +8,7 @@ namespace Content.Shared.Chat.V2.Repository;
 /// <summary>
 /// The record associated with a specific chat event.
 /// </summary>
-public class ChatRecord(
+public sealed class ChatRecord(
     string userName,
     NetUserId userId,
     string originalMessage,

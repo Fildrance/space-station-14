@@ -43,9 +43,9 @@ public partial class ChatBox : UIWidget
         ChatInput.FilterButton.Popup.OnChannelFilter += OnChannelFilter;
         ChatInput.FilterButton.Popup.OnNewHighlights += OnNewHighlights;
         _controller = UserInterfaceManager.GetUIController<ChatUIController>();
-        _controller.MessageAdded += OnMessageAdded;
-        _controller.MessageModified += OnMessageModified;
-        _controller.MessageRemoved += OnMessageRemoved;
+        _controller.MessageAdded ??= OnMessageAdded;
+        _controller.MessageModified ??= OnMessageModified;
+        _controller.MessageRemoved ??= OnMessageRemoved;
         _controller.HighlightsUpdated += OnHighlightsUpdated;
         _controller.RegisterChat(this);
     }
@@ -57,6 +57,9 @@ public partial class ChatBox : UIWidget
 
     private void OnMessageAdded(ChatMessage msg)
     {
+        if (_chatBoxMessageIdByMessageId.ContainsKey(msg.Id))
+            return;
+
         _sawmill.Debug($"{msg.Channel}: {msg.Message}");
         if (!ChatInput.FilterButton.Popup.IsActive(msg.Channel))
             return;
@@ -230,6 +233,10 @@ public partial class ChatBox : UIWidget
 
         if (!disposing) return;
         _controller.UnregisterChat(this);
+        _controller.MessageAdded = null;
+        _controller.MessageModified = null;
+        _controller.MessageRemoved = null;
+
         ChatInput.Input.OnTextEntered -= OnTextEntered;
         ChatInput.Input.OnKeyBindDown -= OnInputKeyBindDown;
         ChatInput.Input.OnTextChanged -= OnTextChanged;

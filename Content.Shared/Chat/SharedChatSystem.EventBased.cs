@@ -15,7 +15,7 @@ namespace Content.Shared.Chat;
 public abstract partial class SharedChatSystem
 {
     [Dependency] protected IGameTiming Timing = default!;
-    [Dependency] protected ISharedChatManager _chatManager = default!;
+    [Dependency] protected ISharedChatManager ChatManager = default!;
     [Dependency] private MetaDataSystem _metadata = default!;
 
     [ViewVariables]
@@ -56,42 +56,46 @@ public abstract partial class SharedChatSystem
 
     protected virtual void OnChatMessageReceive(Entity<ActorComponent> ent, ref ReceiveChatMessageEvent args)
     {
-        TryAddMessage(ent.Comp.PlayerSession.UserId, args.CommunicationChannel, args.Message, args.MessageContext, args.Sender, args.PublishedOnTick);
+        TryAddMessage(ent.Comp.PlayerSession.UserId, args.CommunicationChannel, args.Message, args.MessageContext, args.Sender, args.PublishedOnTick, args.OriginalUserMessageId);
     }
 
     private void OnPlayerSendChat(ProducePlayerChatMessageEvent msgEvent, EntitySessionEventArgs args)
     {
+        if(!Timing.IsFirstTimePredicted)
+            return;
+
         if (!args.SenderSession.AttachedEntity.HasValue)
             return; // log error? we have been violated! >:(
 
-        if (!_chatManager.TryProcessChatMessage(msgEvent, args))
+        if (!ChatManager.TryProcessChatMessage(msgEvent, args))
             return;
 
+        var senderEntity = args.SenderSession.AttachedEntity.Value;
         var evt = new ProduceEntityChatMessageEvent(
             msgEvent.PlayerMessageId,
             msgEvent.CommunicationChannel,
-            args.SenderSession.AttachedEntity.Value,
+            senderEntity,
             msgEvent.Message,
-            msgEvent.AdditionalData
+            PrepareContext(senderEntity, msgEvent.AdditionalData, msgEvent.CommunicationChannel, msgEvent.Message)
         );
         RaiseLocalEvent(ref evt);
     }
 
     private void OnEntitySendChat(ref ProduceEntityChatMessageEvent msgEvent)
     {
-        if (!Timing.IsFirstTimePredicted)
+        var parent = msgEvent.Parent;
+        if (IsLanguageEncodingUsed(parent))
             return;
 
         var sender = msgEvent.Sender;
         var targetChannel = ProtoMan.Index(msgEvent.CommunicationChannel);
         var formattedMessage = msgEvent.Message;
+        var context = msgEvent.Context;
 
         // This section handles setting up the parameters and any other business that should happen before validation starts.
 
         if (IsRecursive(msgEvent))
             return;
-
-        var context = PrepareContext(sender, msgEvent.AdditionalData, targetChannel, formattedMessage);
 
         // This section handles validating the publisher and passing on the message should the validation fail.
 
@@ -139,13 +143,29 @@ public abstract partial class SharedChatSystem
 
             var receiverSpecifiedMessage = getRefinedReceiverMsg.Message;
             var receiverSpecifiedContext = getRefinedReceiverMsg.MessageContext;
-            
-            var receiveEvent = new ReceiveChatMessageEvent(sender, receiverSpecifiedMessage, receiverSpecifiedContext, targetChannel, tick);
+
+            var id = msgEvent.OriginalPlayerMessageId == null ? Guid.NewGuid() : Guid.Parse(msgEvent.OriginalPlayerMessageId);
+            var receiveEvent = new ReceiveChatMessageEvent(id , sender, receiverSpecifiedMessage, receiverSpecifiedContext, targetChannel, tick);
             RaiseLocalEvent(target, ref receiveEvent);
         }
 
         // We also pass it on to any child channels that should be included.
         AlsoSendTo(msgEvent, context, targetChannel.AlwaysRelayedToChannels);
+    }
+
+    private static bool IsLanguageEncodingUsed(ProduceEntityChatMessageEvent? parent)
+    {
+        // Ensure message is not language-encoded.
+        // Messages with language can only be processed server-side and cannot be predicted.
+        while (parent != null)
+        {
+            if (parent.Context.Contains<LanguageCommunicationContextData>())
+                return true;
+
+            parent = parent.Parent;
+        }
+
+        return false;
     }
 
     private static bool IsRecursive(ProduceEntityChatMessageEvent args)
@@ -174,7 +194,21 @@ public abstract partial class SharedChatSystem
     {
         foreach (var childChannel in otherChannels)
         {
-            var newMessage = new ProduceEntityChatMessageEvent(@event.OriginalPlayerMessageId, childChannel, @event.Sender, @event.Message, messageContext.Data, @event);
+            var retained = messageContext.GetRetainedData(childChannel);
+
+            var newMessage = new ProduceEntityChatMessageEvent(
+                @event.OriginalPlayerMessageId,
+                childChannel,
+                @event.Sender,
+                @event.Message,
+                PrepareContext(
+                    @event.Sender,
+                    retained,
+                    childChannel,
+                    @event.Message
+                ),
+                @event
+            );
             RaiseLocalEvent(@event.Sender, ref newMessage);
         }
     }
@@ -182,7 +216,7 @@ public abstract partial class SharedChatSystem
     private ChatMessageContext PrepareContext(
         EntityUid sender,
         List<CommunicationContextData>? additionalData,
-        CommunicationChannelPrototype channelPrototype,
+        ProtoId<CommunicationChannelPrototype> channelPrototype,
         FormattedMessage formattedMessage
     )
     {
@@ -191,7 +225,13 @@ public abstract partial class SharedChatSystem
         // Include a random seed based on the message's hashcode.
         // Since the message has yet to be formatted by anything, any child channels should get the same random seed.
 
-        var seed = SharedRandomExtensions.HashCodeCombine((int)GetNetEntity(sender), (int)Timing.CurTick.Value, GetDeterministicHashCode(channelPrototype.ID), GetDeterministicHashCode(formattedMessage.ToString()));
+        var seed = SharedRandomExtensions.HashCodeCombine(
+            (int)GetNetEntity(sender),
+            (int)Timing.CurTick.Value,
+            GetDeterministicHashCode(channelPrototype.Id),
+            GetDeterministicHashCode(formattedMessage.ToString())
+        );
+
         var messageContext = new ChatMessageContext(seed, additionalData);
 
         return messageContext;
@@ -218,13 +258,13 @@ public abstract partial class SharedChatSystem
         FormattedMessage message,
         ChatMessageContext context,
         EntityUid? sender,
-        GameTick tick)
+        GameTick tick,
+        Guid id)
     {
         if (!TryGetExchanger(userId, out var exchangerEnt, out var exchanger))
             return false;
 
-        var messageId = Generate(context.Seed);
-        if (exchanger.Messages.TryAdd(messageId, new(channel, message, context, GetNetEntity(sender), tick)))
+        if (exchanger.Messages.TryAdd(id, new(channel, message, context, GetNetEntity(sender), tick)))
         {
             exchanger.LastModified = Timing.CurTick;
             Dirty(exchangerEnt.Value, exchanger);
