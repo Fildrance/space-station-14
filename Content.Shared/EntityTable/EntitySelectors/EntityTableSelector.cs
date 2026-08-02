@@ -1,7 +1,8 @@
-using System.Linq;
+using System.Collections;
 using Content.Shared.EntityTable.Conditions;
 using Content.Shared.EntityTable.ValueSelector;
 using JetBrains.Annotations;
+using Robust.Shared.Collections;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 
@@ -44,7 +45,7 @@ public abstract partial class EntityTableSelector
     /// <summary>
     /// Samples an output for this selector.
     /// </summary>
-    public IEnumerable<EntProtoId> GetSpawns(IRobustRandom rand,
+    public virtual IEnumerable<EntProtoId> GetSpawns(IRobustRandom rand,
         IEntityManager entMan,
         IPrototypeManager proto,
         EntityTableContext ctx)
@@ -68,13 +69,12 @@ public abstract partial class EntityTableSelector
     /// <summary>
     /// Check if the condition for this selector are met.
     /// </summary>
-    public bool CheckConditions(IEntityManager entMan, IPrototypeManager proto, EntityTableContext ctx)
+    public virtual bool CheckConditions(IEntityManager entMan, IPrototypeManager proto, EntityTableContext ctx)
     {
-        if (Conditions.Count == 0)
-            return true;
+        var combined = GetConditions(ctx);
 
-        var success = false;
-        foreach (var condition in Conditions)
+        var success = true;
+        foreach (var condition in combined)
         {
             var res = condition.Evaluate(this, entMan, proto, ctx);
 
@@ -89,6 +89,8 @@ public abstract partial class EntityTableSelector
 
         return success;
     }
+
+    public const string AdditionalConditionsKey = "AdditionalConditions";
 
     /// <summary>
     /// Gets a list of every spawn in the table, and the odds of that spawn occuring, ignoring conditions.
@@ -130,4 +132,20 @@ public abstract partial class EntityTableSelector
     protected abstract IEnumerable<(EntProtoId spawn, double)> AverageSpawnsImplementation(IEntityManager entMan,
         IPrototypeManager proto,
         EntityTableContext ctx);
+
+    private IEnumerable<EntityTableCondition> GetConditions(EntityTableContext ctx)
+    {
+        foreach (var condition in Conditions)
+        {
+            yield return condition;
+        }
+
+        if(!ctx.TryGetData<List<EntityTableCondition>>(AdditionalConditionsKey, out var additionalConditions))
+            yield break;
+
+        foreach (var additionalCondition in additionalConditions)
+        {
+            yield return additionalCondition;
+        }
+    }
 }

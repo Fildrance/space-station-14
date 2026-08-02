@@ -110,4 +110,10 @@ public sealed class EntityTableContext
         value = castValueData;
         return true;
     }
+
+    [PublicAPI]
+    public void SetData<T>([ForbidLiteral] string key, T data) where T : notnull
+    {
+        _data[key] = data;
+    }
 }
