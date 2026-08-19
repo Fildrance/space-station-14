@@ -14,6 +14,7 @@ public sealed record ApplyResult(
     int FilesRenamed,
     List<string> Failures,
     List<string> GitMvFailures,
+    List<string> FileRenamesSkipped,
     Dictionary<string, int> EditsPerAssembly);
 
 /// <summary>
@@ -133,6 +134,8 @@ public sealed class RenameApplier
         var renamed = 0;
         var failures = new List<string>();
         var gitFailures = new List<string>();
+        var fileRenamesSkipped = new List<string>();
+        var usedDestinations = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var perAssembly = new Dictionary<string, int>();
 
         foreach (var project in _solution.Projects)
@@ -200,7 +203,12 @@ public sealed class RenameApplier
                     var newPath = ComputeNewPath(path, rn.OldName, rn.NewName);
                     if (newPath != path)
                     {
-                        if (GitMv(path, newPath, out var err))
+                        // Safety net: never fail on a destination collision. If the target name
+                        // already exists (pre-existing file or produced by an earlier partial in
+                        // this same run), keep the original file name and report it.
+                        if (File.Exists(newPath) || !usedDestinations.Add(newPath))
+                            fileRenamesSkipped.Add($"{path} -> {newPath}: destination already exists; keeping original file name");
+                        else if (GitMv(path, newPath, out var err))
                             renamed++;
                         else
                             gitFailures.Add($"{path} -> {newPath}: {err}");
@@ -235,7 +243,7 @@ public sealed class RenameApplier
             }
         }
 
-        return new ApplyResult(written, renamed, failures, gitFailures, perAssembly);
+        return new ApplyResult(written, renamed, failures, gitFailures, fileRenamesSkipped, perAssembly);
     }
 
     private (Dictionary<string, string>? Map, Regex? Regex) BuildSharedCommentRegex()
@@ -326,19 +334,23 @@ public sealed class RenameApplier
     /// <summary>
     /// Computes the target file path for a renamed type, preserving a partial-file suffix
     /// (e.g. SharedActionsSystem.DoAfter.cs -> ActionsSystem.DoAfter.cs).
+    /// Returns the ORIGINAL path when the file's base name does not match the old class name
+    /// (a pre-existing file-name/class-name mismatch): the file keeps its name so multiple
+    /// partials of the same class can never collide on the same destination.
     /// </summary>
     private static string ComputeNewPath(string oldPath, string oldName, string newName)
     {
-        var dir = Path.GetDirectoryName(oldPath) ?? "";
         var baseName = Path.GetFileNameWithoutExtension(oldPath);
-        var ext = Path.GetExtension(oldPath);
-
         var dot = baseName.IndexOf('.');
         var first = dot >= 0 ? baseName[..dot] : baseName;
-        var suffix = dot >= 0 ? baseName[dot..] : "";
 
-        var newBase = string.Equals(first, oldName, StringComparison.Ordinal) ? newName + suffix : newName;
-        return Path.Combine(dir, newBase + ext);
+        if (!string.Equals(first, oldName, StringComparison.Ordinal))
+            return oldPath;
+
+        var dir = Path.GetDirectoryName(oldPath) ?? "";
+        var ext = Path.GetExtension(oldPath);
+        var suffix = dot >= 0 ? baseName[dot..] : "";
+        return Path.Combine(dir, newName + suffix + ext);
     }
 
     private static void WriteFile(string path, string content)

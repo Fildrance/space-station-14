@@ -80,6 +80,12 @@ if (result.GitMvFailures.Count > 0)
     foreach (var f in result.GitMvFailures.Take(50))
         Console.WriteLine($"  {f}");
 }
+if (result.FileRenamesSkipped.Count > 0)
+{
+    Console.WriteLine($"\n{result.FileRenamesSkipped.Count} file renames skipped (destination exists):");
+    foreach (var f in result.FileRenamesSkipped.Take(50))
+        Console.WriteLine($"  {f}");
+}
 
 Console.WriteLine("\nNext steps:");
 Console.WriteLine("  git -C \"{0}\" add -A", Path.Combine(root, "RobustToolbox"));
