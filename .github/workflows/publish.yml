@@ -41,7 +41,7 @@ jobs:
 
     - name: Update changelog
       run: |
-        dotnet tool install --global SpaceWizards.ChangelogTool --version 1.0.5
+        dotnet tool install --global SpaceWizards.ChangelogTool --version 1.0.7
         ss14-changelog update -d Resources/Changelog
       env:
         REPO: ${{ github.repository }}
