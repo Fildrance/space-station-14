@@ -1,4 +1,4 @@
-<Control xmlns="https://spacestation14.io"
+﻿<Control xmlns="https://spacestation14.io"
          xmlns:pllax="clr-namespace:Content.Client.Parallax"
          xmlns:clog="clr-namespace:Content.Client.Changelog"
          xmlns:system="clr-namespace:System;assembly=System.Runtime">
@@ -60,8 +60,8 @@
                         Access="Public"
                         Text="{Loc 'main-menu-quit-button'}"
                         TextAlign="Center"
-                        StyleIdentifier="mainMenu" StyleClasses="negative OpenRight">
-                </Button>
+                        StyleIdentifier="mainMenu"
+                        StyleClasses="negative OpenRight" />
             </BoxContainer>
         </PanelContainer>
     </BoxContainer>
