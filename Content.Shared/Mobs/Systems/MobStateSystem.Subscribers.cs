@@ -1,6 +1,7 @@
 using Content.Shared.Actions.Events;
 using Content.Shared.Bed.Sleep;
 using Content.Shared.Buckle.Components;
+using Content.Shared.Chat.V2;
 using Content.Shared.CombatMode.Pacification;
 using Content.Shared.Cuffs;
 using Content.Shared.Damage.ForceSay;
@@ -41,6 +42,13 @@ public partial class MobStateSystem
         SubscribeLocalEvent<MobStateComponent, UpdateCanMoveEvent>(CheckAct);
         SubscribeLocalEvent<MobStateComponent, StandAttemptEvent>(CheckAct);
         SubscribeLocalEvent<MobStateComponent, PointAttemptEvent>(CheckAct);
+    }
+
+    [SubscribeLocalEvent]
+    private void OnAttemptSendChatMessage(Entity<MobStateComponent> ent, ref AttemptSendChatMessageEvent args)
+    {
+        if (IsIncapacitated(ent, ent))
+            args.Cancelled = true;
     }
 
     [SubscribeLocalEvent]

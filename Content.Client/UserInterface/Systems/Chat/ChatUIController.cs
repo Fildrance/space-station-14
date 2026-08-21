@@ -18,6 +18,7 @@ using Content.Client.UserInterface.Systems.Gameplay;
 using Content.Shared.Administration;
 using Content.Shared.CCVar;
 using Content.Shared.Chat;
+using Content.Shared.Chat.V2;
 using Content.Shared.Damage.ForceSay;
 using Content.Shared.Decals;
 using Content.Shared.Input;
@@ -40,6 +41,7 @@ using Robust.Shared.Prototypes;
 using Robust.Shared.Replays;
 using Robust.Shared.Timing;
 using Robust.Shared.Utility;
+using static Content.Client.Chat.UI.SpeechBubble;
 
 
 namespace Content.Client.UserInterface.Systems.Chat;
@@ -171,7 +173,9 @@ public sealed partial class ChatUIController : UIController
     public event Action<ChatChannel>? FilterableChannelsChanged;
     public event Action<ChatSelectChannel>? SelectableChannelsChanged;
     public event Action<ChatChannel, int?>? UnreadMessageCountsUpdated;
-    public event Action<ChatMessage>? MessageAdded;
+    public Action<ChatMessage>? MessageAdded;
+    public Action<Guid>? MessageRemoved;
+    public Action<Guid, ChatMessage>? MessageModified;
 
     public override void Initialize()
     {
@@ -842,7 +846,9 @@ public sealed partial class ChatUIController : UIController
                 foreach (var (_, codewordData) in codewordComp.RoleCodewords)
                 {
                     foreach (string codeword in codewordData.Codewords)
+                    {
                         msg.WrappedMessage = SharedChatSystem.InjectTagAroundString(msg, codeword, "color", codewordData.Color.ToHex());
+                    }
                 }
             }
         }
@@ -963,4 +969,65 @@ public sealed partial class ChatUIController : UIController
 
         public Queue<SpeechBubbleData> MessageQueue { get; } = new();
     }
+
+    public void RemoveMessage(Guid messageId)
+    {
+        MessageRemoved?.Invoke(messageId);
+    }
+
+    public void ModifyMessage(Guid key, ChatMessage value)
+    {
+        MessageModified?.Invoke(key, value);
+    }
+
+    // todo: remove code duplication - extract common stuff
+    public void AddMessage(ChatMessage msg)
+    {
+        // Log all incoming chat to repopulate when filter is un-toggled
+        if (!msg.HideChat)
+        {
+            History.Add((_timing.CurTick, msg));
+            MessageAdded?.Invoke(msg);
+
+            if (!msg.Read)
+            {
+                _sawmill.Debug($"Message filtered: {msg.Channel}: {msg.Message}");
+                var count = _unreadMessages.GetValueOrDefault(msg.Channel, 0);
+
+                count += 1;
+                _unreadMessages[msg.Channel] = count;
+                UnreadMessageCountsUpdated?.Invoke(msg.Channel, count);
+            }
+        }
+
+        if (!_timing.IsFirstTimePredicted)
+            return;
+
+        if ((msg.Channel & ChatChannel.AdminRelated) == 0
+            || _config.GetCVar(CCVars.ReplayRecordAdminChat))
+        {
+            _replayRecording.RecordClientMessage(msg);
+        }
+
+        // Local messages that have an entity attached get a speech bubble.
+        if (msg.SenderEntity == default
+            || msg.Channel == ChatChannel.Dead && _ghost is not { IsGhost: true }
+            || msg.Channel == ChatChannel.LOOC && !_config.GetCVar(CCVars.LoocAboveHeadShow)
+        )
+            return;
+
+        SpeechType? speechType = msg.Channel switch
+        {
+            ChatChannel.Local or ChatChannel.Emotes  or ChatChannel.Dead => SpeechType.Say,
+            ChatChannel.Whisper => SpeechType.Whisper,
+            ChatChannel.LOOC => SpeechType.Looc,
+            _ => null
+        };
+
+        if(!speechType.HasValue)
+            return;
+
+        AddSpeechBubble(msg, speechType.Value);
+    }
+
 }

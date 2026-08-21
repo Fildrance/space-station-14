@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using Content.Server.Administration;
 using Content.Server.Chat.V2.Repository;
 using Content.Shared.Administration;
@@ -11,7 +11,7 @@ namespace Content.Server.Chat.V2.Commands;
 [ToolshedCommand, AdminCommand(AdminFlags.Admin)]
 public sealed partial class NukeChatMessagesCommand : ToolshedCommand
 {
-    [Dependency] private IEntitySystemManager _manager = default!;
+    [Dependency] private IChatRepositoryManager _chatRepository = default!;
 
     [CommandImplementation("usernames")]
     public void Command(IInvocationContext ctx, string usernamesCsv)
@@ -20,7 +20,7 @@ public sealed partial class NukeChatMessagesCommand : ToolshedCommand
 
         foreach (var username in usernames)
         {
-            if (!_manager.GetEntitySystem<ChatRepositorySystem>().NukeForUsername(username, out var reason))
+            if (!_chatRepository.NukeForUsername(username, out var reason))
             {
                 ctx.ReportError(new NukeMessagesForUsernameError(reason));
             }

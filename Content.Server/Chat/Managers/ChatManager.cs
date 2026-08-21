@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using Content.Server.Administration.Logs;
 using Content.Server.Administration.Managers;
 using Content.Server.Administration.Systems;
+using Content.Server.Chat.V2.Repository;
 using Content.Server.Discord.DiscordLink;
 using Content.Server.Ghost;
 using Content.Server.Players.RateLimiting;
@@ -11,6 +12,7 @@ using Content.Server.Preferences.Managers;
 using Content.Shared.Administration;
 using Content.Shared.CCVar;
 using Content.Shared.Chat;
+using Content.Shared.Chat.V2;
 using Content.Shared.Database;
 using Content.Shared.Mind;
 using Content.Shared.Players.RateLimiting;
@@ -26,7 +28,7 @@ namespace Content.Server.Chat.Managers;
 /// <summary>
 ///     Dispatches chat messages to clients.
 /// </summary>
-internal sealed partial class ChatManager : IChatManager
+internal sealed partial class ChatManager : SharedChatManager, IChatManager
 {
     private static readonly Dictionary<string, string> PatronOocColors = new()
     {
@@ -47,6 +49,7 @@ internal sealed partial class ChatManager : IChatManager
     [Dependency] private PlayerRateLimitManager _rateLimitManager = default!;
     [Dependency] private ISharedPlayerManager _player = default!;
     [Dependency] private DiscordChatLink _discordLink = default!;
+    [Dependency] private IChatRepositoryManager _chatRepository = default!;
     [Dependency] private ILogManager _logManager = default!;
     [Dependency] private ILocalizationManager _localizationManager = default!;
 
@@ -62,7 +65,7 @@ internal sealed partial class ChatManager : IChatManager
 
     private readonly Dictionary<NetUserId, ChatUser> _players = new();
 
-    public void Initialize()
+    public override void Initialize()
     {
         _netManager.RegisterNetMessage<MsgChatMessage>();
         _netManager.RegisterNetMessage<MsgDeleteChatMessagesBy>();
@@ -73,6 +76,19 @@ internal sealed partial class ChatManager : IChatManager
         _sawmill = _logManager.GetSawmill("SERVER");
 
         RegisterRateLimits();
+    }
+
+    /// <inheritdoc />
+    protected override bool TryAddToRepository(ProducePlayerChatMessageEvent ev, ICommonSession senderSession)
+    {
+        return _chatRepository.TryAdd(ev, senderSession);
+    }
+
+    /// <inheritdoc />
+    protected override bool IsFittingRateLimit(ProducePlayerChatMessageEvent ev, EntitySessionEventArgs args)
+    {
+        var result = HandleRateLimit(args.SenderSession);
+        return result == RateLimitStatus.Allowed;
     }
 
     private void OnOocEnabledChanged(bool val)
@@ -169,7 +185,7 @@ internal sealed partial class ChatManager : IChatManager
         ChatMessageToOne(ChatChannel.Admin, message, wrappedMessage, default, false, player.Channel);
     }
 
-    public void SendAdminAlert(string message)
+    public override void SendAdminAlert(string message)
     {
         var wrappedMessage = Loc.GetString("chat-manager-send-admin-announcement-wrap-message",
             ("adminChannelName", Loc.GetString("chat-manager-admin-channel-name")), ("message", FormattedMessage.EscapeText(message)));
@@ -177,15 +193,14 @@ internal sealed partial class ChatManager : IChatManager
         SendAdminAlertNoFormatOrEscape(wrappedMessage);
     }
 
-    public void SendAdminAlertNoFormatOrEscape(string message)
+    public override void SendAdminAlertNoFormatOrEscape(string message)
     {
         var clients = _adminManager.ActiveAdmins.Select(p => p.Channel);
 
         ChatMessageToMany(ChatChannel.AdminAlert, message, message, default, false, true, clients);
     }
 
-
-    public void SendAdminAlert(EntityUid player, string message)
+    public override void SendAdminAlert(EntityUid player, string message)
     {
         var mindSystem = _entityManager.System<SharedMindSystem>();
         if (!mindSystem.TryGetMind(player, out var mindId, out var mind))

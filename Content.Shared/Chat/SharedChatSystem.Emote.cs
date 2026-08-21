@@ -10,7 +10,7 @@ public abstract partial class SharedChatSystem
 {
     private FrozenDictionary<string, EmotePrototype> _wordEmoteDict = FrozenDictionary<string, EmotePrototype>.Empty;
 
-    private void CacheEmotes()
+    protected void CacheEmotes()
     {
         var dict = new Dictionary<string, EmotePrototype>();
         var emotes = ProtoMan.EnumeratePrototypes<EmotePrototype>();

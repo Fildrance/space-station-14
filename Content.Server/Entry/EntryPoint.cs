@@ -4,6 +4,7 @@ using Content.Server.Administration.Logs;
 using Content.Server.Administration.Managers;
 using Content.Server.Afk;
 using Content.Server.Chat.Managers;
+using Content.Server.Chat.V2.Repository;
 using Content.Server.Connection;
 using Content.Server.Database;
 using Content.Server.Discord.DiscordLink;
@@ -24,6 +25,9 @@ using Content.Server.ServerInfo;
 using Content.Server.ServerUpdates;
 using Content.Server.Voting.Managers;
 using Content.Shared.CCVar;
+using Content.Shared.Chat.V2.Moderation;
+using Content.Shared.FeedbackSystem;
+using Content.Shared.Kitchen;
 using Content.Shared.Localizations;
 using Robust.Server;
 using Robust.Server.ServerStatus;
@@ -52,8 +56,10 @@ namespace Content.Server.Entry
         [Dependency] private IAdminLogManager _adminLog = default!;
         [Dependency] private IAfkManager _afk = default!;
         [Dependency] private IBanManager _ban = default!;
-        [Dependency] private IChatManager _chatSan = default!;
-        [Dependency] private IChatSanitizationManager _chat = default!;
+        [Dependency] private IChatManager _chat = default!;
+        [Dependency] private IChatSanitizationManager _chatSan = default!;
+        [Dependency] private IChatRepositoryManager _chatRepo = default!;
+        [Dependency] private ICensorManager _censor = default!;
         [Dependency] private IComponentFactory _factory = default!;
         [Dependency] private IConfigurationManager _cfg = default!;
         [Dependency] private IConnectionManager _connection = default!;
@@ -139,6 +145,8 @@ namespace Content.Server.Entry
         {
             base.PostInit();
 
+            _chatRepo.Initialize();
+            _censor.Initialize();
             _chatSan.Initialize();
             _chat.Initialize();
             var dest = _cfg.GetCVar(CCVars.DestinationFile);

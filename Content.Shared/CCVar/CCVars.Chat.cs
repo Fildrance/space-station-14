@@ -1,4 +1,6 @@
-﻿using Robust.Shared.Configuration;
+using Content.Shared.Administration;
+using Content.Shared.CCVar.CVarAccess;
+using Robust.Shared.Configuration;
 
 namespace Content.Shared.CCVar;
 
@@ -83,4 +85,8 @@ public sealed partial class CCVars
     /// </summary>
     public static readonly CVarDef<string> ChatHighlightsColor =
         CVarDef.Create("chat.highlights_color", "#17FFC1FF", CVar.CLIENTONLY | CVar.ARCHIVE, "The color in which the highlights will be displayed.");
+
+    [CVarControl(AdminFlags.Admin)]
+    public static readonly CVarDef<bool> IsEventBasedChatEnabled =
+        CVarDef.Create("chat.event_based.enabled", false, CVar.REPLICATED);
 }

@@ -1,0 +1,47 @@
+using Content.Shared.Chat.V2;
+using Content.Shared.Chat.V2.Moderation;
+using Robust.Shared.Player;
+using Robust.Shared.Utility;
+
+namespace Content.Shared.Chat;
+
+public abstract class SharedChatManager : ISharedChatManager
+{
+    [Dependency] protected ICensorManager Censor = default!;
+
+    /// <inheritdoc />
+    public abstract void SendAdminAlertNoFormatOrEscape(string message);
+
+    public bool TryProcessChatMessage(ProducePlayerChatMessageEvent ev, EntitySessionEventArgs args)
+    {
+        var formattedMessage = ev.Message;
+
+        if(!IsFittingRateLimit(ev, args))
+            return false;
+
+        // check message-rate
+        if(!TryAddToRepository(ev, args.SenderSession))
+            return false;
+
+        var asMarkup = formattedMessage.ToMarkup();
+
+        if (Censor.Censor(asMarkup, out var censored))
+        {
+            ev.Message = FormattedMessage.FromMarkupPermissive(censored);
+        }
+
+        return true;
+    }
+
+    protected abstract bool TryAddToRepository(ProducePlayerChatMessageEvent ev, ICommonSession senderSession);
+
+    protected abstract bool IsFittingRateLimit(ProducePlayerChatMessageEvent ev, EntitySessionEventArgs args);
+
+    public abstract void Initialize();
+
+    /// <inheritdoc />
+    public abstract void SendAdminAlert(string message);
+
+    /// <inheritdoc />
+    public abstract void SendAdminAlert(EntityUid player, string message);
+}

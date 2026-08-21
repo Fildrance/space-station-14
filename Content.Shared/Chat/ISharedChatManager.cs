@@ -1,3 +1,5 @@
+using Content.Shared.Chat.V2;
+
 namespace Content.Shared.Chat;
 
 public interface ISharedChatManager
@@ -27,4 +29,6 @@ public interface ISharedChatManager
     /// could clink on.
     /// </summary>
     void SendAdminAlertNoFormatOrEscape(string message);
+
+    bool TryProcessChatMessage(ProducePlayerChatMessageEvent ev, EntitySessionEventArgs args);
 }

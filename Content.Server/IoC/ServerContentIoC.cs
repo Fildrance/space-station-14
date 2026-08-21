@@ -4,6 +4,8 @@ using Content.Server.Administration.Managers;
 using Content.Server.Administration.Notes;
 using Content.Server.Afk;
 using Content.Server.Chat.Managers;
+using Content.Shared.Chat.V2.Moderation;
+using Content.Server.Chat.V2.Repository;
 using Content.Server.Connection;
 using Content.Server.Database;
 using Content.Server.Discord;
@@ -39,6 +41,8 @@ internal static class ServerContentIoC
     public static void Register(IDependencyCollection deps)
     {
         SharedContentIoC.Register(deps);
+        deps.Register<IChatRepositoryManager, ChatRepositoryManager>();
+        deps.Register<ICensorManager, CensorManager>();
         deps.Register<IChatManager, ChatManager>();
         deps.Register<ISharedChatManager, ChatManager>();
         deps.Register<IChatSanitizationManager, ChatSanitizationManager>();

@@ -65,6 +65,7 @@ public abstract partial class SharedChatSystem : EntitySystem
         SubscribeLocalEvent<PrototypesReloadedEventArgs>(OnPrototypeReload);
         CacheRadios();
         CacheEmotes();
+        InitializeNew();
     }
 
     protected virtual void OnPrototypeReload(PrototypesReloadedEventArgs obj)

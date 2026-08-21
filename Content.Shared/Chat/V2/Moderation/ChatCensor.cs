@@ -1,5 +1,3 @@
-﻿using System.Linq;
-
 namespace Content.Shared.Chat.V2.Moderation;
 
 public interface IChatCensor
@@ -7,29 +5,9 @@ public interface IChatCensor
     public bool Censor(string input, out string output, char replaceWith = '*');
 }
 
-public sealed class CompoundChatCensor(IEnumerable<IChatCensor> censors) : IChatCensor
-{
-    public bool Censor(string input, out string output, char replaceWith = '*')
-    {
-        var censored = false;
-
-        foreach (var censor in censors)
-        {
-            if (censor.Censor(input, out output, replaceWith))
-            {
-                censored = true;
-            }
-        }
-
-        output = input;
-
-        return censored;
-    }
-}
-
 public sealed class ChatCensorFactory
 {
-    private List<IChatCensor> _censors = new();
+    private readonly List<IChatCensor> _censors = new();
 
     public void With(IChatCensor censor)
     {
@@ -52,8 +30,28 @@ public sealed class ChatCensorFactory
     {
         var notEmpty = _censors.Count > 0;
 
-        _censors = new List<IChatCensor>();
+        _censors.Clear();
 
         return notEmpty;
+    }
+
+    private sealed class CompoundChatCensor(IEnumerable<IChatCensor> censors) : IChatCensor
+    {
+        public bool Censor(string input, out string output, char replaceWith = '*')
+        {
+            var censored = false;
+
+            foreach (var censor in censors)
+            {
+                if (censor.Censor(input, out output, replaceWith))
+                {
+                    censored = true;
+                }
+            }
+
+            output = input;
+
+            return censored;
+        }
     }
 }
