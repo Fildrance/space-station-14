@@ -23,7 +23,7 @@ public partial class ChatBox : UIWidget
 
     private readonly ISawmill _sawmill;
     private readonly ChatUIController _controller;
-    private readonly Dictionary<Guid, Index> _chatBoxMessageIdByMessageId = new();
+    private readonly HashSet<Guid> _visibleMessageIds = new();
 
     public bool Main { get; set; }
 
@@ -57,7 +57,7 @@ public partial class ChatBox : UIWidget
 
     private void OnMessageAdded(ChatMessage msg)
     {
-        if (_chatBoxMessageIdByMessageId.ContainsKey(msg.Id))
+        if (_visibleMessageIds.Contains(msg.Id))
             return;
 
         _sawmill.Debug($"{msg.Channel}: {msg.Message}");
@@ -72,8 +72,8 @@ public partial class ChatBox : UIWidget
 
         var color = msg.MessageColorOverride ?? msg.Channel.TextColor();
 
-        var index = AddLine(msg.WrappedMessage, color);
-        _chatBoxMessageIdByMessageId[msg.Id] = index.Value;
+        AddLine(msg.WrappedMessage, color, msg.Id);
+        _visibleMessageIds.Add(msg.Id);
     }
 
     private void OnHighlightsUpdated(string highlights)
@@ -89,7 +89,7 @@ public partial class ChatBox : UIWidget
     public void Repopulate()
     {
         Contents.Clear();
-        _chatBoxMessageIdByMessageId.Clear();
+        _visibleMessageIds.Clear();
 
         foreach (var message in _controller.History)
         {
@@ -100,7 +100,7 @@ public partial class ChatBox : UIWidget
     private void OnChannelFilter(ChatChannel channel, bool active)
     {
         Contents.Clear();
-        _chatBoxMessageIdByMessageId.Clear();
+        _visibleMessageIds.Clear();
 
         foreach (var message in _controller.History)
         {
@@ -120,29 +120,36 @@ public partial class ChatBox : UIWidget
 
     private void OnMessageRemoved(Guid messageId)
     {
-        if(_chatBoxMessageIdByMessageId.TryGetValue(messageId, out var index))
+        if (!_visibleMessageIds.Remove(messageId))
+            return;
+
+        if (Contents.TryFindEntry(messageId, out var index))
             Contents.RemoveEntry(index);
     }
 
     private void OnMessageModified(Guid messageId, ChatMessage msg)
     {
-        if (!_chatBoxMessageIdByMessageId.TryGetValue(messageId, out var index))
+        if (!_visibleMessageIds.Contains(messageId))
+        {
             OnMessageAdded(msg);
+            return;
+        }
 
         var formatted = new FormattedMessage(3);
         // formatted.PushColor(color);
         formatted.AddMarkupOrThrow(msg.WrappedMessage);
         formatted.Pop();
-        Contents.SetMessage(index, formatted);
+        if (Contents.TryFindEntry(messageId, out var index))
+            Contents.SetMessage(index, formatted);
     }
 
-    public Index AddLine(string message, Color color)
+    public void AddLine(string message, Color color, Guid messageId = default)
     {
         var formatted = new FormattedMessage(3);
         formatted.PushColor(color);
         formatted.AddMarkupOrThrow(message);
         formatted.Pop();
-        return Contents.AddMessage(formatted, tagsAllowed: null);
+        Contents.AddMessage(formatted, tagsAllowed: null, messageId: messageId);
     }
 
     public void Focus(ChatSelectChannel? channel = null)
