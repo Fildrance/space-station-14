@@ -73,9 +73,6 @@ public abstract partial class SharedAnomalySystem : EntitySystem
         if (!Resolve(uid, ref component))
             return;
 
-        if (!Timing.IsFirstTimePredicted)
-            return;
-
         DebugTools.Assert(component.MinPulseLength > TimeSpan.FromSeconds(3)); // this is just to prevent lagspikes mispredicting pulses
         RefreshPulseTimer(uid, component);
 
