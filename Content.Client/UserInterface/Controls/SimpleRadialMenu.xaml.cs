@@ -16,7 +16,7 @@ namespace Content.Client.UserInterface.Controls;
 [GenerateTypedNameReferences]
 public sealed partial class SimpleRadialMenu : RadialMenu
 {
-    static readonly private RadialMenuOptionComparer Comparer = new();
+    private static readonly RadialMenuOptionComparer Comparer = new();
 
     private EntityUid? _attachMenuToEntity;
 
