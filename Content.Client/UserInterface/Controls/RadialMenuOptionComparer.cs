@@ -6,7 +6,7 @@ namespace Content.Client.UserInterface.Controls;
 /// </summary>
 public sealed class RadialMenuOptionComparer : IComparer<RadialMenuOptionBase>
 {
-    /// <summary/>
+    /// <summary>
     /// Compares two RadialMenuOptionBase.
     /// <seealso cref="IComparer{RadialMenuOptionBase}.Compare(RadialMenuOptionBase?, RadialMenuOptionBase?)"/>
     /// </summary>
