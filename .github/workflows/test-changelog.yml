@@ -16,7 +16,7 @@ on:
         required: false
   push:
     branches:
-      - test/changelog-workflow
+      - refactor-publish-steps-test-workflow
 
 concurrency:
   group: test-changelog
