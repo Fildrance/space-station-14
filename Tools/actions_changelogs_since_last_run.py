@@ -20,6 +20,9 @@ import time
 import actions_changelog_github
 
 DEBUG = os.environ.get("SS14_CHANGELOG_DEBUG", "").lower() in {"1", "true", "yes"}
+# If set, formats the changelog and logs it to the console instead of posting
+# it to the Discord webhook (dry-run).
+NO_SEND = os.environ.get("SS14_CHANGELOG_NO_SEND", "").lower() in {"1", "true", "yes"}
 DEBUG_CHANGELOG_FILE_OLD = Path("Resources/Changelog/Old.yml")
 DEBUG_DISCORD_DUMP_FILE = Path("Resources/Changelog/DiscordDebug.md")
 
@@ -39,7 +42,7 @@ ChangelogEntry = dict[str, Any]
 
 
 def main():
-    if not DEBUG and not DISCORD_WEBHOOK_URL:
+    if not DEBUG and not NO_SEND and not DISCORD_WEBHOOK_URL:
         print("No discord webhook URL found, skipping discord send")
         return
 
@@ -61,6 +64,10 @@ def main():
 
     if DEBUG:
         dump_debug_markdown(message_lines)
+        return
+
+    if NO_SEND:
+        log_message_lines(message_lines)
         return
 
     send_message_lines(message_lines)
@@ -257,6 +264,27 @@ def dump_debug_markdown(message_lines: list[str]):
             f.write("\n")
 
     print(f"Wrote Discord changelog debug dump to {DEBUG_DISCORD_DUMP_FILE}")
+
+
+def log_message_lines(message_lines: list[str]):
+    """Log the formatted message to the console instead of sending it to Discord (dry-run)."""
+    chunks = split_message_lines(message_lines)
+
+    if not chunks:
+        print("No changelog entries to send.")
+        return
+
+    print(
+        f"Dry-run: would send {len(chunks)} Discord message(s), "
+        f"{len(''.join(message_lines))} characters total. Not posting anything."
+    )
+    for i, chunk_lines in enumerate(chunks, start=1):
+        content = "".join(chunk_lines)
+        print(
+            f"\n--- Discord message {i}/{len(chunks)} "
+            f"({len(content)}/{DISCORD_SPLIT_LIMIT} characters) ---"
+        )
+        print(content.lstrip("\n"))
 
 
 def send_message_lines(message_lines: list[str]):

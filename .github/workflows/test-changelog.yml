@@ -1,0 +1,62 @@
+name: Test Changelog Workflow
+
+# Non-destructive test harness for the changelog publishing pipeline
+# (Tools/actions_changelog_github.py, Tools/actions_get_last_publish_sha.py,
+# Tools/actions_changelogs_since_last_run.py).
+#
+# Never touches production: no game builds, no RSS upload, no changelog
+# commit/push, and no Discord webhook. The Discord step runs in dry-run mode
+# (SS14_CHANGELOG_NO_SEND) and only logs what it would have sent.
+
+on:
+  workflow_dispatch:
+    inputs:
+      last_publish_sha:
+        description: 'Override the last publish SHA (needed on the first run - there is no test-run history yet). Leave empty to auto-detect.'
+        required: false
+  push:
+    branches:
+      - test/changelog-workflow
+
+concurrency:
+  group: test-changelog
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  changelog:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Fail if run on master/stable
+        if: ${{ github.ref_name == 'master' || github.ref_name == 'stable' }}
+        run: exit 1
+
+      - uses: actions/checkout@v7
+        with:
+          submodules: 'recursive'
+          fetch-depth: 0
+          filter: blob:none
+
+      # First run of this workflow has no previous successful test run, so this
+      # step will fail then. From run #2 onwards it auto-detects correctly.
+      - name: Get last publish SHA
+        id: last-publish
+        continue-on-error: true
+        run: python3 Tools/actions_get_last_publish_sha.py
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Show resolved SHA
+        run: |
+          echo "auto:   ${{ steps.last-publish.outputs.last_publish_sha }}"
+          echo "manual: ${{ github.event.inputs.last_publish_sha }}"
+
+      - name: Publish changelog (Discord) - TEST (dry-run, log only)
+        run: python3 Tools/actions_changelogs_since_last_run.py
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SS14_CHANGELOG_NO_SEND: '1'
+          LAST_PUBLISH_SHA: ${{ github.event.inputs.last_publish_sha || steps.last-publish.outputs.last_publish_sha }}
