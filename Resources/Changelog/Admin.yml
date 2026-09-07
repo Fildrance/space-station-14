@@ -1745,5 +1745,12 @@ Entries:
   id: 234
   time: '2026-08-08T22:59:23.0000000+00:00'
   url: https://github.com/space-wizards/space-station-14/pull/34166
+- author: SlamBamActionman
+  changes:
+  - message: The heart attack smite is now available in the smite menu, instantly killing the target with Asphyxiation damage.
+    type: Add
+  id: 235
+  time: '2026-09-04T13:14:15.0000000+00:00'
+  url: https://github.com/space-wizards/space-station-14/pull/45837
 Name: Admin
 Order: 3

@@ -1327,4 +1327,11 @@ Entries:
   id: 173
   time: '2026-08-22T23:13:15.0000000+00:00'
   url: https://github.com/space-wizards/space-station-14/pull/45568
+- author: ProPeperos
+  changes:
+  - message: On Nukie Planet - removed the roof, now the map uses real natural light! And other small tweaks
+    type: Tweak
+  id: 174
+  time: '2026-09-06T01:17:18.0000000+00:00'
+  url: https://github.com/space-wizards/space-station-14/pull/45867
 Order: 2
