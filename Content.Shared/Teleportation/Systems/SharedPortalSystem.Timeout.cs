@@ -20,19 +20,6 @@ public abstract partial class SharedPortalSystem
         }
     }
 
-    private bool ShouldUpdateTimeout(EntityUid target)
-    {
-        if (!_net.IsClient)
-            return true;
-
-        // On clients, update timeouts only for bodies with physics prediction enabled.
-        // Other entities receive timeout changes from the server.
-        if (!TryComp<PhysicsComponent>(target, out var body))
-            return false;
-
-        return body.Predict;
-    }
-
     /// <summary>
     /// Protects a target from portal use until it leaves the specified exit's trigger bounds.
     /// Returns false when this exit cannot trigger for the target.
@@ -49,6 +36,32 @@ public abstract partial class SharedPortalSystem
         timeout.ExitPortal = exit;
         Dirty(target, timeout);
         return true;
+    }
+
+    private bool ShouldUpdateTimeout(EntityUid target)
+    {
+        if (!_net.IsClient)
+            return true;
+
+        // On clients, update timeouts only for bodies with physics prediction enabled.
+        // Other entities receive timeout changes from the server.
+        if (!TryComp<PhysicsComponent>(target, out var body))
+            return false;
+
+        return body.Predict;
+    }
+
+    private void RefreshTimeout(EntityUid target, PortalTimeoutComponent timeout)
+    {
+        // Movement can synchronously end the source contact before arrival is complete.
+        if (HasComp<TeleportingComponent>(target))
+            return;
+
+        if (IsTimeoutActive(target, timeout))
+            return;
+
+        // Do not queue removal: another request may replace the timeout in the same tick.
+        RemComp<PortalTimeoutComponent>(target);
     }
 
     private bool IsTimeoutActive(EntityUid target, PortalTimeoutComponent timeout)
@@ -72,19 +85,6 @@ public abstract partial class SharedPortalSystem
             return true;
 
         return transform.MapID == MapId.Nullspace;
-    }
-
-    private void RefreshTimeout(EntityUid target, PortalTimeoutComponent timeout)
-    {
-        // Movement can synchronously end the source contact before arrival is complete.
-        if (HasComp<TeleportingComponent>(target))
-            return;
-
-        if (IsTimeoutActive(target, timeout))
-            return;
-
-        // Do not queue removal: another request may replace the timeout in the same tick.
-        RemComp<PortalTimeoutComponent>(target);
     }
 
     private void RestoreTimeoutAfterFailedTeleport(EntityUid target, EntityUid? previousExit, bool moved)
