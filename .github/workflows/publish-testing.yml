@@ -6,11 +6,57 @@ concurrency:
 
 on:
   workflow_dispatch:
+    inputs:
+      force:
+        description: Publish even if there are no new commits since the last successful testing publish.
+        required: false
+        default: false
+        type: boolean
   schedule:
   - cron: '0 10 * * *'
 
 jobs:
+  check-changes:
+    name: Check for changes since last publish
+    if: github.event.inputs.force != 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      should_publish: ${{ steps.compare.outputs.should_publish }}
+
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        sparse-checkout: Tools
+
+    - name: Get last publish SHA
+      id: last-publish
+      continue-on-error: true
+      run: Tools/actions_get_last_publish_sha.py
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Check for changes
+      id: compare
+      env:
+        LAST_PUBLISH_SHA: ${{ steps.last-publish.outputs.last_publish_sha }}
+        CURRENT_SHA: ${{ github.sha }}
+      run: |
+        echo "Current commit: ${CURRENT_SHA}"
+        echo "Last publish commit: ${LAST_PUBLISH_SHA:-unknown}"
+
+        if [ -z "${LAST_PUBLISH_SHA:-}" ]; then
+          echo "Could not determine the last published commit, publishing anyway."
+          echo "should_publish=true" >> "$GITHUB_OUTPUT"
+        elif [ "${LAST_PUBLISH_SHA}" = "${CURRENT_SHA}" ]; then
+          echo "${CURRENT_SHA} was already published, nothing changed since then. Skipping publish."
+          echo "should_publish=false" >> "$GITHUB_OUTPUT"
+        else
+          echo "should_publish=true" >> "$GITHUB_OUTPUT"
+        fi
+
   build:
+    needs: check-changes
+    if: github.event.inputs.force == 'true' || needs.check-changes.outputs.should_publish == 'true'
     runs-on: ubuntu-latest
 
     steps:
